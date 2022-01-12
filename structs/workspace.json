@@ -1,0 +1,22 @@
+{
+  "type": "<String: personal, team, ...>",
+  "name": "<String>",
+  "members": [
+    {
+      "username": "<String>",
+      "name": "<String>",
+      "role": "<String>"
+    }
+  ],
+  "collections": [ "<Collection Object>" ],
+  "environments": [ "<Environment Object>" ],
+  "tasks": [ "<Task Object>" ],
+  "state": {
+    "tabs": [
+      {
+        "title": "<String>",
+        "link": "<String JS Object-Array Link>"
+      }
+    ]
+  }
+}

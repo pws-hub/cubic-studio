@@ -1,0 +1,19 @@
+{
+  "title": "<String>",
+  "description": "<String>",
+  "url": "<String>",
+  "params": [ "<Input Object>" ],
+  "query": [ "<Input Object>" ],
+  "body": {
+    "type": "<String>",
+    "content": "<Any>"
+  },
+  "method": "<String>",
+  "headers": "<Headers Object>",
+  "scripts": {
+    "before": "<Code>",
+    "after": "<Code>",
+    "test": "<Test Object>"
+  },
+  "comments": [ "<Comment Set Object>" ]
+}

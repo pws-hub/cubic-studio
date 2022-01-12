@@ -1,0 +1,60 @@
+
+import {
+  MATCH_VARIABLE,
+  CLEAN_VARIABLE
+} from '../../utils/constants'
+
+class {
+  onCreate(){
+    this.defaultTable = [
+      {
+        key: '',
+        value: '',
+        description: ''
+      }
+    ]
+    this.state = { table: this.defaultTable }
+
+  }
+
+  onFormInput( arg ){
+    
+    // console.log( arg )
+  }
+}
+
+<div.border-top>
+  <Row.strong.no-gutters.px-3.py-1.border-bottom.border-2>
+    <div.col-1.text-muted>#</div>
+    <div.col-3.text-muted>Key</div>
+    <div.col-3.text-muted>Value</div>
+    <div.col.text-muted>Description</div>
+  </Row>
+
+  <for|{ key, value, description }, index| of=state.table>
+    <Row.no-gutters.px-3.py-75.border-bottom>
+      <div.col-1></div>
+
+      <!-- Key name input -->
+      <div.col-3>
+        <input.table-input placeholder="-" value=key/>
+      </div>
+
+      <!-- Composable Value input -->
+      <div.col-3>
+        <Editable placeholder="Value"
+                  extract={ variables: { pattern: MATCH_VARIABLE, clean: CLEAN_VARIABLE } }
+                  preventKeyCodes=[ 13 ]
+                  on-input('onFormInput')/>
+                  
+      </div>
+
+      <!-- Input entry description -->
+      <div.col>
+        <Editable placeholder="Description"
+                  parseList=['bold', 'italic']
+                  on-input('onFormInput')/>
+      </div>
+    </Row>
+  </for>
+</div>

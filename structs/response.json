@@ -1,0 +1,10 @@
+{
+  "status": "<Number>",
+  "headers": "<Headers Object>",
+  "body": {
+    "type": "<String>",
+    "content": "<Any>"
+  },
+  "duration": "<Number>",
+  "size": "Number"
+}

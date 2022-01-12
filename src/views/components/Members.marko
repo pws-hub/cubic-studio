@@ -1,0 +1,31 @@
+
+<ul.list-unstyled.users-list.m-0.d-flex.align-items-center.justify-content-end>
+  <if( input.list.length > 3 )>
+    <for|index| from=0 to=2 step=1>
+      $ const { id, photo, name } = input.list[ index ]
+      <li.avatar.pull-up.shadow key=index title=name on-click( () => component.emit('show', id ) )>
+        <Image.rounded-circle.border-none 
+              src=(photo || '/images/profile/default.png') 
+              alt="Avatar" 
+              style="width:30px;height:30px"/>
+      </li>
+    </for>
+
+    <!-- Remaing number of members -->
+    <li.avatar.border.theme-bg-transparent.pl-50.d-flex.align-items-center
+        style="width:30px;height:30px">
+      <p.text-muted.mb-0.font-small-3>+${input.list.length - 3}</p>
+    </li>
+  </if>
+
+  <else>
+    <for|{ id, photo, name }, index| of=input.list>
+      <li.avatar.pull-up.shadow key=index title=name on-click( () => component.emit('show', id ) )>
+        <Image.rounded-circle.border-none 
+              src=(photo || '/images/profile/default.png') 
+              alt="Avatar" 
+              style="width:30px;height:30px"/>
+      </li>
+    </for>
+  </else>
+</ul>

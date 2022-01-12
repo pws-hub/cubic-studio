@@ -1,0 +1,7 @@
+{
+  "name": "<String>",
+  "description": "<String>",
+  "request": "<Request Object>",
+  "response": "<Response Object>",
+  "comments": [ "<Comment Set Object>" ]
+}

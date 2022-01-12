@@ -1,0 +1,10 @@
+{
+  "name": "<String>",
+  "description": "<String>",
+  "baseURL": "<String>",
+  "variables": [ "<Variable Object>" ],
+  "tests": "<Test Object>",
+  "headers": "<Headers Object>",
+  "content": "<ContentTree Array>",
+  "comments": [ "<Comment Set Object>" ]
+}

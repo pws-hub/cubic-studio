@@ -1,0 +1,14 @@
+[
+  {
+    "type": "category",
+    "__": "<Category Set Object>"
+  },
+  {
+    "type": "request",
+    "__": {
+      "request": "<Request Object>",
+      "response": "<Response Object>",
+      "saves": [ "<Save Set Object>" ]
+    }
+  }
+]

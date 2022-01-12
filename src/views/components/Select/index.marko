@@ -1,0 +1,153 @@
+
+class {
+  onCreate(){
+    this.state = {
+                  active: false,
+                  value: '',
+                  options: [],
+                  xOptions: [],
+                  target: 0
+                }
+
+    // Unique index of this select input in the document
+    this.selectIndex = 'select-'+ random( 10, 999999 )
+  }
+  onInput({ size, value, options }){
+    this.state.options = options
+
+    if( value )
+      for( let i = 0; i < options.length; i++ )
+        if( options[i].value == value ){
+          this.state.value = options[i].label || options[i].value
+          break
+        }
+    else this.state.value = ''
+
+    // height of select input
+    switch( size ){
+      case 'xl': this.styles = { 
+                    height: 65, 
+                    round: 30 
+                  }
+          break
+      case 'lg': this.styles = { 
+                    height: 50, 
+                    round: 30 
+                  }
+          break
+      case 'sm': this.styles = {
+                    height: 30, 
+                    round: 15 
+                  }
+          break
+
+      case 'md': 
+      default: this.styles = { 
+                    height: 45, 
+                    round: 25 
+                  }
+    }
+  }
+
+  isActive(){ return this.state.active || $( this.getEl('in-input') ).is(':focus') }
+  onToggle( status ){
+    this.state.active = status
+    this.state.xOptions = []
+  }
+  onKeyword( e ){
+
+    if( !e.target.value ){
+      this.state.xOptions = []
+      return
+    }
+
+    try {
+      this.state.xOptions = this.state.options.filter( ({ label, value }) => {
+                              return new RegExp( '^'+ e.target.value, 'i' ).test( label || value )
+                            } )
+    }
+    catch( error ){}
+  }
+  onKeySelect( e ){
+    // Navigate options Up and Down with keyboard
+    if( !this.state.active
+        || ![ 38, 40, 13 ].includes( e.keyCode ) ) return
+
+    const options = this.state.xOptions.length ? this.state.xOptions : this.state.options
+    switch( e.keyCode ){
+      // Validate the targeted option
+      case 13: this.onSelect( this.state.target ); break
+      // Navigate options up
+      case 38: if( this.state.target > 0 ) this.state.target--; break
+      // Navigate options down
+      case 40: if( this.state.target < options.length ) this.state.target++; break
+    }
+  }
+  onIngore( e ){
+    // Close option list at external click
+    if( !$(e.target).closest('#'+ this.selectIndex +'.select-input').length )
+      this.state.active = false
+  }
+  onSelect( index ){
+
+    const option = ( this.state.xOptions.length ? this.state.xOptions : this.state.options )[ index ]
+    this.state.value = option.label || option.value
+
+    this.getEl('in-input').blur()
+    this.state.active = false
+
+    this.emit( 'select', this.input.returnAll ? option : option.value )
+  }
+}
+
+<div class=`position-relative zindex-${ state.active ? 3 : 2 }`
+      style=`height:${component.styles.height}px`>
+  <div id=component.selectIndex class=`select-input theme-bg border overflow-hidden ${input.class}`
+        style=`${( input.class || '' ).includes('round') ? 'border-radius:'+ component.styles.round +'px;' : '' } ${input.style}`>
+    <div class="position-relative zindex-1 d-flex align-items-center">
+      <input key="in-input"
+              type="text"
+              class=`form-control form-control-${input.size || 'lg'} h-100 px-1 shadow-none border-none`
+              placeholder=( input.placeholder || '-- Select Options --' )
+              value=state.value
+              no-update-if( state.active )
+              on-focus( 'onToggle', true )
+              on-keyup('onKeyword')>
+      <!-- Caret icon -->
+      <if( state.options.length )>
+        <button class=`btn btn-icon ${input.size == 'xl' ? ' mt-1 mr-1' : 'm-0'}`
+                type="button"
+                on-click( 'onToggle', !state.active )>
+          <i class=`bx bx-chevron-down font-large-1 grey-text ${component.isActive() ? 'up' : ''}`></i>
+        </button>
+      </if>
+
+      <!-- To close select input with click outside in the document -->
+      <subscribe to=document on-click('onIngore')/>
+      <!-- Navigate and select Options with "Up, Down - Enter" keyboard -->
+      <subscribe to=document on-keyup('onKeySelect')/>
+    </div>
+
+    <if( component.isActive() )>
+      <AutoScroll class="options position-relative animated faster slideInDown"
+                    style=`max-height:${input.maxHeight || '220px'}`>
+        <ul class="list-unstyled m-0">
+          <for|{ value, label, sublabel }, index| of=( state.xOptions.length ? state.xOptions : state.options )>
+            <if( ( label || value ) !== state.value )>
+              <li key=`opt-${index}`
+                  class=`nav-item ${input.fontSize || 'font-medium-2'} px-2 py-1 ${state.target == index ? 'theme-bg-fade' : ''}`
+                  data-value=value
+                  style=input.optionStyle
+                  on-click( 'onSelect', index )>
+                <span>${label || value.toCapitalCase()}</span>
+                <if( sublabel )>
+                  <br><span.text-muted.font-small-3>${sublabel}</span>
+                </if>
+              </li>
+            </if>
+          </for>
+        </ul>
+      </AutoScroll>
+    </if>
+  </div>
+</div>

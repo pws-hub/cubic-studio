@@ -1,0 +1,11 @@
+{
+  "Market": "Market",
+  "Account": {
+    "US": "Account",
+    "UK": "User",
+    "default": "US"
+  },
+  "Shops": "Shops",
+  "History": "History",
+  "Switch language": "Switch language"
+}

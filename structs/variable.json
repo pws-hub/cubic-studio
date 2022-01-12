@@ -1,0 +1,9 @@
+{
+  "name": "<String>",
+  "description": "<String>",
+  "values": {
+    "initial": "<Any>",
+    "current": "<Any>"
+  },
+  "comments": [ "<Comment Set Object>" ]
+}

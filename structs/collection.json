@@ -1,0 +1,13 @@
+{
+  "name": "<String>",
+  "description": "<String>",
+  "baseURL": "<String>",
+  "version": "<String>",
+  "variables": [ "<Variable Object>" ],
+  "authorization": {
+    "type": "<String>",
+    "parameters": {}
+  },
+  "tests": "<Test Object>",
+  "content": "<ContentTree Array>"
+}

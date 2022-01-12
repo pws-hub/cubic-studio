@@ -1,0 +1,235 @@
+
+import Quill from 'quill'
+import 'quill/dist/quill.snow.css'
+
+class {
+  onCreate(){ 
+    this.state = { textLen: 0, wordsCount: 0, mustUpdate: false }
+    this.previousValue = ''
+  }
+  onInput( input ){
+    // When input changes
+    if( !input.value || input.value == this.previousValue ) 
+      return
+    
+    // Overwrite active editor content with new delta input
+    if( this.editor )
+      switch( typeof input.value ){
+        case 'string': this.editor.setText( input.value, 'api' ); break // Text input value
+        case 'object': this.editor.setContents( input.value, 'api' ); break // Delta input value
+      }
+    
+    this.previousValue = input.value
+  }
+  onMount(){ this.initialize() }
+
+  initialize(){
+    const 
+    editorElement = this.getEl('q-editor-area'),
+    readOnly = this.input.readOnly
+
+    this.editor = new Quill( editorElement, {
+                                              readOnly,
+                                              debug: 'warn',
+                                              placeholder: this.input.placeholder || ( !readOnly ? 'Rich text area ...' : '' ),
+                                              theme: 'snow',
+                                              modules: {
+                                                toolbar: !readOnly ? this.getEl('q-editor-toolbar') : false,
+                                                // handlers: {}
+                                              }
+                                            } )
+
+    // Initialize editor with an input delta value
+    this.input.value
+    && typeof this.input.value == 'object'
+    && this.editor.setContents( this.input.value, 'api' )
+
+    this.editor
+    .on( 'text-change', ( delta, oldDelta, source ) => {
+
+      if( source != 'user' ) return
+      // Check max length limit at every new text change
+      if( this.input.maxlength ) this.checkTextLimit()
+      // Check max word limit at every new text change
+      if( this.input.maxwords ) this.checkWordsLimit()
+    } )
+    
+    const $editor = $(editorElement)
+    .find('[contenteditable]')
+    .on( 'focus', () => this.emit('focus') )
+
+    /* Return delta only when editor no more have
+        cursor and no extra-text than required with
+        "maxlength" attribute is set
+    */
+    .on( 'blur', () => {
+
+      if( this.reachLimit ) return
+
+      let content
+      // Return only the text content of the editor
+      if( this.input.returnText ) content = this.editor.getText()
+      // Return HTML content
+      else if( this.input.returnHTML ) content = $editor.html()
+      // Return content Delta + authoring information
+      else content = {
+                      ...( this.editor.getContents() ),
+
+                      // Add ownership dataset
+                      author: this.input.author,
+                      date: new Date().toDateString(),
+                      copyright: 'Multipple 2.0'
+                    }
+                  
+      const wordsCount = ( this.input.returnText ? content : this.editor.getText() ).split(/\s+/g).length - 1
+      this.emit( 'change', content, wordsCount )
+    } )
+  }
+  checkTextLimit(){
+    /** Prevent user when the maxlength of text
+        content required is passed.
+
+        Extra-text will be highlighted red
+    */
+    this.state.textLen = this.editor.getLength() - 1 // the 1 is for the cursor
+
+    if( this.state.textLen > this.input.maxlength ){
+      // console.log( this.input.maxlength, this.state.textLen )
+      this.editor.formatText( this.input.maxlength, this.state.textLen, 'color', 'red' )
+      this.reachLimit = true
+    }
+    else this.reachLimit = false
+
+    // Return the current text length
+    this.emit( 'input-text', this.state.textLen )
+  }
+  checkWordsLimit(){
+    /** Prevent user when the maxwords of text
+        content required is passed.
+
+        Extra-words will be highlighted red
+    */
+    const textLen = this.editor.getLength() - 1 // the 1 is for the cursor
+    
+    this.state.wordsCount = this.editor.getText().split(/\s+/g).length - 1
+
+    if( this.wordLimitPoint && this.state.wordsCount > this.input.maxwords ){
+      // console.log( this.wordLimitPoint, textLen )
+      this.editor.formatText( this.wordLimitPoint, textLen, 'color', 'red' )
+      this.reachLimit = true
+    }
+    else if( this.state.wordsCount == ( this.input.maxwords + 1 ) )
+      this.wordLimitPoint = textLen - 1
+
+    else this.reachLimit = false
+
+    // Return the current word length
+    this.emit( 'input-word', this.state.wordsCount )
+  }
+}
+
+<macro name="Defaults">
+  <li>
+    <!-- Add a bold button -->
+    <button class="ql-bold"></button>
+    <!-- Add a italic button -->
+    <button class="ql-italic"></button>
+    <!-- Add a underline button -->
+    <button class="ql-underline"></button>
+    <!-- Add a strike button -->
+    <button class="ql-strike"></button>
+
+    <!-- Add a font color button -->
+    <select class="ql-color"></select>
+  </li>
+
+  <!-- Max Text length monitor -->
+  $ maxParam = input.maxlength || input.maxwords
+  $ currentLen = state.textLen || state.wordsCount
+  <if( maxParam )>
+    <li>
+      <span class="d-inline-block theme-bg-lighten px-75 py-25 rounded font-small-1">
+        ${currentLen}/${maxParam}
+      </span>
+    </li>
+  </if>
+</macro>
+
+<div class="position-relative">
+  <!-- Text Area -->
+  <div key="q-editor-area"
+        style=( input.style || { height: ( input.height || '180px' ) }) 
+        no-update>
+    ${typeof input.value == 'string' ? input.value : ''}
+  </div>
+  
+  <!-- Display toolbarl only when not in read-only mode -->
+  <if( !input.readOnly )>
+    <!-- Toolbar -->
+    <div.position- key="q-editor-toolbar">
+      <ul.q-ul class="list-inline m-0 d-flex align-items-center">
+        <if( Array.isArray( input.toolbar ) )>
+          <Defaults/>
+
+          <if( input.toolbar.includes('list') )>
+            <li>
+              <!-- Add a buulet & ordered list button -->
+              <button class="ql-list" value="bullet"></button>
+              <button class="ql-list" value="ordered"></button>
+            </li>
+          </if>
+
+          <if( input.toolbar.includes('align')
+                || input.toolbar.includes('font-size') )>
+            <li>
+              <if( input.toolbar.includes('align') )>
+                <button class="ql-align"></button>
+                <button class="ql-align" value="right"></button>
+                <button class="ql-align" value="center"></button>
+                <button class="ql-align" value="justify"></button>
+              </if>
+
+              <!-- Add font size dropdown -->
+              <if( input.toolbar.includes('font-size') )>
+                <select class="ql-size">
+                  <option value="small"></option>
+                  <!-- Note a missing, thus falsy value, is used to reset to default -->
+                  <option selected></option>
+                  <option value="large"></option>
+                  <option value="huge"></option>
+                </select>
+              </if>
+            </li>
+          </if>
+
+          <if( input.toolbar.includes('indent') )>
+            <li>
+              <!-- Add a indentation left & right button -->
+              <button class="ql-indent" value="-1"></button>
+              <button class="ql-indent" value="+1"></button>
+            </li>
+          </if>
+
+          <if( input.toolbar.includes('embed-block') )>
+            <li>
+              <!-- Add a blockquote & code-block button -->
+              <button class="ql-blockquote"></button>
+              <button class="ql-code-block"></button>
+            </li>
+          </if>
+
+          <if( input.toolbar.includes('link') )>
+            <li>
+              <!-- Add Attach element buttons -->
+              <button class="ql-link"></button>
+              <if( input.toolbar.includes('latex') )><button class="ql-formula"></button></if>
+            </li>
+          </if>
+        </if>
+
+        <!-- Default Toolbar -->
+        <else><Defaults/></else>
+      </ul>
+    </div>
+  </if>
+</div>

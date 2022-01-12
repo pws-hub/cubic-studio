@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang=input.lang>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui"/>
+    <title>${input.title}</title>
+    <link rel="apple-touch-icon" href="/images/logo/sample.png">
+    <link rel="shortcut icon" type="image/x-icon" href="/images/logo/sample.png">
+    <if( Array.isArray( input.Assets.client.css ) )>
+      <for|href| of=input.Assets.client.css>
+        <link rel="stylesheet" href=href>
+      </for>
+    </if>
+  </head>
+  <body data-store="init"
+				data-store-type="temp"
+				data-store-value=input.init
+        style="overflow:hidden">
+    <!-- Loading Root Placeholder -->
+    <div#root>
+      <!-- <div.vh-100.d-flex.align-items-center.justify-content-center>
+        <div.col-2.text-center>
+          <Bx.font-large-5 type="cube-alt"/>
+          <h4.mb-1>Cubic Studio</h4>
+          <div.text-right.font-small-2.text-muted style="margin-right:5rem">Multipple</div>
+        </div>
+      </div> -->
+    </div>
+    <if( Array.isArray( input.Assets.client.js ) )>
+      <for|src| of=input.Assets.client.js>
+        <script src=src crossorigin=( process.env.NODE_ENV === 'production' ) defer></script>
+      </for>
+    </if>
+  </body>
+</html>

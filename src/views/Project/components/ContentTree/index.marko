@@ -1,0 +1,82 @@
+
+class {
+  onCreate(){
+    this.state = {
+      active: null,
+      showMenu: true
+    }
+
+    this.noChange = false
+    this.Actives = {}
+  }
+  onInput({ type, list }){
+
+    if( this.state.active == type ) return
+    if( this.Actives.hasOwnProperty( type ) ){
+      this.noChange = false
+      this.state.active = type
+    }
+    else {
+      this.Actives[ type ] = list
+      this.state.active = type
+    }
+  }
+  onShowMenu(){
+    this.state.showMenu = !this.state.showMenu
+    this.noChange = true
+    setTimeout( () => this.noChange = false, 100 )
+
+    this.emit('show-menu', this.state.showMenu ) 
+  }
+}
+
+<macro|{ type, list }| name="RenderBody">
+  <ul.list-unstyled.my-0.ml-3 no-update-body-if( component.noChange )>
+    <Switch by=type>
+      <@case is=["API", "collections"]>
+        <for|collection, index| of=list>
+          <Collection ...collection/>
+        </for>
+      </@case>
+      <@case is="environments">
+        <for|collection, index| of=list>
+          <Environment ...collection/>
+        </for>
+      </@case>
+      <@default>
+        Default Mode
+      </@default>
+    </Switch>
+    
+    <li.py-2>
+      <div.hover-toggle.py-50.d-flex.align-items-center.cursor-pointer>
+        <Bx.font-medium-5.pl-50.pr-4 type="plus"/>
+        <div.font-small-5.text-ellipsis.w-75>Create New</div>
+      </div>
+    </li>
+  </ul>
+</macro>
+
+<div.section-block.col-2.px-0.border-right>
+  <div.w-100.d-flex.align-items-center style="height:3.3rem">
+    <div.w-100>
+      <ul.list-inline.m-0>
+        <!-- <li><Bx.font-medium-5.px-1 type="wifi-off"/></li> -->
+        <li>
+          <Bx.font-large-1.px-1
+              type=`menu-alt-${state.showMenu ? 'right' : 'left'}`
+              on-click('onShowMenu')/></li>
+      </ul>
+    </div>
+  </div>
+
+  <div.position-relative.overflow-auto style="height:calc(100% - 3.3rem)">
+    <for|type, list| in=component.Actives>
+      <div.position-absolute.theme-bg.h-100.top-0.left-0.right-0.py-1
+          key=type
+          class=( state.active == type ? 'zindex-2' : 'zindex-1')>
+        <RenderBody type=type list=list/>
+      </div>
+    </for>
+  </div>
+</div>

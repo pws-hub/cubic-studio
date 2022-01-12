@@ -1,0 +1,22 @@
+[
+  {
+    "locale": "en-UK",
+    "name": "English (United Kingdom)"
+  },
+  {
+    "locale": "en-US",
+    "name": "English (United State)"
+  },
+  {
+    "locale": "fr-FR",
+    "name": "French (France)"
+  },
+  {
+    "locale": "de-GR",
+    "name": "Deutch (Germany)"
+  },
+  {
+    "locale": "es-ES",
+    "name": "Spanish (Spain)"
+  }
+]

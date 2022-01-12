@@ -1,0 +1,9 @@
+{
+  "type": "<String: text, number, hidden, ...>",
+  "key": "<String>",
+  "value": "<Any>",
+  "description": "<String>",
+  "hidden": "<Boolean>",
+  "disabled": "<Boolean>",
+  "comments": [ "<Comment Set Object>" ]
+}

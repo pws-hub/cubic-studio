@@ -1,0 +1,27 @@
+
+<Switch by=input.type>
+  <@case is="GET">
+    <span.text-success style="font-size:inherit">GET</span>
+  </@case>
+  <@case is="POST">
+    <span.text-warning style="font-size:inherit">POST</span>
+  </@case>
+  <@case is="PUT">
+    <span.text-info style="font-size:inherit">PUT</span>
+  </@case>
+  <@case is="DELETE">
+    <span.text-danger style="font-size:inherit">DELETE</span>
+  </@case>
+  <@case is="PATCH">
+    <span.text-primary style="font-size:inherit">PATCH</span>
+  </@case>
+  <@case is="HEAD">
+    <span.text-muted style="font-size:inherit">HEAD</span>
+  </@case>
+  <@case is="OPTIONS">
+    <span.text-white style="font-size:inherit">OPTIONS</span>
+  </@case>
+  <@default>
+    <Bx.text-muted.font-medium-2 type="info"/>
+  </@default>
+</Switch>

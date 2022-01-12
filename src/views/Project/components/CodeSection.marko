@@ -1,0 +1,22 @@
+
+import * as monaco from 'monaco-editor'
+
+class {
+  onMount(){
+    monaco.editor.create( this.getEl(), {
+      value: ['function x() {', '\tconsole.log("Hello world!");', '}'].join('\n'),
+      language: 'typescript',
+
+      lineNumbers: 'on',
+      roundedSelection: false,
+      scrollBeyondLastLine: false,
+      readOnly: false,
+      theme: 'vs-'+ GState.get('theme'),
+      minimap: {
+        scale: false
+      }
+    })
+  }
+}
+
+<div.h-100.code-editor.font-medium-3 no-update></div>

@@ -1,0 +1,7 @@
+{
+  "active": "<Boolean>",
+  "name": "<String>",
+  "description": "<String>",
+  "variables": [ "<Variable Object>" ],
+  "comments": [ "<Comment Set Object>" ]
+}

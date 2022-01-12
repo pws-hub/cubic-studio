@@ -1,0 +1,121 @@
+
+import Markdown from '../utils/markdown'
+
+class {
+  onCreate(){
+    this.state = {
+      content: ''
+    }
+  }
+  onMount(){ this.editable = this.getEl('editable') }
+  onKeyUp(e){
+    if( e.keyCode == 13 ) this.emit('press-enter')
+  }
+  onKeyDown(e){
+    if( Array.isArray( this.input.preventKeyCodes ) 
+        && this.input.preventKeyCodes.includes( e.keyCode ) ) 
+      e.preventDefault()
+  }
+  onEntry(e){
+    // Parse variables
+    let { HTML, cursorPosition } = this.markVariables( e.target.innerHTML )
+
+    // Parse Markdown Properties
+    if( Array.isArray( this.input.parseList ) ){
+      const result = Markdown( HTML, this.input.parseList )
+
+      console.log('Result: ', result )
+
+      HTML = result.HTML
+      cursorPosition = result.cursorPosition
+    }
+
+    this.state.content = HTML
+
+    this.once( 'update', () => {
+      cursorPosition !== undefined ?
+            this.setCursor( cursorPosition ) // Reset the cursor
+            : $(this.editable).find('.cursor').removeAttr('class')
+
+      // Check and Extract defined & valid variables
+      this.extractVariables()
+    } )
+  }
+  setCursor( position ) {
+    const
+    range = document.createRange(), // Creates range object
+    set = window.getSelection() // Creates object for selection
+    
+    // Set start position of range
+    range.setStart( $(this.editable).find('.cursor')[0], position )
+    // Collapse range within its boundary points
+    // Returns boolean
+    range.collapse(true)
+    // Remove all ranges set
+    set.removeAllRanges()
+    // Add range with respect to range object.
+    set.addRange( range )
+    // Set cursor on focus
+    this.editable.focus()
+
+    $(this.editable).find('.cursor').removeAttr('class')
+  }
+
+  isDeclaredVariable( variable ){
+
+    return false
+  }
+  markVariables( HTML ){
+
+    let cursorPosition
+    HTML = HTML
+          // Deleting variable from right to left
+          .replace( new RegExp('<span class="([a-zA-Z-]+)">{{([a-zA-Z_]+)<\/span>', 'g'), ( match, mm, variable ) => { return `{{${variable}` } )
+          // Deleting variable from withing to left
+          .replace( new RegExp('<span class="([a-zA-Z-]+)">([a-zA-Z_]+)}}<\/span>', 'g'), ( match, mm, variable ) => {
+            cursorPosition = 0 // cursor position 0
+            return `<span class="cursor">${variable}}}</span>` 
+          } )
+          // Inserting new variable
+          .replace( new RegExp('(<span class="([a-zA-Z-]+)">)?{{([a-zA-Z_]+)}}', 'g'), ( match, m1, m2, variable ) => {
+            // Already matched and replaced
+            if( m1 || m2 ) return match
+            // New variable
+            cursorPosition = 1 // cursor position 1
+            // Assign text color by variable's availability
+            return `<span class="text-${this.isDeclaredVariable( variable ) ? 'warning' : 'danger'}">{{${variable}}}</span><span class="cursor">\uFEFF</span>`
+          } )
+
+    return { HTML, cursorPosition }
+  }
+  extractVariables(){
+    const 
+    value = this.editable.textContent,
+    output = { value }
+    
+    if( this.input.extract && !isEmpty( this.input.extract ) )
+      Object.entries( this.input.extract )
+            .map( ([ type, { pattern, clean } ]) => {
+
+              const matches = value.match( pattern )
+              if( !matches ){
+                output[ type ] = []
+                return
+              }
+
+              output[ type ] = clean ?
+                        matches.map( each => { return each.replace( clean, '') }) // Clean matched elements
+                        : matches
+            } )
+    
+    this.emit( 'input', output )
+  }
+}
+
+<div.w-100.h-100
+    key="editable"
+    contenteditable
+    placeholder=input.placeholder
+    on-input('onEntry')
+    on-keyup('onKeyUp')
+    on-keydown('onKeyDown')>$!{state.content}</div>

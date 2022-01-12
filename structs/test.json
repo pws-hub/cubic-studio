@@ -1,0 +1,49 @@
+{
+  "type": "<String: script, scenario, runner",
+  "script": {
+    "code": "<Code>",
+    "result": {
+      "status": "<String: Succeed, Failed, Stalled, ...>",
+      "message": "<String>",
+      "body": {
+        "type": "<String>",
+        "content": "<Any>"
+      },
+      "duration": "<Number>",
+      "comments": [ "<Comment Set Object>" ]
+    }
+  },
+  "scenario": [
+    {
+      "name": "<String>",
+      "description": "<String>",
+      "script": "<Code>",
+      "result": {
+        "status": "<String: Succeed, Failed, Stalled, ...>",
+        "message": "<String>",
+        "duration": "<Number>"
+      },
+      "comments": [ "<Comment Set Object>" ]
+    }
+  ],
+  "runner": {
+    "requests": [
+      {
+        "id": "<String>",
+        "result": {
+          "status": "<String: Succeed, Failed, Stalled, ...>",
+          "message": "<String>",
+          "duration": "<Number>",
+          "body": {
+            "type": "<String>",
+            "content": "<Any>"
+          }
+        }
+      }
+    ],
+    "overall": {
+      "message": "<String>",
+      "duration": "<Number>"
+    }
+  }
+}

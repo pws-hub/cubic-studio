@@ -1,0 +1,69 @@
+
+import {
+  MATCH_VARIABLE,
+  CLEAN_VARIABLE,
+  MATCH_PATH_VARIABLE,
+  CLEAN_PATH_VARIABLE,
+  MATCH_QUERY_VARIABLE,
+  CLEAN_QUERY_VARIABLE
+} from '../../utils/constants'
+
+static const Types = [ 'GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS' ]
+
+class {
+  onCreate(){
+    this.state = {
+      type: 'GET',
+      dropdown: false,
+    }
+  }
+  onDropdown(){ this.state.dropdown = !this.state.dropdown }
+  onSelectType( type ){ this.setState({ type, dropdown: false }) }
+  onURLInput({ value, variables, params, query }){
+
+    console.log( value, variables, params, query )
+  }
+  onPressEnter(){
+
+    console.log('Trigger Send Request process')
+  }
+}
+
+<div.d-flex.align-items-center.border.border-2.round>
+  <div class=(state.dropdown ? 'theme-bg-lighten' : false )
+      style=`width:13%;min-height:40px;margin-left:-2px;border-radius:1.8rem 0 0 ${!state.dropdown ? '1.8rem' : 0}`>
+    <span.position-relative.w-100.d-inline-block>
+      <div.position-relative.zindex-1.h-100.d-flex.align-items-center.rounded.px-2.py-1 on-click('onDropdown')>
+        <!-- Request Type -->
+        <RequestLabel type=state.type/>
+
+        <Bx.position-absolute.right-0.p-1.font-medium-4 type="chevron-down"/>
+      </div>
+
+      <if( state.dropdown )>
+        <ul.position-absolute.zindex-1.w-100.list-unstyled.mx-0.theme-bg-lighten.overflow-hidden style="border-radius:0 0 0 1.8rem">
+          <for|type, index| of=Types>
+            <if( state.type != type )>
+              <li.px-2.py-1.nav-item.cursor-pointer on-click('onSelectType', type )>
+                ${type}
+              </li>
+            </if>
+          </for>
+        </ul>
+      </if>
+    </span>
+  </div>
+  
+  <!-- URL input area -->
+  <div.px-1.py-75.font-medium-1 style="width:87%;min-height:40px;outline:0">
+    <Editable placeholder="Enter request URL"
+              extract={
+                variables: { pattern: MATCH_VARIABLE, clean: CLEAN_VARIABLE },
+                params: { pattern: MATCH_PATH_VARIABLE, clean: CLEAN_PATH_VARIABLE },
+                query: { pattern: MATCH_QUERY_VARIABLE, clean: CLEAN_QUERY_VARIABLE }
+              }
+              preventKeyCodes=[ 13 ]
+              on-input('onURLInput')
+              on-press-enter('onPressEnter')/>
+  </div>
+</div>

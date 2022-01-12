@@ -1,0 +1,110 @@
+
+static const Tabs = [
+  {
+    type: 'GET',
+    name: 'Test Get Request',
+    link: '...'
+  },
+  {
+    active: true,
+    type: 'POST',
+    name: 'Test Post Request',
+    link: '...'
+  },
+  {
+    type: 'PUT',
+    name: 'Test Put Request',
+    link: '...'
+  },
+  {
+    type: 'DELETE',
+    name: 'Test Delete Request',
+    link: '...'
+  },
+  {
+    type: 'PATCH',
+    name: 'Test Patch Request',
+    link: '...'
+  },
+  {
+    type: 'HEAD',
+    name: 'Test Head Request',
+    link: '...'
+  },
+  {
+    type: 'OPTIONS',
+    name: 'Test Options Request',
+    link: '...'
+  }
+]
+
+class {
+  onCreate(){
+    this.state = {
+      activeTab: {
+        type: 'code',
+      },
+      showMenu: true,
+      activeMenu: null
+    }
+  }
+  onShowMenu( status ){ this.state.showMenu = status }
+  onMenuToggle( name ){ this.state.activeMenu = name }
+
+  getContent( type ){
+    
+    let list = []
+
+    switch( type ){
+      case 'API': list = [
+                            { name: 'Collection One Name' },
+                            { name: 'Collection One Name' }
+                          ]
+          break
+      case 'environments': list = [
+                            { name: 'Environment One Name' },
+                            { name: 'Environment One Name' }
+                          ]
+      break
+    }
+
+    return { type, list }
+  }
+}
+
+<div.vh-100>
+  <Row.no-gutters>
+    <!-- Navigation Block -->
+    <Navigation show=state.showMenu 
+                on-toggle('onMenuToggle')/>
+
+    <!-- Content Tree Block -->
+    <ContentTree ...component.getContent( state.activeMenu )
+                  on-show-menu('onShowMenu')/>
+
+    <!-- Main Block -->
+    <main.main-block.col.px-0>
+      <div.position-relative.h-100 style="width:calc(100% - 4rem)">
+        <!-- Tabs line -->
+        <HeaderTabs list=[]/>
+        
+        <div.h-100.position-relative style="padding-top:3.3rem">
+          <Switch by=state.activeTab.type>
+            <@case is="code">
+              <CodeSection />
+            </@case>
+
+            <@case is="request">
+              <RequestSection />
+            </@case>
+    
+          </Switch>
+        </div>
+      </div>
+      
+      <Toolbar />
+    </main>
+  </Row>
+
+  <Footer />
+</div>

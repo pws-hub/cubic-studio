@@ -4468,6 +4468,11 @@ glob-parent@^5.1.1, glob-parent@^5.1.2, glob-parent@~5.1.2:
   dependencies:
     is-glob "^4.0.1"
 
+glob-to-regexp@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/glob-to-regexp/-/glob-to-regexp-0.3.0.tgz#8c5a1494d2066c570cc3bfe4496175acc4d502ab"
+  integrity sha1-jFoUlNIGbFcMw7/kSWF1rMTVAqs=
+
 glob-to-regexp@^0.4.1:
   version "0.4.1"
   resolved "https://registry.yarnpkg.com/glob-to-regexp/-/glob-to-regexp-0.4.1.tgz#c75297087c851b9a578bd217dd59a92f59fe546e"
@@ -6202,7 +6207,7 @@ loader-utils@2.0.0, loader-utils@^2.0.0:
     emojis-list "^3.0.0"
     json5 "^2.1.2"
 
-loader-utils@^1.2.3, loader-utils@^1.4.0:
+loader-utils@^1.0.0, loader-utils@^1.2.3, loader-utils@^1.4.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/loader-utils/-/loader-utils-1.4.0.tgz#c579b5e34cb34b1a74edc6c1fb36bfa371d5a613"
   integrity sha512-qH0WSMBtn/oHuwjy/NucEgbx5dbxxnxup9s4PVXJUDHZBQY+s0NWA9rJf53RBnQZxfch7euUui7hpoAPvALZdA==
@@ -6624,6 +6629,16 @@ monaco-editor@^0.31.1:
   version "0.31.1"
   resolved "https://registry.yarnpkg.com/monaco-editor/-/monaco-editor-0.31.1.tgz#67f597b3e45679d1f551237e12a3a42c4438b97b"
   integrity sha512-FYPwxGZAeP6mRRyrr5XTGHD9gRXVjy7GUzF4IPChnyt3fS5WrNxIkS8DNujWf6EQy0Zlzpxw8oTVE+mWI2/D1Q==
+
+monaco-languageclient@^0.13.0:
+  version "0.13.0"
+  resolved "https://registry.yarnpkg.com/monaco-languageclient/-/monaco-languageclient-0.13.0.tgz#59b68b42fb7633171502d6557f597c2752f6c266"
+  integrity sha512-aCwd33dTitwV5QwY56rpYHwzEGXei8TZ+yvZcvP3gEMd6Mizr8m3pOuoknDi2SUfLuNAHS6+ulvLgZlNQB5awg==
+  dependencies:
+    glob-to-regexp "^0.3.0"
+    vscode-jsonrpc "^5.0.0"
+    vscode-languageclient "^6.0.0"
+    vscode-uri "^2.1.1"
 
 mongodb@3.7.2:
   version "3.7.2"
@@ -8954,6 +8969,14 @@ scheduler@^0.19.1:
     loose-envify "^1.1.0"
     object-assign "^4.1.1"
 
+schema-utils@^0.4.0:
+  version "0.4.7"
+  resolved "https://registry.yarnpkg.com/schema-utils/-/schema-utils-0.4.7.tgz#ba74f597d2be2ea880131746ee17d0a093c68187"
+  integrity sha512-v/iwU6wvwGK8HbU9yi3/nhGzP0yGSuhQMzL6ySiec1FSrZZDkhm4noOSWzrNFo/jEc+SJY6jRTwuwbSXJPDUnQ==
+  dependencies:
+    ajv "^6.1.0"
+    ajv-keywords "^3.1.0"
+
 schema-utils@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/schema-utils/-/schema-utils-1.0.0.tgz#0b79a93204d7b600d4b2850d1f66c2a34951c770"
@@ -10251,6 +10274,37 @@ verror@1.10.0:
     core-util-is "1.0.2"
     extsprintf "^1.2.0"
 
+vscode-jsonrpc@^5.0.0, vscode-jsonrpc@^5.0.1:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/vscode-jsonrpc/-/vscode-jsonrpc-5.0.1.tgz#9bab9c330d89f43fc8c1e8702b5c36e058a01794"
+  integrity sha512-JvONPptw3GAQGXlVV2utDcHx0BiY34FupW/kI6mZ5x06ER5DdPG/tXWMVHjTNULF5uKPOUUD0SaXg5QaubJL0A==
+
+vscode-languageclient@^6.0.0:
+  version "6.1.4"
+  resolved "https://registry.yarnpkg.com/vscode-languageclient/-/vscode-languageclient-6.1.4.tgz#54aa8b1559ae2e0499cb6ab746cc2662fb6ecc0f"
+  integrity sha512-EUOU+bJu6axmt0RFNo3nrglQLPXMfanbYViJee3Fbn2VuQoX0ZOI4uTYhSRvYLP2vfwTP/juV62P/mksCdTZMA==
+  dependencies:
+    semver "^6.3.0"
+    vscode-languageserver-protocol "3.15.3"
+
+vscode-languageserver-protocol@3.15.3:
+  version "3.15.3"
+  resolved "https://registry.yarnpkg.com/vscode-languageserver-protocol/-/vscode-languageserver-protocol-3.15.3.tgz#3fa9a0702d742cf7883cb6182a6212fcd0a1d8bb"
+  integrity sha512-zrMuwHOAQRhjDSnflWdJG+O2ztMWss8GqUUB8dXLR/FPenwkiBNkMIJJYfSN6sgskvsF0rHAoBowNQfbyZnnvw==
+  dependencies:
+    vscode-jsonrpc "^5.0.1"
+    vscode-languageserver-types "3.15.1"
+
+vscode-languageserver-types@3.15.1:
+  version "3.15.1"
+  resolved "https://registry.yarnpkg.com/vscode-languageserver-types/-/vscode-languageserver-types-3.15.1.tgz#17be71d78d2f6236d414f0001ce1ef4d23e6b6de"
+  integrity sha512-+a9MPUQrNGRrGU630OGbYVQ+11iOIovjCkqxajPa9w57Sd5ruK8WQNsslzpa0x/QJqC8kRc2DUxWjIFwoNm4ZQ==
+
+vscode-uri@^2.1.1:
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/vscode-uri/-/vscode-uri-2.1.2.tgz#c8d40de93eb57af31f3c715dd650e2ca2c096f1c"
+  integrity sha512-8TEXQxlldWAuIODdukIb+TR5s+9Ds40eSJrw+1iDDA9IFORPjMELarNQE3myz5XIkWWpdprmJjm1/SxMlWOC8A==
+
 w3c-hr-time@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/w3c-hr-time/-/w3c-hr-time-1.0.2.tgz#0a89cdf5cc15822df9c360543676963e0cc308cd"
@@ -10524,6 +10578,14 @@ word-wrap@~1.2.3:
   resolved "https://registry.yarnpkg.com/word-wrap/-/word-wrap-1.2.3.tgz#610636f6b1f703891bd34771ccb17fb93b47079c"
   integrity sha512-Hz/mrNwitNRh/HUAtM/VT/5VH+ygD6DV7mYKZAtHOrbs8U7lvPS6xf7EJKMF0uW1KJCl0H701g3ZGus+muE5vQ==
 
+worker-loader@2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/worker-loader/-/worker-loader-2.0.0.tgz#45fda3ef76aca815771a89107399ee4119b430ac"
+  integrity sha512-tnvNp4K3KQOpfRnD20m8xltE3eWh89Ye+5oj7wXEEHKac1P4oZ6p9oTj8/8ExqoSBnk9nu5Pr4nKfQ1hn2APJw==
+  dependencies:
+    loader-utils "^1.0.0"
+    schema-utils "^0.4.0"
+
 worker-rpc@^0.1.0:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/worker-rpc/-/worker-rpc-0.1.1.tgz#cb565bd6d7071a8f16660686051e969ad32f54d5"
@@ -10575,6 +10637,11 @@ ws@^7.4.6:
   version "7.5.5"
   resolved "https://registry.yarnpkg.com/ws/-/ws-7.5.5.tgz#8b4bc4af518cfabd0473ae4f99144287b33eb881"
   integrity sha512-BAkMFcAzl8as1G/hArkxOxq3G7pjUqQ3gzYbLL0/5zNkph70e+lCoxBGnm6AW1+/aiNeV4fnKqZ8m4GZewmH2w==
+
+ws@^8.4.0:
+  version "8.4.0"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-8.4.0.tgz#f05e982a0a88c604080e8581576e2a063802bed6"
+  integrity sha512-IHVsKe2pjajSUIl4KYMQOdlyliovpEPquKkqbwswulszzI7r0SfQrxnXdWAEqOlDCLrVSJzo+O1hAwdog2sKSQ==
 
 ws@~8.2.3:
   version "8.2.3"

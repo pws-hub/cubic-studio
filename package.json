@@ -28,6 +28,7 @@
     "install": "^0.13.0",
     "intl-tel-input": "^17.0.13",
     "jquery": "^3.6.0",
+    "lodash": "^4.17.21",
     "marko-intl-tel-input": "^1.0.4",
     "marko-perfect-scrollbar": "^0.0.2",
     "marko-router5": "^1.1.0",
@@ -51,11 +52,14 @@
     "sass-loader": "^12.1.0",
     "swiper": "^7.0.9",
     "tinify": "^1.6.1",
-    "vanillajs-datepicker": "^1.1.4"
+    "vanillajs-datepicker": "^1.1.4",
+    "worker-loader": "2.0.0",
+    "ws": "^8.4.0"
   },
   "devDependencies": {
     "babel-preset-razzle": "4.1.0",
     "html-webpack-plugin": "^5.3.2",
+    "monaco-languageclient": "^0.13.0",
     "razzle-dev-utils": "4.1.0",
     "webpack": "^5.50.0",
     "webpack-dev-server": "^3.11.2"

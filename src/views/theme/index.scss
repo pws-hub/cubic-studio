@@ -27,9 +27,9 @@ $shadow-lg-color: rgb(0 0 0 / 18%);
 /* Different theme Variable values */
 @if $theme == dark {
   $color: rgb(206, 206, 206);
-  $bg-color: rgb(15, 15, 27);
-  $border-color: rgb(40, 40, 50);
-  $bg-fade-color: rgb(25, 25, 34);
+  $bg-color: #1e1e1e;
+  $border-color: rgb(55, 55, 55);
+  $bg-fade-color: rgb(38, 38, 38);
   $bg-transparent: rgba(10, 10, 15, .72);
   $bg-lighten-color: $border-color;
   $bg-lighten-transparent-color: rgba(40, 40, 50, .6);
@@ -37,7 +37,7 @@ $shadow-lg-color: rgb(0 0 0 / 18%);
   $blue-grey-color: $color;
 
   $btn-light: $border-color;
-  $btn-light-hover: rgb(60, 60, 65);
+  $btn-light-hover: rgb(70, 70, 70);
 
   $shadow-lg-color: rgba(0, 0, 0, 0.975);
 }
@@ -83,7 +83,6 @@ $shadow-lg-color: rgb(0 0 0 / 18%);
   }
   .btn-light{
     background-color: $btn-light!important;
-
     &:hover{ background-color: $btn-light-hover!important; }
   }
   .border{

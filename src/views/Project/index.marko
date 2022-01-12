@@ -86,15 +86,15 @@ class {
     <main.main-block.col.px-0>
       <div.position-relative.h-100 style="width:calc(100% - 4rem)">
         <!-- Tabs line -->
-        <HeaderTabs list=[]/>
+        <HeaderTabs list=Tabs/>
         
-        <div.h-100.position-relative style="padding-top:3.3rem">
+        <div.h-100.position-relative style="padding-top:3rem">
           <Switch by=state.activeTab.type>
             <@case is="code">
-              <CodeSection />
+              <CodeEditor file="hello.js" />
             </@case>
 
-            <@case is="request">
+            <@case is="API">
               <RequestSection />
             </@case>
     

@@ -24,7 +24,7 @@ class {
       <Locale.text-muted text="Workspaces"/>
     </h4>
     <div.border.round.px-0.py-2>
-      $ const Workspaces = shareState.getState('workspaces')
+      $ const Workspaces = GState.get('workspaces')
       <if( Workspaces )>
         <ul.list-unstyled>
           <for|{ name, id }, index| of=Workspaces>

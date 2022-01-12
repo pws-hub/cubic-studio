@@ -1,0 +1,123 @@
+
+import * as monaco from 'monaco-editor'
+import ModelManager from './modelManager'
+<!-- import setupSyntaxWorker from './setupSyntaxWorker' -->
+
+class {
+  onCreate({ file }){
+    this.state = { file: file || null }
+  }
+  onInput({ file }){
+    if( file == this.state.file ) return
+    this.editorOpen( this.state.file = file )
+  }
+  onMount(){
+    this.initMonaco()
+    this.editorOpen( this.state.file )
+
+    // Adapt editor container resize to window
+    $(window).on( 'resize', () => this.editor.layout() )
+    // Adapt editor theme to workspace theme
+    GState.on( 'theme', value => this.editor.updateOptions({ theme: 'vs-'+ value }) )
+  }
+  onDestroy(){
+    $(window).off('resize')
+  }
+  initMonaco(){
+    window.monaco = monaco
+
+    const 
+    compilerOptions = {
+      jsxFactory: 'React.createElement',
+      reactNamespace: 'React',
+      jsx: monaco.languages.typescript.JsxEmit.React,
+      target: monaco.languages.typescript.ScriptTarget.ES6,
+      allowNonTsExtensions: true,
+      moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
+      experimentalDecorators: false,
+      noEmit: true,
+      allowJs: true,
+      typeRoots: ['node_modules/@types']
+    },
+    diagnosticsOptions = {
+      noSemanticValidation: true,
+      noSyntaxValidation: true
+    }
+    
+    // Typescript and Javascript Eager Model Sync
+    monaco.languages.typescript.typescriptDefaults.setMaximumWorkerIdleTime( -1 )
+    monaco.languages.typescript.javascriptDefaults.setMaximumWorkerIdleTime( -1 )
+
+    // Typescript and Javascript Default compiler options
+    monaco.languages.typescript.typescriptDefaults.setCompilerOptions( compilerOptions )
+    monaco.languages.typescript.javascriptDefaults.setCompilerOptions({ ...compilerOptions, noLib: true })
+  
+    // Typescript and Javascript Eager Model Sync
+    monaco.languages.typescript.typescriptDefaults.setEagerModelSync( true )
+    monaco.languages.typescript.javascriptDefaults.setEagerModelSync( true )
+    
+    // Typescript and Javascript Default diagnostics options
+    monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions( diagnosticsOptions )
+    monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions( diagnosticsOptions )
+
+    // add some missing tokens
+    monaco.editor.defineTheme( 'retouch', {
+      base: 'vs-dark',
+      inherit: true,
+      colors: {},
+      rules: [
+        /*
+        { token: 'comment', foreground: 'aaaaaa', fontStyle: 'italic' },
+        { token: 'keyword', foreground: '000000' },
+        { token: 'operator', foreground: '000000' },
+        { token: 'namespace', foreground: '66afce' },
+
+        { token: 'type', foreground: '1db010' },
+        { token: 'struct', foreground: '0000ff' },
+        { token: 'class', foreground: '0000ff', fontStyle: 'bold' },
+        { token: 'interface', foreground: '007700', fontStyle: 'bold' },
+        { token: 'enum', foreground: '0077ff', fontStyle: 'bold' },
+        { token: 'typeParameter', foreground: '1db010' },
+        { token: 'function', foreground: '94763a' },
+
+        { token: 'member', foreground: '94763a' },
+        { token: 'macro', foreground: '615a60' },
+        { token: 'variable', foreground: '3e5bbf' },
+        { token: 'parameter', foreground: '3e5bbf' },
+        { token: 'property', foreground: '3e5bbf' },
+        { token: 'label', foreground: '615a60' },
+
+        { token: 'type.static', fontStyle: 'bold' },
+        { token: 'class.static', foreground: 'ff0000', fontStyle: 'bold' }
+    */
+      ]
+    })
+  }
+
+  async editorOpen( file ){
+    
+    if( this.editor && file ){
+      this.editor.setModel( await ModelManager.getModel( file ) )
+      return
+    }
+
+    this.editor = monaco.editor.create( this.getEl(), {
+      model: null,
+      // value: ['function x() {', '\tconsole.log("Hello world!");', '}'].join('\n'),
+      language: 'typescript',
+      lineNumbers: 'on',
+      roundedSelection: false,
+      scrollBeyondLastLine: false,
+      readOnly: false,
+      // theme: 'vs-'+ GState.get('theme'),
+      theme: 'retouch',
+      'semanticHighlighting.enabled': true
+    })
+    
+    // setupSyntaxWorker( this.editor, monaco )
+
+    file && this.editor.setModel( await ModelManager.getModel( file ) )
+  }
+}
+
+<div.code-editor no-update></div>

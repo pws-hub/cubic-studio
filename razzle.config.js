@@ -24,12 +24,13 @@ module.exports = {
       ...webpackConfig.resolve.alias, 
       ['~']: path.resolve(__dirname, 'src')
     }
-    // webpackConfig.resolve.fallback = { 
-    //   ...webpackConfig.resolve.fallback,
-    //   assert: require.resolve('assert'),
-    //   stream: require.resolve('stream-browserify'),
-    //   crypto: require.resolve('crypto-browserify')
-    // }
+    webpackConfig.resolve.fallback = { 
+      ...webpackConfig.resolve.fallback,
+      // assert: require.resolve('assert'),
+      path: require.resolve('path-browserify'),
+      // stream: require.resolve('stream-browserify'),
+      // crypto: require.resolve('crypto-browserify')
+    }
 
     webpackConfig.module.rules.push({
       test: /\.marko$/,
@@ -46,75 +47,30 @@ module.exports = {
         "sass-loader"
       ]
     })
-
+    webpackConfig.module.rules.push({
+      test: /\.worker\.(c|m)?js$/i,
+      loader: 'worker-loader',
+      options: {
+        inline: true
+      }
+    })
+    
     const monacoConfig = {
       languages: [
-        'abap',
-        'apex',
-        'azcli',
-        'bat',
-        'cameligo',
-        'clojure',
-        'coffee',
-        'cpp',
-        'csharp',
-        'csp',
         'css',
-        'dockerfile',
-        'fsharp',
-        'go',
-        'graphql',
-        'handlebars',
         'html',
-        'ini',
-        'java',
         'javascript',
         'json',
         'kotlin',
         'less',
-        'lua',
-        'markdown',
-        'mips',
-        'msdax',
-        'mysql',
-        'objective-c',
-        'pascal',
-        'pascaligo',
-        'perl',
-        'pgsql',
-        'php',
-        'postiats',
-        'powerquery',
-        'powershell',
-        'pug',
-        'python',
-        'r',
-        'razor',
-        'redis',
-        'redshift',
-        'restructuredtext',
-        'ruby',
-        'rust',
-        'sb',
-        'scheme',
         'scss',
-        'shell',
-        'solidity',
-        'sophia',
-        'sql',
-        'st',
-        'swift',
-        'tcl',
-        'twig',
         'typescript',
-        'vb',
-        'xml',
-        'yaml',
+        'yaml'
       ],
     }
     webpackConfig.plugins = [ 
       ...webpackConfig.plugins, 
-      new MonacoWebpackPlugin() 
+      new MonacoWebpackPlugin( monacoConfig ) 
     ]
     
     return webpackConfig

@@ -28,8 +28,8 @@ $ const hasSaves = input.hasOwnProperty('saves') && Array.isArray( input.saves )
 
   <if( state.dropdown )>
     <ul.list-unstyled.mb-3.animated.slideInDown.faster style="padding-left:2rem">
-      <Saved ...{ type: 'SUCCEED', name: 'Save Request One Name' }/>
-      <Saved ...{ type: 'FAILED', name: 'Saved Request Two Name' }/>
+      <SavedRequest ...{ type: 'SUCCEED', name: 'Save Request One Name' }/>
+      <SavedRequest ...{ type: 'FAILED', name: 'Saved Request Two Name' }/>
     </ul>
   </if>
 </li>

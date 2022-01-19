@@ -2,7 +2,7 @@
 import DefaultLogo from '~/../public/images/logo/cubic-default.png'
 
 static const Menu = [
-  { name: 'code', label: 'Source Code' }, 
+  { name: 'directory', label: 'Code' }, 
   { name: 'API', label: 'APIs' },
   { name: 'socket', label: 'Sockets' },
   { name: 'test', label: 'Test' }, 
@@ -10,8 +10,8 @@ static const Menu = [
 ]
 
 class {
-  onCreate(){
-    this.state = { active: null }
+  onCreate({ active }){
+    this.state = { active: active || null }
   }
   onToggleMenu( active ){ 
     this.state.active = active
@@ -20,7 +20,10 @@ class {
 }
 
 <if( input.show )>
-  <div.section-block.col-1.px-1.theme-bg-fade>
+  <WSAdapt.section-block.px-1.theme-bg-fade
+          ns="col-1"
+          qs="col-1"
+          hs="d-none">
     <div.text-center.py-2>
       <Image.mr-2.round-sm.border src=DefaultLogo style="width:50px;height:50px"/>
       <div.font-medium-3.py-1.text-ellipsis>EvaluationPro</div>
@@ -51,5 +54,5 @@ class {
         </li>
       </ul>
     </div>
-  </div>
+  </WSAdapt>
 </if>

@@ -7,9 +7,9 @@
   <if( input.col )>
     <for|col, index| of=input.col>
       <!-- `class="col" is default` -->
-      <div key=index class="col" ...col>
+      <WSAdapt key=index class="col" ...col>
         <${col.renderBody}/>
-      </div>
+      </WSAdapt>
     </for>
   </if>
   <else><${input.renderBody}/></else>

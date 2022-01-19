@@ -1,11 +1,14 @@
 
 import * as monaco from 'monaco-editor'
-import ModelManager from './modelManager'
-<!-- import setupSyntaxWorker from './setupSyntaxWorker' -->
+import { getContent } from './fileSystem'
+import setupWorkers from './setupWorkers'
 
 class {
   onCreate({ file }){
-    this.state = { file: file || null }
+    this.state = { 
+      file: file || null,
+      model: ''
+    }
   }
   onInput({ file }){
     if( file == this.state.file ) return
@@ -15,58 +18,84 @@ class {
     this.initMonaco()
     this.editorOpen( this.state.file )
 
-    // Adapt editor container resize to window
+    // Adapt editor container to window resize
     $(window).on( 'resize', () => this.editor.layout() )
+    // Adapt editor container to workspace changes
+    GState.on( 'workspace', () => setTimeout( () => this.editor.layout(), 50 ) )
     // Adapt editor theme to workspace theme
     GState.on( 'theme', value => this.editor.updateOptions({ theme: 'vs-'+ value }) )
   }
   onDestroy(){
     $(window).off('resize')
+    this.editor && this.editor.dispose()
+    this.editorOnChange && this.editorOnChange.dispose()
   }
-  initMonaco(){
-    window.monaco = monaco
-
-    const 
-    compilerOptions = {
-      jsxFactory: 'React.createElement',
+  setCompilerOptions(){
+    const compilerDefaults = {
       reactNamespace: 'React',
+      jsxFactory: 'React.createElement',
       jsx: monaco.languages.typescript.JsxEmit.React,
-      target: monaco.languages.typescript.ScriptTarget.ES6,
+      target: monaco.languages.typescript.ScriptTarget.ES2016,
       allowNonTsExtensions: true,
       moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
-      experimentalDecorators: false,
+      module: monaco.languages.typescript.ModuleKind.System,
+      experimentalDecorators: true,
       noEmit: true,
       allowJs: true,
-      typeRoots: ['node_modules/@types']
-    },
-    diagnosticsOptions = {
-      noSemanticValidation: true,
-      noSyntaxValidation: true
+      typeRoots: ['node_modules/@types'],
+
+      forceConsistentCasingInFileNames: false,
+      noImplicitReturns: false,
+      noImplicitThis: false,
+      noImplicitAny: false,
+      strictNullChecks: false,
+      suppressImplicitAnyIndexErrors: false,
+      noUnusedLocals: false,
+
+      newLine: monaco.languages.typescript.NewLineKind.LineFeed
     }
+    
+    monaco.languages.typescript.typescriptDefaults.setCompilerOptions( compilerDefaults )
+    monaco.languages.typescript.javascriptDefaults.setCompilerOptions( compilerDefaults )
+  }
+  initMonaco(){
+    
+    // Typescript and Javascript Default compiler options
+    this.setCompilerOptions()
     
     // Typescript and Javascript Eager Model Sync
     monaco.languages.typescript.typescriptDefaults.setMaximumWorkerIdleTime( -1 )
     monaco.languages.typescript.javascriptDefaults.setMaximumWorkerIdleTime( -1 )
-
-    // Typescript and Javascript Default compiler options
-    monaco.languages.typescript.typescriptDefaults.setCompilerOptions( compilerOptions )
-    monaco.languages.typescript.javascriptDefaults.setCompilerOptions({ ...compilerOptions, noLib: true })
-  
+    
     // Typescript and Javascript Eager Model Sync
     monaco.languages.typescript.typescriptDefaults.setEagerModelSync( true )
     monaco.languages.typescript.javascriptDefaults.setEagerModelSync( true )
     
     // Typescript and Javascript Default diagnostics options
-    monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions( diagnosticsOptions )
-    monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions( diagnosticsOptions )
+    monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+      noSemanticValidation: true,
+      noSyntaxValidation: true
+    })
 
     // add some missing tokens
+    /*
+    monaco.editor.defineTheme( 'Retouch', {
+      base: 'vs-dark', // can also be vs-dark or hc-black
+      inherit: true, // can also be false to completely replace the builtin rules
+      rules: [
+        { token: 'comment', foreground: '626466' },
+        { token: 'keyword', foreground: '6CAEDD' },
+        { token: 'identifier', foreground: 'fac863' },
+      ]
+    })
+    */
+
+    /*
     monaco.editor.defineTheme( 'retouch', {
       base: 'vs-dark',
       inherit: true,
       colors: {},
       rules: [
-        /*
         { token: 'comment', foreground: 'aaaaaa', fontStyle: 'italic' },
         { token: 'keyword', foreground: '000000' },
         { token: 'operator', foreground: '000000' },
@@ -89,34 +118,78 @@ class {
 
         { token: 'type.static', fontStyle: 'bold' },
         { token: 'class.static', foreground: 'ff0000', fontStyle: 'bold' }
-    */
       ]
-    })
+    })   
+    */
   }
 
   async editorOpen( file ){
     
-    if( this.editor && file ){
-      this.editor.setModel( await ModelManager.getModel( file ) )
-      return
+    if( !this.editor ){
+      this.editor = monaco.editor.create( this.getEl(), {
+        model: null,
+        // value: ['function x() {', '\tconsole.log("Hello world!");', '}'].join('\n'),
+        // language: 'typescript',
+        lineNumbers: 'on',
+        roundedSelection: false,
+        scrollBeyondLastLine: false,
+        readOnly: false,
+        theme: 'vs-'+ GState.get('theme'),
+        // theme: 'Retouch',
+        'semanticHighlighting.enabled': true
+      })
+    
+      setupWorkers( this.editor, monaco )
     }
 
-    this.editor = monaco.editor.create( this.getEl(), {
-      model: null,
-      // value: ['function x() {', '\tconsole.log("Hello world!");', '}'].join('\n'),
-      language: 'typescript',
-      lineNumbers: 'on',
-      roundedSelection: false,
-      scrollBeyondLastLine: false,
-      readOnly: false,
-      // theme: 'vs-'+ GState.get('theme'),
-      theme: 'retouch',
-      'semanticHighlighting.enabled': true
-    })
-    
-    // setupSyntaxWorker( this.editor, monaco )
+    if( !file ) return
 
-    file && this.editor.setModel( await ModelManager.getModel( file ) )
+    this.editor.file = file
+    this.model = await this.getModel( file )
+    
+    this.editorOnChange = this.model.onDidChangeContent( () => this.onChange() )
+    this.editor.setModel( this.model )
+    this.editor.updateOptions({ tabSize: 2 })
+  }
+  async getModel( file ){
+    
+    const 
+    filepath = '/js/'+ file,
+    uri = monaco.Uri.file( filepath )
+    let model = monaco.editor.getModel( uri )
+
+    if( !model ){
+      content = await getContent( filepath )
+      
+      model = monaco.editor.createModel( content || '', null, uri )
+      //? respect tabSize option in .prettierrc
+      // model.updateOptions({ rulers: [ 20 ] })
+    }
+
+    return model
+  }
+  async onChange(){
+
+    const code = this.model.getValue()
+    console.log( code.length )
+
+    
+    
+
+
+    /*
+    if (value !== model.getValue()) {
+      model.pushEditOperations(
+        [],
+        [
+          {
+            range: model.getFullModelRange(),
+            text: value,
+          },
+        ]
+      );
+    }
+    */
   }
 }
 

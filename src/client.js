@@ -164,6 +164,71 @@ async function handleLocale(){
 			}
 		])
 
+    /*----------------------------------------------------------------*/
+		// Handle access to marketplace UI
+		GState.set('marketplace', uiStore.get('active-marketplace') )
+		GState
+		.define('marketplace')
+		.action( 'open', payload => {
+			GState.set('marketplace', payload || true )
+			uiStore.set('active-marketplace', payload || true )
+			
+			// Open aside when no active extension
+			!Object.keys( GState.get('activeExtensions') ).length
+			&& GState.workspace.layout({ mode: 'hs' })
+		} )
+		.action( 'close', () => {
+			GState.set('marketplace', false )
+			uiStore.clear('active-marketplace')
+			
+			// Close aside when no active extension
+			!Object.keys( GState.get('activeExtensions') ).length
+			&& GState.workspace.layout({ mode: 'ns' })
+		} )
+
+    /*----------------------------------------------------------------*/
+    /* Initial Workspace State: 
+      - Context: Use for extensions & user activities tracking by page
+                  @params: 
+                    - accountType(Admin, Instructor, Learner)
+                    - page( route name )
+                    - event( name, ID )
+      - Layout: Display or main blocks of the workspace
+            @params:
+              - mode: UI segmentation mode
+                  - qs (Quater state)
+                  - hs (Half section)
+                  - ns (No-section)
+    */
+    const wsStoreAttr = 'ws-studio'
+    
+    GState.set('workspace', { mode: 'ns', ...(uiStore.get( wsStoreAttr ) || {}) })
+    GState
+    .define('workspace')
+    // Update workspace Layout
+    .action( 'layout', newState => {
+
+      const recentState = GState.get('workspace')
+      if( newState.mode == 'ns' && recentState.mode !== 'ns' )
+        newState.previousMode = recentState.mode
+
+      else if( newState.mode == 'auto' )
+        newState.mode = recentState.previousMode || 'qs'
+      
+      newState = Object.assign( {}, recentState, newState )
+
+      GState.dirty( 'workspace', newState )
+      uiStore.set( wsStoreAttr, newState )
+    } )
+    // Set/Define workspace context
+    .action( 'context', newState => {
+
+      const wsState = GState.get('workspace')
+      wsState.context = Object.assign( wsState.context || {}, newState, { accountType } )
+
+      GState.dirty( 'workspace', wsState )
+    } )
+
 		/*----------------------------------------------------------------*/
 		// Handle API server requests
 		window.Request = ( endpoint, method, data ) => {

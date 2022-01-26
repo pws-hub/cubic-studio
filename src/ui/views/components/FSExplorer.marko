@@ -1,0 +1,222 @@
+
+class {
+  onCreate(){
+    this.histories = []
+    this.state = {
+      current: uiStore.get('explorer-entry-dir') || {},
+      dirs: [],
+      files: [],
+      history: [],
+      fetching: false,
+      createFolder: false,
+      createFolderError: false
+    }
+
+    this.Explorer = window.FSExplorer
+  }
+  async onMount(){ this.fetchDirectory() }
+  async onOpen( directory ){
+    // Disabled directory
+    if( !directory ) return
+
+    // Add leaving directory as history
+    this.state.history.push( this.state.current )
+
+    // Open a new directory
+    this.state.current = directory
+    uiStore.set('explorer-entry-dir', directory )
+
+    await this.fetchDirectory()
+  }
+  async onHistoryBack(){
+    // Move back history
+    if( !this.state.history.length ) return
+
+    this.state.current = this.state.history.pop()
+    console.log(  this.state.current )
+    await this.fetchDirectory()
+    
+    uiStore.set('explorer-entry-dir', this.state.current )
+  }
+  async fetchDirectory(){
+    // Fetch directory content
+    this.state.fetching = true
+    const { name, path, content } = await this.Explorer.directory( this.state.current.path, this.input.options )
+
+    // Unknow entrypoint: Result to User's Current Home Directory. Eg. /Users/user-name
+    if( !this.state.current.path )
+      this.state.current = {
+        ...(this.state.current),
+        name,
+        path
+      }
+
+    this.state.dirs = []
+    this.state.files = []
+    this.state.fetching = false
+
+    content.map( each => {
+      each.isDir ? 
+          this.state.dirs.push( each ) // Folder
+          : this.state.files.push( each ) // File
+    } )
+  }
+  async onCreateFolder(){
+    try {
+      // Create new folder in this current location
+      const foldername = this.getEl('input-folder-name').value
+
+      if( !foldername ){
+        this.state.createFolderError = 'Folder name is required'
+        return
+      }
+
+      // No super-characters in folder name
+      if( /\/\\,\$\?\+\:\*/.test( foldername ) ){
+        this.state.createFolderError = 'Cannot create folder with (*,+,?,$,/,\) characters'
+        return
+      }
+
+      if( !( await this.Explorer.newDir( this.state.current.path +'/'+ foldername ) ) )
+        throw new Error('Failed creating the folder')
+
+      this.state.createFolder = false
+      this.state.createFolderError = false
+      
+      // Refresh directory
+      await this.fetchDirectory()
+    }
+    catch( error ){
+      debugLog( error )
+      this.state.createFolderError = 'Unexpected Error Occured'
+    }
+  }
+
+  onAddFolderToggle( status ){ this.state.createFolder = status }
+  onDone(){
+    // Return select item by callback function
+    typeof this.input.fn == 'function'
+    && this.input.fn( this.state.current )
+
+    this.emit('select', this.state.current )
+    this.emit('dismiss')
+  }
+}
+
+<div.fs-explorer>
+  <!-- Header -->
+  <div.position-sticky.top-0.header.theme-bg-fade.px-3.py-2>
+    <div>
+      <!-- Navigation history back -->
+      <Bx.font-medium-5.cursor-pointer
+          class=(!state.history.length ? 'text-muted' : '')
+          type="arrow-back"
+          on-click('onHistoryBack')/>
+
+      <!-- Add new folder -->
+      <Bx.font-medium-5.float-right.cursor-pointer
+          type="folder-plus"
+          on-click('onAddFolderToggle', !state.createFolder )/>
+    </div>
+
+    <!-- Navigation breadcumb -->
+    <if( state.current.path )>
+      <div.w-100.mt-2.overflow-auto>
+        $ {
+          const list = state.current.path.split('/')
+          let path = ''
+
+          list.shift()
+        }
+
+        <ul.list-inline.d-inline-flex.align-items-center.m-0>
+          <for|name, index| of=list>
+            $ {
+              path += '/'+ name
+              const active = ( index < list.length - 1 )
+            }
+            
+            <li.text-nowrap class=( active ? 'cursor-pointer' : 'text-muted')
+                on-click('onOpen', active ? { path } : false )>
+              <if( index > 0 )>
+                <span.px-50.text-muted>/</span>
+              </if>
+
+              ${name}
+            </li>
+          </for>
+        </ul>
+      </div>
+    </if>
+
+    <if( state.createFolder )>
+      <div.mt-4.animated.fadeIn.faster>
+        <div class="form-group">
+          <div class="input-group">
+            <input.round-xs.form-control
+                    key="input-folder-name"
+                    type="text"
+                    placeholder=( Locale('Folder name*') )/>
+            <div class="input-group-append">
+              <button class="btn btn-primary" 
+                      on-click('onCreateFolder')>
+                <Locale text="Save"/>
+              </button>
+            </div>
+          </div>
+          <if( state.createFolderError )>
+            <p.small.mt-50.mb-2>
+              <Locale.text-warning text=state.createFolderError/>
+            </p>
+          </if>
+        </div>
+      </div>
+    </if>
+  </div>
+
+  <!-- Content -->
+  <div.py-1 style="min-height:300px">
+    <if( !state.dirs.length && !state.files.length )>
+      <div.padding-8.text-center>
+        <Locale.text-muted text="Empty"/>
+      </div>
+    </if>
+
+    <!-- Display dirs -->
+    <if( state.dirs.length )>
+      <ul.list-unstyled.m-0>
+        <for|dir, index| of=state.dirs>
+          $ const { name, path, size } = dir
+
+          <li.nav-item.cursor-pointer.px-3.py-25.d-flex.align-items-center
+              on-click('onOpen', dir )>
+            <Bx.font-large-1.pr-4.text-muted type="folder"/>
+            <div.text-ellipsis.w-75>${name}</div>
+          </li>
+        </for>
+      </ul>
+    </if>
+
+    <!-- Display files -->
+    <if( state.files.length )>
+      <ul.list-unstyled.m-0>
+        <for|{ name, path, size }, index| of=state.files>
+          <li.nav-item.cursor-pointer.px-3.py-25.d-flex.align-items-center>
+            <!-- File type -->
+            <span.font-medium-2.pl-1.pr-5>
+              <FileLabel type=name.split('.').pop()/>
+            </span>
+            <!-- Name -->
+            <div.text-ellipsis.w-75>${name}</div>
+          </li>
+        </for>
+      </ul>
+    </if>
+  </div>
+
+  <!-- Footer -->
+  <div.position-sticky.footer.theme-bg.border-top.px-2.py-75.text-right style="bottom:-2px">
+    <Button.mx-25 type="md" on-click( () => component.emit('dismiss') )>Cancel</Button>
+    <Button.mx-25 type="md" primary=true on-click('onDone')>Done</Button>
+  </div>
+</div>

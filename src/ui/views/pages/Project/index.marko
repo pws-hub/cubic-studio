@@ -1,0 +1,217 @@
+
+static const APITabs = [
+  {
+    type: 'GET',
+    name: 'Test Get Request',
+    link: '...'
+  },
+  {
+    active: true,
+    type: 'POST',
+    name: 'Test Post Request',
+    link: '...'
+  },
+  {
+    type: 'PUT',
+    name: 'Test Put Request',
+    link: '...'
+  },
+  {
+    type: 'DELETE',
+    name: 'Test Delete Request',
+    link: '...'
+  },
+  {
+    type: 'PATCH',
+    name: 'Test Patch Request',
+    link: '...'
+  },
+  {
+    type: 'HEAD',
+    name: 'Test Head Request',
+    link: '...'
+  },
+  {
+    type: 'OPTIONS',
+    name: 'Test Options Request',
+    link: '...'
+  }
+]
+static const EditorTabs = [
+  {
+    active: true,
+    name: 'index.js',
+    link: '...'
+  },
+  {
+    name: 'config.json',
+    link: '...'
+  },
+  {
+    name: 'style.less',
+    link: '...'
+  },
+  {
+    name: '.cubic',
+    link: '...'
+  }
+]
+
+class {
+  onCreate(){
+    this.state = {
+      activeTool: 'directory',
+      showNav: true,
+      showSearch: false,
+      showConsole: false,
+      showFormModal: false,
+    }
+  }
+  onMenuToggle( name ){ this.state.activeTool = name }
+  onSearchToggle( args ){ this.state.showSearch = args }
+  onModalToggle( args ){ this.state.showFormModal = args }
+  onConsoleToggle( args ){ this.state.showConsole = args }
+  onShowNavigation( status ){ this.state.showNav = status }
+
+  getContent( type ){
+    
+    let list = []
+
+    switch( type ){
+      case 'API': list = [
+                            { name: 'Collection One Name' },
+                            { name: 'Collection One Name' }
+                          ]
+          break
+      case 'environments': list = [
+                            { name: 'Environment One Name' },
+                            { name: 'Environment One Name' }
+                          ]
+          break
+      case 'directory': list = [
+                          { name: 'Root' },
+                          { name: 'Dependencies' },
+                          { name: 'Build' }
+                        ]
+          break
+    }
+
+    return { type, list }
+  }
+}
+
+<div.vh-100>
+  <div style="width:calc(100% - 4rem)">
+    <Row.no-gutters>
+      <div.col.px-0.overflow-hidden>
+        <Row.no-gutters>
+          <!-- Navigation Bar -->
+          <Navigation show=state.showNav
+                      active=state.activeTool
+                      on-add('onModalToggle')
+                      on-import('onModalToggle')
+                      on-toggle('onMenuToggle')/>
+                      
+          <!-- SideBar -->
+          <SideBar type=state.activeTool
+                    ...component.getContent( state.activeTool )
+                    on-show-menu('onShowNavigation')/>
+
+          <!-- Main Block -->
+          <main.main-block.col.px-0.overflow-hidden>
+            <!-- Tabs Bar -->
+            <TabBar type=state.activeTool list=EditorTabs/>
+            
+            <div style="height:calc(100% - 3rem)">
+              <div.overflow-hidden class=(state.showConsole ? 'h-75' : 'h-100')>
+                <Switch by=state.activeTool>
+                  <@case is="directory">
+                    <CodeEditor file="hello.marko" />
+                  </@case>
+
+                  <@case is="API">
+                    <APITestor />
+                  </@case>
+                </Switch>
+              </div>
+
+              <if( state.showConsole )>
+                <div.h-25.border-top>
+                  <Console on-dismiss('onConsoleToggle', false )/>
+                </div>
+              </if>
+            </div>
+          </main>
+        </Row>
+
+
+        <if( state.showFormModal )>
+          <Modal.p-4 noBackdrop=true on-dismiss('onModalToggle', false )>
+            <h5><Locale text="Create a Group"/></h5>
+            <p>
+              <Locale>
+                Groups are where your mates communicates. They’re best organized around topic — Eg. #activities, #assignments, ...
+              </Locale>
+            </p>
+            <br>
+
+
+          </Modal>
+        </if>
+
+        <!-- Search plugin, app, module, ... from marketplace -->
+        <if( state.showSearch )>
+          <Modal.px-4.pt-2 noDismissButton=true on-dismiss('onSearchToggle', false )>
+            <SearchBar />
+            <SearchResult />
+          </Modal>
+        </if>
+      </div>
+
+      <Aside />
+    </Row>
+  </div>
+  
+  <Toolbar />
+
+  <Footer>
+    <Row>
+      <@col>
+        <ul.list-inline.m-0>
+          <li.px-1.white-text>
+            Personal Space
+          </li>
+          <li.px-1.white-text>
+            Application
+          </li>
+          <li.px-1.black-text>
+            Sync
+          </li>
+        </ul>
+      </@col>
+      
+      <@col.col.text-right>
+        <ul.list-inline.m-0>
+          <li.px-3.white-text>
+            cpm-1.0.6: Installing dependency packages ...
+          </li>
+          <li.px-1.white-text.cursor-pointer on-click('onConsoleToggle', true )>
+            Console
+          </li>
+          <li.px-1.white-text>
+            Marko
+          </li>
+          <li.px-1.white-text>
+            Ln 12, Col 9
+          </li>
+          <li.px-1.white-text>
+            Spaces: 2
+          </li>
+          <li.px-1.white-text>
+            UTF-8
+          </li>
+        </ul>
+      </@col>
+    </Row>
+  </Footer>
+</div>

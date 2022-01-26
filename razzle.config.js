@@ -19,10 +19,15 @@ module.exports = {
   },
   modifyWebpackConfig({ webpackConfig }){
     
+    // client.js moved to `/src/ui` folder
+    if( webpackConfig.entry.client ) 
+      webpackConfig.entry.client[1] = path.join( __dirname, '/src/ui/client' )
+    
     webpackConfig.resolve.extensions = [ ...webpackConfig.resolve.extensions, '.css', '.scss', '.marko' ]
     webpackConfig.resolve.alias = {
-      ...webpackConfig.resolve.alias, 
-      ['~']: path.resolve(__dirname, 'src')
+      ...webpackConfig.resolve.alias,
+      ['~']: path.resolve(__dirname, './public'),
+      ['handlers']: path.resolve(__dirname, './custom/handlers')
     }
     webpackConfig.resolve.fallback = { 
       ...webpackConfig.resolve.fallback,

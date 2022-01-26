@@ -1,11 +1,15 @@
 
 import request from 'request'
+import AuthHandler from '../lib/AuthHandler'
+import APIRequestHandler from '../lib/APIRequestHandler'
 
 export default require('express').Router()
 
-.post( '/', async ( req, res ) => {
-  
-} )
+// Handle offsite authentication callback
+.get( '/auth/callback', AuthHandler )
+
+// Relay point for API request to 3rd party servers made from the UI
+.post('/api/:provider', APIRequestHandler )
 
 // CORS proxy router
 .get( '/proxy', ( req, res, next ) => {

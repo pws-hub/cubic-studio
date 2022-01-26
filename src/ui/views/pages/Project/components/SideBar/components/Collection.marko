@@ -1,0 +1,33 @@
+
+class {
+  onCreate({ name }){
+    this.storeAttr = 'collection--'+ name
+    this.state = { open: uiStore.get( this.storeAttr ) }
+  }
+  onShowContent(){
+    ( this.state.open = !this.state.open ) ? 
+                    uiStore.set( this.storeAttr, true )
+                    : uiStore.clear( this.storeAttr ) 
+  }
+}
+
+<li.position-relative.overflow-hidden>
+  <div.position-relative.py-50.zindex-1.hover-toggle.d-flex.align-items-center.cursor-pointer class=(state.open ? 'theme-bg-fade' : false )>
+    <Bx.font-medium-5.pl-50.pr-2
+        type=`chevron-${state.open ? 'down' : 'right'}`
+        on-click('onShowContent')/>
+    <div.font-medium-1.text-ellipsis.w-75 on-click('onShowContent')>${input.name}</div>
+    
+    <Bx.hover-show.font-medium-2.px-50.float-right type="star"/>
+    <Bx.hover-show.font-medium-5.px-75.float-right type="dots-vertical-rounded"/>
+  </div>
+
+  <if( state.open )>
+    <ul.list-unstyled.mb-3.ml-3.animated.slideInDown.faster>
+      <Category ...{ name: 'Category One Name' }/>
+      <Category ...{ name: 'Category Two Name' }/>
+      
+      <RequestOutline ...{ type: 'POST', name: 'Request Two Name' }/>
+    </ul>
+  </if>
+</li>

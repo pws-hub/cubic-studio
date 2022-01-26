@@ -1,0 +1,128 @@
+
+import FormHandler from 'markojs-form'
+
+class {
+  onCreate({ existing }){
+    this.state = { 
+      submitting: false,
+      suggestions: false,
+      searchResults: false
+    }
+
+    this.fhandler = new FormHandler({ key: 'add-members', autosave: true, crosscheck: true })
+    this.fhandler.bind( this )
+
+    this.members = existing || []
+  }
+  onCancel(){
+    this.fhandler.reset()
+    this.emit('dismiss')
+  }
+
+  async onSearchQuery( query ){
+    try {
+      const { error, message, results } = await ___.Request(`/user/search?query=${query}`)
+      if( error ) throw new Error( message )
+
+      // Format search result to display-able suggestion list
+      this.state.searchResults = results
+      this.state.suggestions = results.map( ___.SearchMemberResult )
+    }
+    catch( error ){
+      console.log('Failed searching member: ', error )
+      
+      this.state.searchResults = false
+      this.state.suggestions = false
+    }
+  }
+	onSearchDismiss(){ this.state.suggestions = [] }
+	onSelectMember( index ){
+		// Format member to CubicStudio User Data format
+    const member = ___.SearchMemberToAdd( this.state.searchResults[ index ], this.members )
+    if( !member ){
+      this.fhandler.alert('This member is already added')
+      this.state.suggestions = false
+      return
+    }
+
+    // New member
+		this.members.push( member )
+		this.fhandler.set( 'members', this.members )
+
+    this.state.suggestions = false
+	}
+	removeMember( arg ){
+		// Remove members
+		this.members = this.members.filter( ({ id }) => { return id !== arg } )
+		this.fhandler.set( 'members', this.members )
+	}
+
+  onSubmit(){
+    if( !isEmpty( this.state.formError )
+        && Object.values( this.state.formError ).includes( true ) ) return
+        
+    // After saved
+    this.emit('submit', this.state.form.members, (function(){
+      this.fhandler.alert('Members added')
+      this.fhandler.reset()
+    }).bind(this) )
+  }
+}
+
+<form key="add-members">
+  <h5><Locale text="Add member"/></h5>
+  <p.mb-4>
+    <Locale>
+      Find and add new members to your workspace
+    </Locale>
+  </p>
+  
+  <!-- List of selected members -->
+  <if( Array.isArray( state.form.members ) && state.form.members.length )>
+    <ul.list-inline.mb-4>
+      <!-- Selected List -->
+      <for|{ id, photo, name }, index| of=state.form.members>
+        <li.mr-2 key=index>
+          <div.chip.pl-0.theme-bg-lighten.round-xs>
+            <div.chip-body.font-medium-2.d-flex.align-items-center>
+              <div style="width:30px;height:30px;margin-left:5px">
+                <Image.img-fluid.round-xs src=photo alt="avatar"/>
+              </div>
+              <span.chip-text.pl-75.py-50>${name}</span>
+              <div.chip-closeable.p-50.m-50 on-click( 'removeMember', id )>
+                <Bx.white-text type="x"/>
+              </div>
+            </div>
+          </div>
+        </li>
+      </for>
+    </ul>
+  </if>
+
+  <!-- Search input -->
+  <SearchBar.round-xs
+            placeholder="Find by name or email"
+            icon="bx-user"
+            maxLength=3
+            suggestions=state.suggestions
+            on-query('onSearchQuery')
+            on-select('onSelectMember')
+            on-dismiss('onSearchDismiss')/>
+
+  <FormAlert alert=state.alert/>
+  
+  <br>
+  <div.text-right>
+    <Button.mx-50 type="reset" on-click('onCancel')>Cancel</Button>
+
+    <if( Array.isArray( state.form.members ) && state.form.members.length )>
+      <Button.mx-50 
+              primary=true
+              type="submit"
+              on-click('onSubmit')>
+        <Locale text="Add"/>
+        <Preloader.pl-2.font-medium-4.float-right active=state.submitting/>
+      </Button>
+    </if>
+  </div>
+</form>

@@ -1,0 +1,53 @@
+
+import DefaultLogo from '~/images/logo/cubic-default.png'
+
+<div.workspace-info.d-flex.align-items-center>
+  <Image.mr-2.round-sm.border 
+        src=( input.logo || DefaultLogo ) 
+        style="width:80px;height:80px"/>
+  <div.d-inline-block.px-2>
+    <h5.font-medium-4>${input.name}</h5>
+    <span.text-muted.font-small-4>${input.domain}</span>
+  </div>
+</div>
+
+<if( input.description )>
+  <br>
+  <p.font-medium-2>${input.description}</p>
+</if>
+
+<br>
+<ul.list-inline>
+  <li.px-25.cursor-pointer>
+    <Bx.font-large-1.p-50 type="pencil"/>
+  </li>
+  <li.px-25.cursor-pointer>
+    <Bx.font-large-1.p-50 type="trash"/>
+  </li>
+
+  <!-- More workspace options -->
+  <li.position-relative.px-25.cursor-pointer>
+    <DropdownMenu.font-large-1.p-50
+                  menu=component.menu/>
+  </li>
+</ul>
+
+<!-- Team -->
+<if( !input.personal )>
+  <br>
+  <h4.px-1.pb-50.font-small-3>
+    <Locale.text-muted text="Team"/>
+  </h4>
+  <div.border.round.py-2>
+    <ul.list-unstyled.m-0>
+      <for|each, index| of=input.members>
+        <TeamMember key=index ...each/>
+      </for>
+    </ul>
+        
+    <br>
+    <div.px-2>
+      <Button on-click( () => component.emit('add-member') )>Add</Button>
+    </div>
+  </div>
+</if>

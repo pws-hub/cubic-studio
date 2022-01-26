@@ -1,0 +1,18 @@
+
+
+<div.position-absolute.top-0.w-100.vh-100.d-flex.align-items-center.justify-content-center
+    style="z-index:1000">
+  <if( !input.noBackdrop )>
+    <div.position-absolute.w-100.h-100.theme-bg-transparent on-click( () => component.emit('dismiss') )></div>
+  </if>
+
+  <div.position-relative.theme-bg.shadow-lg.round class=`w-${input.width || 50} ${input.class}`>
+    <if( !input.noDismissButton )>
+      <span.position-absolute.zindex-4.top-0.right-0.p-2 on-click( () => component.emit('dismiss') )>
+        <Bx.font-large-1 type="x"/>
+      </span>
+    </if>
+    
+    <${input.renderBody}/>
+  </div>
+</div>

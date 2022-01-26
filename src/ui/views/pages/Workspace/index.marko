@@ -1,0 +1,269 @@
+
+static const RecentProjects = [
+  /*
+  {
+    name: 'Evaluation Pro',
+    link: '/workspace/1234567890/0987654321',
+    datetime: 'Today 22:32'
+  },
+  {
+    name: 'XCredible',
+    link: '/workspace/1234567890/0987654321',
+    datetime: 'Today, 10:08'
+  }
+  */
+]
+
+class {
+  onCreate({ params }){
+    this.state = {
+      workspace: GState.workspaces.get( params.id ),
+      projects: [],
+      showExplorer: false,
+      showInviteForm: false,
+      showSetupProject: false
+    }
+
+    this.menu = [
+      {
+        id: 'VIEW_ACTIVITIES',
+        label: 'View Activities',
+        fn: this.onHandleMenu.bind(this)
+      },
+      {
+        id: 'EXPORT_WORKSPACE',
+        label: 'Export',
+        fn: this.onHandleMenu.bind(this)
+      }
+    ]
+  }
+  onMount(){ this.fetchProjects() }
+  onHandleMenu( id ){ console.log( id ) }
+  onAddMemberToggle( status ){ this.state.showInviteForm = status }
+  onCreateProjectToggle( type ){ this.state.showSetupProject = type }
+  onExplorerToggle( status, fn ){ this.state.showExplorer = status ? { fn } : false }
+
+  async fetchProjects(){
+    try {
+      const { error, message, projects } = await RGet(`/workspaces/${this.input.params.id}/projects`)
+      if( error ) throw new Error( message )
+      
+      this.state.projects = projects
+    }
+    catch( error ){
+      console.log('Failed fetching projects: ', error )
+    }
+  }
+  async onCreateProject( payload, callback ){
+    try {
+      // Save project in database
+      const { error, message, projectId } = await RPost(`/workspaces/${this.input.params.id}/projects/create`, payload )
+      if( error ) throw new Error( message )
+
+      // Create and setup project directory
+      if( payload.scope.sourceCode ){
+        await window.FSExplorer.newDir( payload.scope.sourceCode.directory )
+        
+      }
+
+      // Close SetupProject form
+      typeof callback == 'function' && callback()
+
+      // Refresh the list of projects
+      this.fetchProjects()
+
+      setTimeout( () => this.onCreateProjectToggle( false ), 8000 )
+    }
+    catch( error ){
+      console.log('Failed creating project: ', error )
+      this.fhandler.alert('Failed! Check your connection and try again', 'warning')
+    }
+  }
+  async fetchMembers(){
+    try {
+      const { error, message, members } = await RGet(`/workspaces/${this.input.params.id}/members`)
+      if( error ) throw new Error( message )
+      
+      this.state.workspace.members = members
+      this.setStateDirty('workspace')
+    }
+    catch( error ){
+      console.log('Failed fetching members: ', error )
+    }
+  }
+  async onAddMembers( payload, callback ){
+    try {
+      // Save project in database
+      const { error, message } = await RPost(`/workspaces/${this.input.params.id}/members/add`, payload )
+      if( error ) throw new Error( message )
+      
+      // Close AddMember form
+      typeof callback == 'function' && callback()
+
+      // Refresh the list of members
+      this.fetchMembers()
+
+      setTimeout( () => this.onAddMemberToggle( false ), 8000 )
+    }
+    catch( error ){
+      console.log('Failed creating project: ', error )
+      this.fhandler.alert('Failed! Check your connection and try again', 'warning')
+    }
+  }
+}
+
+<div.vh-100>
+  <Row.no-gutters>
+    <!-- Main Block -->
+    <main.main-block.col.padding-4>
+      <div.position-relative.h-100 style="width:calc(100% - 4rem)">
+        <Row.h-100.position-relative>
+          <!-- Workspace informations -->
+          <@col.col-3>
+            <Caption ...state.workspace
+                      on-add-member('onAddMemberToggle', true )/>
+          </@col>
+
+          <!-- Projects -->
+          <@col>
+            <h4.font-large-1.px-2><Locale text="Projects"/></h4>
+
+            <!-- Projects with recent activities -->
+            <if( RecentProjects.length )>
+              <br>
+              <div.recent-projects.border-bottom>
+                <h4.px-2.pb-50.font-small-3>
+                  <Locale.text-muted text="Recents"/>
+                </h4>
+                <ul.list-unstyled>
+                  <for|each, index| of=RecentProjects>
+                    <RecentProject key=index ...each />
+                  </for>
+                </ul>
+              </div>
+            </if>
+
+            <!-- List of projects in the workspace -->
+            <if( state.projects.length )>
+              <br>
+              <div.all-projects>
+                <!-- Seperator label -->
+                <if( RecentProjects.length )>
+                  <h4.px-2.pb-50.font-small-3>
+                    <Locale.text-muted text="All projects"/>
+                  </h4>
+                </if>
+
+                <ul.list-unstyled>
+                  <for|each, index| of=state.projects>
+                    <!-- Generate project link -->
+                    $ each.link = `/workspace/${input.params.id}/${each.projectId}`
+                    <Project key=index ...each />
+                  </for>
+                </ul>
+                    
+                <br><br>
+                <div.px-2>
+                  <Button.mx-50 on-click('onCreateProjectToggle', 'new' )>Create new project</Button>
+                  <Button.mx-50.disabled>Import project</Button>
+                </div>
+              </div>
+            </if>
+          </@col>
+
+          <!-- Support and helps informations -->
+          <@col.col-3>
+            <h4.font-large-1.px-2><Locale text="Get started"/></h4>
+            <br>
+            <div>
+              <ul.list-unstyled>
+                <li.nav-item.cursor-pointer.w-100.px-2.py-75.d-flex.align-items-center>
+                  <Bx.font-large-1 type="plus"/>
+                  <Locale.px-2.font-medium-2 text="Start with a new project"/>
+                </li>
+                <li.nav-item.cursor-pointer.w-100.px-2.py-75.d-flex.align-items-center>
+                  <Bx.font-large-1 type="plus"/>
+                  <Locale.px-2.font-medium-2 text="Personalize your workspace settings"/>
+                </li>
+                <li.nav-item.cursor-pointer.w-100.px-2.py-75.d-flex.align-items-center>
+                  <Bx.font-large-1 type="plus"/>
+                  <Locale.px-2.font-medium-2 text="Explore documentations"/>
+                </li>
+              </ul>
+            </div>
+
+            <br>
+            <div.p-2>
+              <ul.list-unstyled.py-2.border.round>
+                <li.nav-item.cursor-pointer.w-100.px-2.py-75.d-flex.align-items-center>
+                  <Bx.font-medium-5 type="file"/>
+                  <Locale.px-2.font-medium-1 text="Documentations"/>
+                </li>
+                <li.nav-item.cursor-pointer.w-100.px-2.py-75.d-flex.align-items-center>
+                  <Bx.font-medium-5 type="help-circle"/>
+                  <Locale.px-2.font-medium-1 text="Support & Help"/>
+                </li>
+                <li.nav-item.cursor-pointer.w-100.px-2.py-75.d-flex.align-items-center>
+                  <Bx.font-medium-5 type="group"/>
+                  <Locale.px-2.font-medium-1 text="Developers community"/>
+                </li>
+              </ul>
+            </div>
+          </@col>
+        </Row>
+      </div>
+      
+      <Toolbar />
+    </main>
+  </Row>
+
+  <Footer>
+    <Row>
+      <@col>
+        <ul.list-inline.m-0>
+          <li.px-1.white-text>
+            JSX Update available
+          </li>
+        </ul>
+      </@col>
+      
+      <@col.col.text-right>
+        <ul.list-inline.m-0>
+          <li.px-1.white-text>
+            <Locale text="Help"/>
+          </li>
+        </ul>
+      </@col>
+    </Row>
+  </Footer>
+</div>
+
+<!-- Create/Import project -->
+<if( state.showSetupProject )>
+  <Modal.px-4.py-2 width=40 noBackdrop=true on-dismiss('onCreateProjectToggle', false )>
+    <SetupProject on-explorer('onExplorerToggle', true )
+                  on-dismiss('onCreateProjectToggle', false )
+                  on-submit('onCreateProject')/>
+  </Modal>
+</if>
+
+<!-- Add new team members -->
+<if( state.showInviteForm )>
+  <Modal.px-3.py-2 width=25 noBackdrop=true on-dismiss('onAddMemberToggle', false )>
+    <AddMembers existing=state.workspace.members
+                on-dismiss('onAddMemberToggle', false )
+                on-submit('onAddMembers')/>
+  </Modal>
+</if>
+
+<!-- Show File System Explorer -->
+<if( state.showExplorer )>
+  <Modal.mh-50.overflow-auto 
+        noBackdrop=true
+        noDismissButton=true 
+        width=25 on-dismiss('onExplorerToggle', false )>
+    <FSExplorer options={ ignore: '^\\.' }
+                ...state.showExplorer
+                on-dismiss('onExplorerToggle', false )/>
+  </Modal>
+</if>

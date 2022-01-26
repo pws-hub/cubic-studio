@@ -1,0 +1,604 @@
+[
+  {
+    "umi": "ext-1234-AD",
+    "type": "application",
+    "name": "SuperProfile",
+    "description": "Display and Manage Users Profile Information",
+    "version": "1.0",
+    "favicon": "bx-user",
+    "categories": ["profile"],
+    "package": {
+      "directory": "SuperProfile",
+      "*": {
+        "workspace": "qs",
+        "autoload": true
+      }
+    },
+    "configs": {
+      "default": true,
+      "permissions": {
+        "scope": [ { "type": "user.*", "access": "GRANTED" } , { "type": "tenant.*", "access": "GRANTED" } ]
+      },
+      "services": {
+        "editor": [ "PROFILE" ]
+      }
+    },
+    "plugins": {
+      "Accessibility": {
+        "umi": "ext-1235-ASS",
+        "type": "plugin",
+        "name": "Accessibility",
+        "description": "Display and Configure User Interface Accessibility Rules",
+        "version": "1.0",
+        "favicon": "bx-body",
+        "categories": ["accessibility"],
+        "package": {
+          "directory": "Accessibility"
+        }
+      }
+    },
+    "author": {
+      "type": "developer",
+      "name": "Multipple"
+    }
+  },
+  {
+    "umi": "ext-1235-ASS",
+    "type": "plugin",
+    "name": "Accessibility",
+    "description": "Display and Configure User Interface Accessibility Rules",
+    "version": "1.0",
+    "favicon": "bx-body",
+    "categories": ["accessibility"],
+    "package": {
+      "directory": "Accessibility"
+    },
+    "author": {
+      "type": "developer",
+      "name": "Multipple"
+    }
+  },
+  {
+    "umi": "ext-0009-YYTS",
+    "type": "application",
+    "name": "SmartSearch",
+    "description": "Dynamic and Customizable Search engine",
+    "version": "1.0",
+    "favicon": "/images/icons/search.png",
+    "categories": ["search"],
+    "package": {
+      "directory": "SmartSearch",
+      "*": {
+        "workspace": "qs",
+        "autoload": true
+      }
+    },
+    "configs": {
+      "default": true,
+      "permissions": {
+        "scope": [ { "type": "user.*", "access": "GRANTED" } , { "type": "tenant.*", "access": "GRANTED" } ]
+      }
+    },
+    "author": {
+      "type": "developer",
+      "name": "Multipple"
+    }
+  },
+  {
+    "umi": "ext-0987-DJSS",
+    "type": "application",
+    "name": "Library",
+    "description": "Add & Search Documents, Books, Lessons, ...",
+    "version": "1.0",
+    "favicon": "/images/plugins/Library.png",
+    "categories": ["library"],
+    "package": {
+      "directory": "Library",
+      "*": {
+        "workspace": "hs",
+        "autoload": true
+      }
+    },
+    "configs": {
+      "default": true,
+      "permissions": {
+        "scope": [ { "type": "user.*", "access": "GRANTED" } , { "type": "tenant.*", "access": "GRANTED" } ]
+      },
+      "services": {
+        "editor": [ "BOOK", "XDOC", "ESHL" ]
+      }
+    },
+    "author": {
+      "type": "developer",
+      "name": "Multipple"
+    }
+  },
+  {
+    "umi": "ext-22ON-HHGF",
+    "type": "plugin",
+    "name": "AssetLib",
+    "description": "Display, Search Documents, Books, Lessons, ...",
+    "version": "1.0",
+    "favicon": "bx bx-library",
+    "categories": ["library"],
+    "package": {
+      "directory": "AssetLib"
+    },
+    "author": {
+      "type": "developer",
+      "name": "Multipple"
+    }
+  },
+  {
+    "umi": "ext-8893-2211",
+    "type": "application",
+    "name": "Bloum",
+    "description": "Chat, Forum and community management application",
+    "version": "1.0",
+    "favicon": "/images/plugins/bloum.png",
+    "categories": ["conversation"],
+    "package": {
+      "directory": "Bloum",
+      "*": {
+        "workspace": "hs",
+        "autoload": true
+      }
+    },
+    "configs": {
+      "default": true,
+      "permissions": {
+        "scope": [
+          { "type": "user.*", "access": "GRANTED" },
+          { "type": "tenant.*", "access": "GRANTED" }
+        ]
+      },
+      "bat":{
+        "baseURL": "https://bis.webmicros.com/v1",
+        "token": "3UXZjdXemVmYuhWY3NTZrBnYz92Z0c3YkV3bxlWN3VGN0MWZ3lnZlJ2a0c2dkZWcl12NxcHd3Ane0NTZnVnajRDNpJ3d5ZWZitWN0cXezAXardXZnp3MnBHN1kneqNTZ4RTYy52NlJ3MtNzc3NDcxZWNhd2cvpmcjRXZ3ZmbmVmYxczdypmatpnaxFDZrBHc3pGdnN3bmpmaxkmcudTZyJ3axc2d5pmc1QG$3oJLnUSxtPKDY7mowTEuj1tbZjoB3XS7Xd1u"
+      }
+    },
+    "author": {
+      "type": "developer",
+      "name": "Multipple"
+    }
+  },
+  {
+    "umi": "ext-IS98-2333",
+    "type": "application",
+    "name": "3C",
+    "description": "Course Content Creator",
+    "version": "1.0",
+    "favicon": "/images/plugins/3C.png",
+    "categories": ["content-generator"],
+    "package": {
+      "directory": "3C",
+      "admin": {
+        "workspace": "hs",
+        "autoload": true
+      }
+    },
+    "configs": {
+      "default": true,
+      "permissions": {
+        "scope": [ { "type": "user.*", "access": "GRANTED" } , { "type": "tenant.*", "access": "GRANTED" } ]
+      },
+      "services": {
+        "editor": [ "RTXT", "MVID", "MIVI", "FLIP" ]
+      }
+    },
+    "plugins": {
+      "AssetLib": {
+        "umi": "ext-22ON-HHGF",
+        "type": "plugin",
+        "name": "AssetLib",
+        "description": "Display, Search Documents, Books, Lessons, ...",
+        "version": "1.0",
+        "favicon": "bx bx-library",
+        "categories": ["library"],
+        "package": {
+          "directory": "AssetLib"
+        },
+        "author": {
+          "type": "developer",
+          "name": "Multipple"
+        }
+      },
+      "ModelaEditor": {
+        "umi": "ext-HH88-31F0",
+        "type": "plugin",
+        "name": "ModelaEditor",
+        "description": "Rich Text Content Editor",
+        "version": "1.0",
+        "favicon": "bx-pencil",
+        "categories": ["content-generator"],
+        "package": {
+          "directory": "ModelaEditor"
+        },
+        "configs": {
+          "default": true,
+          "services": {
+            "editor": [ "RTXT" ]
+          }
+        }
+      },
+      "VideoMaker": {
+        "umi": "ext-01VO-F43L",
+        "type": "plugin",
+        "name": "VideoMaker",
+        "description": "Create Video Lesson or Presentation",
+        "version": "1.0",
+        "favicon": "bx-slideshow",
+        "categories": ["content-generator"],
+        "package": {
+          "directory": "VideoMaker"
+        },
+        "configs": {
+          "default": true,
+          "services": {
+            "reader": [ "MVID", "MIVI" ]
+          }
+        },
+        "plugins": {
+          "VPlayer": {
+            "umi": "ext-ES80-PS54",
+            "type": "plugin",
+            "name": "VPlayer",
+            "description": "Multiple Format and Streaming Video Player",
+            "version": "1.0",
+            "favicon": "bx-film",
+            "categories": ["media-player"],
+            "package": {
+              "directory": "VPlayer"
+            },
+            "configs": {
+              "default": true,
+              "services": {
+                "reader": [ "VIDEO", "AUDIO" ]
+              }
+            }
+          }
+        }
+      },
+      "Flipper": {
+        "umi": "ext-IIER-LKJ1",
+        "type": "plugin",
+        "name": "Flipper",
+        "description": "Create Flippable Lesson Content",
+        "version": "1.0",
+        "favicon": "bx-carousel",
+        "categories": ["content-generator"],
+        "package": {
+          "directory": "Flipper"
+        },
+        "configs": {
+          "default": true,
+          "services": {
+            "editor": [ "FLIP" ]
+          }
+        }
+      }
+    },
+    "author": {
+      "type": "developer",
+      "name": "Multipple"
+    }
+  },
+  {
+    "umi": "ext-HH88-31F0",
+    "type": "plugin",
+    "name": "ModelaEditor",
+    "description": "Rich Text Content Editor",
+    "version": "1.0",
+    "favicon": "bx-pencil",
+    "categories": ["content-generator"],
+    "package": {
+      "directory": "ModelaEditor"
+    },
+    "configs": {
+      "default": true,
+      "services": {
+        "editor": [ "RTXT" ]
+      }
+    },
+    "author": {
+      "type": "developer",
+      "name": "Multipple"
+    }
+  },
+  {
+    "umi": "ext-ES80-PS54",
+    "type": "plugin",
+    "name": "VPlayer",
+    "description": "Multiple Format and Streaming Video Player",
+    "version": "1.0",
+    "favicon": "bx-film",
+    "categories": ["player"],
+    "package": {
+      "directory": "VPlayer"
+    },
+    "configs": {
+      "default": true,
+      "services": {
+        "reader": [ "VIDEO", "AUDIO" ]
+      }
+    },
+    "author": {
+      "type": "developer",
+      "name": "Multipple"
+    }
+  },
+  {
+    "umi": "ext-01VO-F43L",
+    "type": "plugin",
+    "name": "VideoMaker",
+    "description": "Create Video Lesson or Presentation",
+    "version": "1.0",
+    "favicon": "bx-slideshow",
+    "categories": ["content-generator"],
+    "package": {
+      "directory": "VideoMaker"
+    },
+    "configs": {
+      "default": true,
+      "services": {
+        "reader": [ "MVID", "MIVI" ]
+      }
+    },
+    "plugins": {
+      "VPlayer": {
+        "umi": "ext-ES80-PS54",
+        "type": "plugin",
+        "name": "VPlayer",
+        "description": "Multiple Format and Streaming Video Player",
+        "version": "1.0",
+        "favicon": "bx-film",
+        "categories": ["player"],
+        "package": {
+          "directory": "VPlayer"
+        },
+        "configs": {
+          "default": true,
+          "services": {
+            "reader": [ "VIDEO", "AUDIO" ]
+          }
+        }
+      }
+    },
+    "author": {
+      "type": "developer",
+      "name": "Multipple"
+    }
+  },
+  {
+    "umi": "ext-IIER-LKJ1",
+    "type": "plugin",
+    "name": "Flipper",
+    "description": "Create Flippable Lesson Content",
+    "version": "1.0",
+    "favicon": "bx-carousel",
+    "categories": ["content-generator"],
+    "package": {
+      "directory": "Flipper"
+    },
+    "configs": {
+      "default": true,
+      "services": {
+        "editor": [ "FLIP" ]
+      }
+    },
+    "author": {
+      "type": "developer",
+      "name": "Multipple"
+    }
+  },
+  {
+    "umi": "ext-3065-I9LA",
+    "type": "application",
+    "name": "EvaluationPro",
+    "description": "Create, Showcase and Manage Assessments and Assigmnent",
+    "version": "2.0",
+    "favicon": "/images/plugins/EvaluationPro.png",
+    "categories": ["evaluation", "assessment"],
+    "package": {
+      "directory": "EvaluationPro",
+      "admin": {
+        "workspace": "hs",
+        "autoload": true
+      }
+    },
+    "configs": {
+      "default": true,
+      "permissions": {
+        "scope": [ { "type": "user.*", "access": "GRANTED" } , { "type": "tenant.*", "access": "GRANTED" } ]
+      },
+      "services": {
+        "editor": [ "ASSM", "ASSG" ]
+      }
+    },
+    "plugins": {
+      "AssetLib": {
+        "umi": "ext-22ON-HHGF",
+        "type": "plugin",
+        "name": "AssetLib",
+        "description": "Display, Search Documents, Books, Lessons, ...",
+        "version": "1.0",
+        "favicon": "bx bx-library",
+        "categories": ["library"],
+        "package": {
+          "directory": "AssetLib"
+        },
+        "author": {
+          "type": "developer",
+          "name": "Multipple"
+        }
+      }
+    },
+    "author": {
+      "type": "developer",
+      "name": "Multipple"
+    }
+  },
+  {
+    "umi": "ext-5500-UYGS",
+    "type": "application",
+    "name": "XCredible",
+    "description": "Create and Manage Certificate and Badges",
+    "version": "1.0",
+    "favicon": "/images/medals/088-medal-11.png",
+    "categories": ["reward"],
+    "package": {
+      "directory": "XCredible",
+      "admin": {
+        "workspace": "hs",
+        "autoload": true
+      },
+      "instructor": {
+        "workspace": "hs",
+        "autoload": true
+      },
+      "learner": {
+        "main": "Issuer"
+      }
+    },
+    "configs": {
+      "default": true,
+      "permissions": {
+        "scope": [ { "type": "user.*", "access": "GRANTED" } , { "type": "tenant.*", "access": "GRANTED" } ]
+      },
+      "services": {
+        "editor": [ "CERT", "BADGE" ]
+      }
+    },
+    "plugins": {
+      "AssetLib": {
+        "umi": "ext-22ON-HHGF",
+        "type": "plugin",
+        "name": "AssetLib",
+        "description": "Display, Search Documents, Books, Lessons, ...",
+        "version": "1.0",
+        "favicon": "bx bx-library",
+        "categories": ["library"],
+        "package": {
+          "directory": "AssetLib"
+        },
+        "author": {
+          "type": "developer",
+          "name": "Multipple"
+        }
+      }
+    },
+    "author": {
+      "type": "developer",
+      "name": "Multipple"
+    }
+  },
+  {
+    "umi": "ext-3232-KKHG",
+    "type": "plugin",
+    "name": "DLBoard",
+    "description": "Dynamic Learning Board",
+    "version": "1.0",
+    "favicon": "bx bx-chalkboard",
+    "categories": ["classroom"],
+    "package": {
+      "directory": "DLBoard"
+    },
+    "configs": {
+      "default": true,
+      "services": {
+        "reader": [ "RTXT", "FLIP", "MVID", "MIVI" ]
+      }
+    },
+    "plugins": {
+      "Flipper": {
+        "umi": "ext-IIER-LKJ1",
+        "type": "plugin",
+        "name": "Flipper",
+        "description": "Create Flippable Lesson Content",
+        "version": "1.0",
+        "favicon": "bx-carousel",
+        "categories": [ "content-generator" ],
+        "package": {
+          "directory": "Flipper"
+        },
+        "configs": {
+          "default": true,
+          "services": {
+            "editor": [ "FLIP" ]
+          }
+        }
+      },
+      "VPlayer": {
+        "umi": "ext-ES80-PS54",
+        "type": "plugin",
+        "name": "VPlayer",
+        "description": "Multiple Format and Streaming Video Player",
+        "version": "1.0",
+        "favicon": "bx-film",
+        "categories": ["player"],
+        "package": {
+          "directory": "VPlayer"
+        },
+        "configs": {
+          "default": true,
+          "services": {
+            "reader": [ "VIDEO", "AUDIO" ]
+          }
+        }
+      }
+    },
+    "author": {
+      "type": "developer",
+      "name": "Multipple"
+    }
+  },
+  {
+    "umi": "ext-29SS-O1SJ",
+    "type": "plugin",
+    "name": "ProgressPro",
+    "description": "Classroom Progress Navigation",
+    "version": "1.0",
+    "favicon": "bx bx-outline",
+    "categories": ["classroom"],
+    "package": {
+      "directory": "ProgressPro"
+    },
+    "configs": {
+      "default": true,
+      "permissions": { "scope": [ { "type": "user.*", "access": "GRANTED" } , { "type": "tenant.*", "access": "GRANTED" } ] },
+      "services": {
+        "reader": [ "ENROL" ]
+      }
+    },
+    "author": {
+      "type": "developer",
+      "name": "Multipple"
+    }
+  },
+  {
+    "umi": "ext-0101-OP0P",
+    "type": "application",
+    "name": "ZoomMeet",
+    "description": "Create & manage your live sessions with Zoom Meet",
+    "version": "1.0",
+    "favicon": "/images/plugins/zoom.png",
+    "categories": [ "live-session" ],
+    "package": {
+      "directory": "ZoomMeet",
+      "admin": {
+        "workspace": "hs",
+        "autoload": true
+      }
+    },
+    "configs": {
+      "permissions": {
+        "scope": [ "tenant.apps" ]
+      },
+      "requirements": [ "jwt" ]
+    },
+    "author": {
+      "type": "developer",
+      "name": "Multipple"
+    }
+  }
+]

@@ -1,0 +1,67 @@
+
+class {
+	onCreate(){ GState.bind( this, ['marketplace', 'ws'] ) }
+  /*
+	onToggle( id ){
+		let 
+		action = 'open',
+		values = Object.values( this.state.activeExtensions ),
+		maxIndex = Math.max( ...( values.map( ({ zindex }) => { return zindex } ) ) )
+
+		if( this.state.activeExtensions.hasOwnProperty( id )
+				&& this.state.activeExtensions[ id ].zindex == maxIndex )
+			action = 'close'
+		
+		// Open or Close aside component
+		GState.extension[ action ]( id )
+		// Close marketplace if active
+		GState.marketplace.close()
+	}
+  */
+	onMarketPlace(){ GState.marketplace[ this.state.marketplace ? 'close' : 'open' ]() }
+	onWorkspaceSwitch(){ GState.ws.layout({ mode: this.state.ws.mode == 'qs' ? 'hs' : 'qs' }) }
+	onWorkspaceFullScreen(){ GState.ws.layout({ mode: this.state.ws.mode !== 'fs' ? 'fs' : 'auto' }) }
+}
+
+<div.in-block.position-fixed.top-0.right-0.h-100.theme-bg-lighten.text-center style="width:4rem;z-index:300">
+  <ul.list-unstyled.py-2>
+    <li.cursor-pointer><Bx.px-1.py-2.font-medium-5 type="cloud"/></li>
+    <li.cursor-pointer><Bx.px-1.py-2.font-medium-5 type="user"/></li>
+    <li.cursor-pointer><Bx.px-1.py-2.font-medium-5 type="bell"/></li>
+    <li.cursor-pointer><Bx.px-1.py-2.font-medium-5 type="cog"/></li>
+    <li.cursor-pointer><Bx.px-1.py-2.font-medium-5 type="info-circle"/></li>
+    <li.cursor-pointer><Bx.px-1.py-2.font-medium-5 type="file"/></li>
+    <li.cursor-pointer><Bx.px-1.py-2.font-medium-5 type="sync"/></li>
+
+		<!-- Workspace mode controls -->
+		<!-- <li.position-relative>
+			<span class="bg-active cursor-pointer"
+						title=Locale('Add App')
+						on-click('onMarketPlace')>
+				<Bx.white-text type=(state.marketplace ? 'x' : 'plus')/>
+			</span>
+		</li> -->
+    
+		<!-- Workspace mode controls -->
+		<li class=`position-absolute width-100 bottom-0 ${state.ws.mode == 'ns' ? 'd-none' : ''}` 
+				style="margin-bottom:8rem">
+			$ const isQuaterScreen = state.ws.mode == 'qs'
+			<span class="bg-active cursor-pointer"
+						title=Locale( isQuaterScreen ? 'Half Screen' : 'Quarter Screen' )
+						on-click('onWorkspaceSwitch')>
+				<Bx.px-1.py-2.font-medium-5 type=`dock-${isQuaterScreen ? 'left' : 'right'}` class="white-text"/>
+			</span>
+		</li>
+
+		<!-- Full workspace toggle -->
+		<li class=`position-absolute width-100 bottom-0 ${state.ws.mode == 'ns' ? 'd-none' : ''}`
+				style="margin-bottom:3rem">
+			$ const isFullScreen = state.ws.mode == 'fs'
+			<span class="bg-active cursor-pointer" 
+						title=Locale( isFullScreen ? 'Exit Full Screen' : 'Full Screen' )
+						on-click('onWorkspaceFullScreen')>
+				<Bx.px-1.py-2.font-medium-5 type=`${isFullScreen ? 'exit-' : ''}fullscreen` class="white-text"/>
+			</span>
+		</li>
+  </ul>
+</div>

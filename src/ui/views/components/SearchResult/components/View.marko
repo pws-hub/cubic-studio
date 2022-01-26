@@ -1,0 +1,164 @@
+
+import Extensions from './../defaults.json'
+
+class {
+  onCreate(){
+    this.state = { similars: [] }
+    this.documentation = false
+  }
+  onInput({ item }){
+    this.state.similars = Extensions.filter( each => {
+      if( item.name != each.name 
+          && Array.isArray( item.categories ) 
+          && item.categories.length )
+        for( let o = 0; o < item.categories.length; o++ )
+          if( each.categories.includes( item.categories[o] ) )
+            return true
+          
+      return false
+    } )
+  }
+}
+
+<div.px-3.pt-4.overflow-auto style="max-height:46rem">
+  <div.text-right>
+    <Bx.font-large-1 type="right-arrow-alt" on-click( () => component.emit('dismiss') )/>
+  </div>
+
+  <Row>
+    <!-- Icon -->
+    <@col hs="col-2" class="text-center py-2">
+      <if( /\.(png|jpe?g|gif|webp|svg)/.test( input.item.favicon ) )>
+        <Image src=input.item.favicon
+                width=60
+                alt=input.item.name/><br>
+      </if>
+      <else>
+        <span>
+          <i.font-large-3.bx class=input.item.favicon></i>
+        </span>
+      </else>
+    </@col>
+
+    <!-- Caption -->
+    <@col>
+      <h5>${input.item.name}</h5>
+      <p>${input.item.description}</p>
+      
+      <ul.list-inline.d-inline-flex.align-items-center>
+        <li><StarRating score=3.5 color="grey"/></li>
+        <li.px-3><span.text-primary>${input.item.author.name}</span></li>
+      </ul>
+
+      <br>
+      <!-- Categories -->
+      <if( input.item.categories.length )>
+        <ul.list-inline>
+          <for|category, index| of=input.item.categories>
+            <li.px-1.py-25.m-25.border.round.text-muted.font-small-3>${category.toCapitalCase()}</li>
+          </for>
+        </ul>
+      </if>
+    </@col>
+
+    <@col.col-12>
+      <!-- Installing signal status -->
+      $ const isInstalling = input.installing && input.installing.name == input.item.name && input.installing.status == 'ONGOING'
+
+      <Row>
+        <!-- Install & Installing status button -->
+        <if( window.Extensions && !window.Extensions.isInstalled( input.item.name ) )>
+          <@col.col-12.text-right>
+            <br>
+            <Button primary=true type="md" on-click( () => !isInstalling ? component.emit('install', input.item ) : false )>
+              <Locale text=(isInstalling ? 'installing...' : 'Install')/>
+              <Preloader.font-medium-5.float-right active=isInstalling/>
+            </Button>
+          </@col>
+        </if>
+        <else>
+          <!-- Uninstalling signal status -->
+          $ const isUninstalling = input.uninstalling && input.uninstalling.name == input.item.name && input.uninstalling.status == 'ONGOING'
+
+          <!-- Open application from marketplace -->
+          <if( !isUninstalling && input.item.type == 'application' )>
+            <@col.col.px-50>
+              <Button.btn-block
+                      type="md"
+                      primary=true
+                      on-click( () => component.emit('run', input.item.name ) )>
+                <Locale text="Open"/>
+              </Button>
+            </@col>
+          </if>
+
+          <!-- Uninstall button -->
+          <@col.col.px-50>
+            <Button.btn-block
+                    type="md"
+                    on-click( () => !isUninstalling ? component.emit('uninstall', input.item.name ) : false )>
+              <Locale text=(isUninstalling ? 'uninstalling...' : 'Uninstall')/>
+              <Preloader.font-medium-5.float-right active=isUninstalling/>
+            </Button>
+          </@col>
+        </else>
+      </Row>
+    </@col>
+  </Row>
+
+  <!-- Display documentation -->
+  <if( component.documentation )>
+    <br>
+    <div>
+      <h5.font-medium-2><Locale text="Documentation"/></h5>
+      <div>$!{component.documentation}</div>
+    </div>
+  </if>
+
+  <!-- Display similar items: Same categories -->
+  <if( state.similars.length )>
+    <section.py-2.theme-bg style="padding-top:45rem;border-radius: 1000px 0 0 0">
+      <h5><Locale.font-medium-1 text=`Similar ${input.item.type}s`/></h5>
+      <Row>
+        <for|each, index| of=state.similars>
+          <if( each.name !== input.item.name )>
+            $ const { name, description, favicon } = each
+
+            <@col ns="col-6" qs="col-6" hs="col-12" fs="col-6" class="cursor-pointer">
+              <div.border.round-sm.my-50.theme-bg on-click( () => component.emit('open', each ) )>
+                <div.card-content>
+                  <div.d-flex.align-items-center.justify-content-center style="height:120px">
+                    <!-- Icon -->
+                    <if( /\.(png|jpe?g|gif|webp|svg)/.test( favicon ) )>
+                      <Image src=favicon
+                              width=60
+                              alt=name
+                              title=description/><br>
+                    </if>
+                    <else>
+                      <span title=description>
+                        <i.font-large-3.bx class=favicon></i>
+                      </span>
+                    </else>
+                  </div>
+
+                  <!-- Caption -->
+                  <div.px-1.py-75>
+                    <p.mb-2>${name}</p>
+                    <div>
+                      <if( window.Extensions && window.Extensions.isInstalled( name ) )>
+                        <Locale.font-small-2.float-right.text-success text="Installed"/>
+                      </if>
+                      
+                      <StarRating score=5 color="grey"/>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </@col>
+          </if>
+        </for>
+      </Row>
+    </section>
+  </if>
+</div>

@@ -1,0 +1,124 @@
+
+class {
+  onCreate(){
+    this.state = {
+      active: null,
+      running: false,
+      showMenu: true
+    }
+
+    this.noChange = false
+    this.Actives = {}
+  }
+  onInput({ type, list }){
+
+    if( this.state.active == type ) return
+    if( this.Actives.hasOwnProperty( type ) ){
+      this.noChange = false
+      this.state.active = type
+    }
+    else {
+      this.Actives[ type ] = list
+      this.state.active = type
+    }
+  }
+  onShowMenu(){
+    this.state.showMenu = !this.state.showMenu
+    this.noChange = true
+    setTimeout( () => this.noChange = false, 100 )
+
+    this.emit('show-menu', this.state.showMenu ) 
+  }
+  onRun(){
+		GState.ws.layout({ mode: !this.state.running ? 'auto' : 'ns' }) 
+		this.state.running = !this.state.running
+	}
+}
+
+<macro|{ type, list }| name="Content">
+  <ul.list-unstyled.my-0.ml-3 no-update-body-if( component.noChange )>
+    <Switch by=type>
+      <@case is=["API", "collections"]>
+        <for|collection, index| of=list>
+          <Collection ...collection/>
+        </for>
+      </@case>
+      <@case is="environments">
+        <for|collection, index| of=list>
+          <Environment ...collection/>
+        </for>
+      </@case>
+      <@case is="directory">
+        <for|folder| of=list>
+          <Folder ...folder/>
+        </for>
+      </@case>
+      <@default>
+        Default Mode
+      </@default>
+    </Switch>
+    
+    <li>
+      <div.hover-toggle.py-1.d-flex.align-items-center.cursor-pointer>
+        <Bx.font-medium-5.pl-50.pr-4 type="plus"/>
+        <div.font-medium-1.text-ellipsis.w-75>
+          <Switch by=input.type>
+            <@case is=["API"]>
+              <Locale text="Create New"/>
+            </@case>
+            <@default>
+              <Locale text="Add Folder"/>
+            </@default>
+          </Switch>
+        </div>
+      </div>
+    </li>
+  </ul>
+</macro>
+
+<div.in-block.section-block.px-0.border-right style="width:18%">
+  <div.w-100.d-flex.align-items-center.border-bottom style="height:3rem">
+    <div.w-100>
+      
+      <ul.list-inline.m-0.px-50>
+        <!-- <li><Bx.font-medium-5.px-1 type="wifi-off"/></li> -->
+        <li>
+          <Bx.font-medium-5.px-1.cursor-pointer
+              type=`menu-alt-${state.showMenu ? 'right' : 'left'}`
+              on-click('onShowMenu')/>
+        </li>
+
+
+        <!-- Coding Project actions -->
+        <if( input.type == 'directory' )>
+          <li.float-right>
+            <Bx.font-medium-5.px-75.cursor-pointer
+                title=Locale('Git branch')
+                type="git-branch"/>
+          </li>
+          <li.float-right>
+            <Bx.font-medium-5.px-75.cursor-pointer
+                title=Locale('Git commit')
+                type="git-commit"/>
+          </li>
+          <li.float-right>
+            <Bx.font-medium-5.px-75.cursor-pointer
+                title=Locale( !state.active ? 'Run' : 'Close' )
+                type=`${!state.running ? 'play' : 'pause'}`
+                on-click('onRun')/>
+          </li>
+        </if>
+      </ul>
+    </div>
+  </div>
+
+  <div.position-relative.overflow-auto style="height:calc(100% - 3rem)">
+    <for|type, list| in=component.Actives>
+      <div.position-absolute.theme-bg.h-100.top-0.left-0.right-0.py-1
+          key=type
+          class=( state.active == type ? 'zindex-2' : 'zindex-1')>
+        <Content type=type list=list/>
+      </div>
+    </for>
+  </div>
+</div>

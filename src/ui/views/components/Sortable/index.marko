@@ -1,0 +1,41 @@
+
+import 'jquery-ui/ui/widgets/sortable'
+
+$ component.once('mount', () => {
+
+    this.options = {
+      axis: input.axis || false,
+      connectWith: '.'+ input.containerClass,
+      torelance: 'pointer',
+      classes: { 'ui-sortable-helper': 'move-drag' },
+      placeholder: 'move-placeholder',
+      scroll: false,
+      revert: true,
+      zIndex: 100,
+      stop: ( e, ui ) => {
+        const
+        $item = ui.item,
+        $parent = $item.closest('.'+ input.containerClass ),
+        fromIndex = $item.data('item-key')
+  
+        let 
+        toIndex,
+        counter = 0
+
+        $parent.children().each( function(){
+          if( $(this).data('item-key') == fromIndex )
+            toIndex = counter
+          
+          counter++
+        } )
+        
+        fromIndex != toIndex && component.emit( 'change', fromIndex, toIndex, $item )
+      }
+    }
+
+    $('.'+ input.containerClass ).sortable( this.options )
+  } )
+
+<for|item, index| of=input.item>
+  <${item.renderBody} key=index itemKey=index/>
+</for>

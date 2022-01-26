@@ -1,0 +1,37 @@
+
+class {
+  onCreate(){ this.state = { show: false } }
+  onShowMenu( status, e ){
+
+    this.state.show = status
+  }
+}
+
+<!-- Option Menu toggler -->
+<Bx class=input.class
+    type=`dots-${input.vertical ? 'vertical' : 'horizontal'}-rounded`
+    on-click('onShowMenu', true )/>
+
+<!-- Dropdown menu -->
+<if( state.show )>
+  <ul.list-unstyled.position-absolute.top-0.border.round-xs.overflow-hidden.theme-bg.m-25.animated.fadeIn.faster
+      class=(input.right ? 'right-0' : 'left-0')
+      style="min-width:180px;z-index:1000">
+    <for|{ id, label, fn, shortcut, divider }, index| of=input.menu>
+      <li.position-relative.nav-item.cursor-pointer.px-1.py-50.d-flex.align-items-center
+          key=index
+          class=(divider ? 'border-top' : false)
+          on-click( () => { typeof fn == 'function' && fn( id ) } )>
+        <!-- Menu option label -->
+        <Locale.font-small-4 text=label/>
+        <!-- Shortcut Command -->
+        <span.position-absolute.right-0.px-1.text-muted>
+          <Bx.font-small-1.text-muted type="command"/> + <span.font-small-3.text-muted>B</span>
+        </span>
+      </li>
+    </for>
+  </ul>
+
+  <!-- Close opened drowpdown -->
+  <subscribe to=document once-click('onShowMenu', false )/>
+</if>

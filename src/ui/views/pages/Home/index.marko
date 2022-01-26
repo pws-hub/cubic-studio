@@ -1,0 +1,95 @@
+
+import BgImage from '~/images/illustrations/bg.png'
+import DefaultAvatar from '~/images/profile/default.png'
+
+static const MultippleSignin = `http://brain.multipple.com:6040/auth?oauth=studio&v=1.a&curl=${encodeURIComponent('http://localhost:12120/auth/callback')}&dt=4000`
+
+class {
+  onCreate(){ 
+    this.state = { showWSForm: false }
+    GState.bind( this, ['isConnected', 'user', 'workspaces'])
+  }
+  goTo( workspaceId ){ navigate('/workspace/'+ workspaceId ) }
+  onCreateWS( status ){ this.state.showWSForm = status }
+  onRemoveWS( workspaceId ){}
+}
+
+<div.vh-100.d-flex.align-items-center.justify-content-center>
+  <div.position-absolute.left-0.top-0.right-0.bottom-0 
+      style=`opacity:.6;background:url(${BgImage}) center no-repeat;background-size:contain`></div>
+
+  <div.col-xl-2.col-lg-3.col-md-4.col-sm-5>
+    <div.text-center>
+      <Bx.font-large-5 type="cube-alt"/>
+      <h4.mb-1><strong>Cubic Studio</strong></h4>
+      <div.text-right.font-small-2 style="margin-right:4.5rem">Multipple</div>
+    </div>
+
+    <!-- Workspaces -->
+    <if( state.isConnected )>
+      <br><br>
+      <h4.px-1.font-small-3>
+        <Locale text="Workspaces"/>
+      </h4>
+      <div.theme-bg.theme-bg.border.round.px-0.py-2>
+        <if( !state.workspaces )>
+          <div.text-center>
+            <Preloader.font-medium-5 active=true/>
+          </div>
+        </if>
+        <else>
+          <ul.list-unstyled.m-0>
+            <for|{ workspaceId, name, description }, index| of=state.workspaces>
+              <li.position-relative.nav-item.cursor-pointer.px-2.py-50.d-flex.align-items-center.hover-toggle 
+                  title=description
+                  on-click('goTo', workspaceId )>
+                <h6.font-medium-2>${name}</h6>
+                <!-- <Bx.position-absolute.right-0.font-medium-5.px-1.hover-show type="x" on-click('onRemoveWS', workspaceId )/> -->
+              </li>
+            </for>
+          </ul>
+        </else>
+        
+        <br>
+        <div.px-2>
+          <Button.btn-block on-click('onCreateWS', true )>Create New</Button>
+        </div>
+      </div>
+    </if>
+
+    <br>
+    <!-- Signin with Studio Service Provider -->
+    <h4.px-1.font-small-3>
+      <Locale text="Sign-In"/>
+    </h4>
+    <div.cursor-pointer.nav-item.border.round-sm.overflow-hidden.my-75>
+      <!-- Show connected user info -->
+      <if( state.isConnected )>
+        <div.d-flex.align-items-center.px-0.py-1>
+          <Image.mx-2.round-xs src=( state.user.photo || DefaultAvatar ) style="width:26px;height:26px"/>
+          <span.font-medium-2.px-2>${state.user.name}</span><br>
+          <span.font-small-1.px-2.text-muted>Multipple</span>
+        </div>
+      </if>
+
+      <!-- Redirect to sign-in -->
+      <else>
+        <a.d-block.d-flex.align-items-center.px-0.py-1 
+            class=(!state.isConnected ? 'theme-bg-transparent' : false) 
+            href=MultippleSignin>
+          <Image.mx-2 src="/images/logo/multipple.png" style="width:26px;height:26px"/>
+          <span.font-medium-2.px-2>Multipple</span>
+        </a>
+      </else>
+    </div>
+  </div>
+</div>
+
+<!-- Send invitation to team members -->
+<if( state.showWSForm )>
+  <Modal.px-4.py-2 width=25 noBackdrop=true on-dismiss( 'onCreateWS', false )>
+    <h5><Locale text="Create Workspace"/></h5>
+    <br>
+    <CreateWorkspace on-dismiss( 'onCreateWS', false )/>
+  </Modal>
+</if>

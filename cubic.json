@@ -1,0 +1,8 @@
+{
+  "AUTH_HANDLERS": {
+    "multipple": "multipple.auth.js"
+  },
+  "REQUEST_HANDLERS": {
+    "multipple": "multipple.request.js"
+  }
+}

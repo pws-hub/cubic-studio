@@ -1,0 +1,273 @@
+
+import FormHandler from 'markojs-form'
+
+class {
+  onCreate(){
+    this.state = { submitting: false }
+
+    this.fhandler = new FormHandler({ key: 'create-project', autosave: true, crosscheck: true })
+    this.fhandler.bind( this, {
+      type: 'application', // Default
+      scope: {
+        sourceCode: {
+          directory: '',
+          repository: ''
+        },
+        APIs: false,
+        sockets: false,
+        units: false
+      }
+    })
+  }
+  onCancel(){
+    this.fhandler.reset()
+    this.emit('dismiss')
+  }
+  onAddDirectory({ path }){
+    if( !path ) return
+
+    // project must be set before add its directory
+    if( !this.state.form.name ){
+      this.fhandler.error('name', true )
+      return
+    }
+    
+    // Automatically add project as directory
+    path += '/'+ this.state.form.name
+    this.fhandler.set('scope.sourceCode.directory', path )
+  }
+  onSubmit(){
+    if( !isEmpty( this.state.formError )
+        && Object.values( this.state.formError ).includes( true ) ) return
+
+    const Form = this.state.form
+
+    // First member is owner of the project
+    Form.members = [
+      {
+        ...GState.get('user'),
+        role: 'OWNER',
+        active: true
+      }
+    ]
+    Form.icon = false
+
+    Form.scope.APIs = []
+    Form.scope.sockets = []
+    Form.scope.units = []
+    Form.scope.roadmap = []
+
+    // After saved
+    this.emit('submit', Form, (function(){
+      this.fhandler.alert('Project created')
+      this.fhandler.reset()
+    }).bind(this) )
+  }
+}
+
+<form key="create-project">
+  <h5><Locale text="Create Project"/></h5>
+  <br>
+
+  <div.form-row>
+    <!-- Project type -->
+    <div.col-4>
+      <label><Locale text="Type"/></label>
+      <div class="form-group">
+        <Select.round-xs
+                value=state.form.type
+                name="type"
+                validate="required"
+                placeholder=( Locale('Type*') )
+                options=[
+                  { label: 'Application', value: 'application' },
+                  { label: 'Plugin', value: 'plugin' },
+                  { label: 'Library', value: 'library' },
+                  { label: 'Testing Only', value: 'tests' }
+                ]
+                on-select('__onChange')/>
+      </div>
+    </div>
+
+    <!-- Project name -->
+    <div.col>
+      <label><Locale text="Name"/></label>
+      <div class="form-group">
+        <input.round-xs
+                type="text"
+                value=state.form.name
+                name="name"
+                class=( 'form-control form-control-lg px-2'+( state.formError.name != undefined ? ( state.formError.name ? ' is-invalid' : ' is-valid' ) : '' ) )
+                validate="required"
+                placeholder=( Locale('Name*') )
+                on-change('__onChange')/>
+        <p class=( 'small mt-50 mb-2'+( !state.formError.name ? ' d-none' : '' ) )>
+          <Locale.text-warning text="Name of the project"/>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Description -->
+  <div class="form-group">
+    <label><Locale text="Description"/></label>
+    <textarea.round-xs
+              type="text"
+              value=state.form.description
+              name="description"
+              class=`form-control form-control-lg px-2 ${state.formError.description != null ? ( state.formError.description ? ' is-invalid' : ' is-valid' ) : ''}`
+              placeholder=Locale('Description')
+              style={ height: '100px', resize: 'none' }
+              on-change('__onChange')></textarea>
+  </div>
+  
+  <!-- Project scope details -->
+  <if( state.form.type )>
+    <h5.py-50><Locale.font-small-3.text-muted text="Project Scope"/></h5>
+    
+    <if( ['application', 'plugin', 'library'].includes( state.form.type ) )>
+      <!-- Source code locations -->
+      <div.form-group>
+        <label><Locale text="Directory"/></label>
+        <div class="form-group">
+          <div class="input-group">
+            <input.round-xs
+                    type="text"
+                    value=state.form.scope.sourceCode.directory
+                    name="scope.sourceCode.directory"
+                    class=( 'form-control form-control-lg px-2'+( state.formError['scope.sourceCode.directory'] != undefined ? ( state.formError['scope.sourceCode.directory'] ? ' is-invalid' : ' is-valid' ) : '' ) )
+                    validate="required"
+                    placeholder=( Locale('Directory*') )
+                    on-change('__onChange')/>
+
+            <!-- Show FileSyste Explorer Modal -->
+            <div class="input-group-append">
+              <button class="btn btn-primary btn-lg" 
+                      on-click( () => component.emit('explorer', component.onAddDirectory.bind( component ) ) )>
+                <Bx.font-medium-5 type="folder"/>
+              </button>
+            </div>
+          </div>
+          <if( state.formError['scope.sourceCode.directory'] )>
+            <p.small.mt-50.mb-2>
+              <Locale.text-warning text="Directory of the project"/>
+            </p>
+          </if>
+          <else>
+            <p.small.mt-50.mb-2.text-muted>
+              <Locale>Location of the project on your local disk</Locale>
+            </p>
+          </else>
+        </div>
+      </div>
+
+      <!-- Source code git repository -->
+      <div.form-group>
+        <label><Locale text="Repository"/></label>
+        <div class="form-group">
+          <input.round-xs
+                  type="text"
+                  value=state.form.scope.sourceCode.repository
+                  name="scope.sourceCode.repository"
+                  class=( 'form-control form-control-lg px-2'+( state.formError['scope.sourceCode.repository'] != undefined ? ( state.formError['scope.sourceCode.repository'] ? ' is-invalid' : ' is-valid' ) : '' ) )
+                  placeholder=( Locale('Git Repository') )
+                  on-change('__onChange')/>
+          <p.small.mt-50.mb-2.text-muted>
+            <Locale>
+              It always a best practice recommendation to initialize a new project with 
+              a Git repository to keep your code safe and on good progression track.
+            </Locale>
+          </p>
+        </div>
+      </div>
+    </if>
+
+    <!-- Testing tools -->
+    <label><Locale text="Testing"/></label>
+    <br><br>
+    <div.form-row>
+      <!-- API test -->
+      <div.col-4.mb-1>
+        <div class="checkbox checkbox-primary">
+          <input.disabled type="checkbox"
+                  no-update
+                  disabled
+                  id="scope.APIs"
+                  name="scope.APIs"
+                  checked=state.form.scope.APIs
+                  on-change('__onChecked')/>
+          <label for="scope.APIs" class="font-medium-1">
+            <Locale>APIs Test</Locale>
+            <br>
+            <p.font-small-3.text-muted>
+              <Locale>
+                Create and test your API endpoints
+              </Locale>
+            </p>
+          </label>
+        </div>
+      </div>
+
+      <!-- Socket test -->
+      <div.col-4.mb-1>
+        <div class="checkbox checkbox-primary">
+          <input type="checkbox"
+                  no-update
+                  disabled
+                  id="scope.sockets"
+                  name="scope.sockets"
+                  checked=state.form.scope.sockets
+                  on-change('__onChecked')/>
+          <label for="scope.sockets" class="font-medium-1">
+            <Locale>Sockets Test</Locale>
+            <br>
+            <p.font-small-3.text-muted>
+              <Locale>
+                Websocket & Socket.io connection tests
+              </Locale>
+            </p>
+          </label>
+        </div>
+      </div>
+
+      <!-- Unit test -->
+      <div.col-4.mb-1>
+        <div class="checkbox checkbox-primary">
+          <input type="checkbox"
+                  no-update
+                  disabled
+                  id="scope.units"
+                  name="scope.units"
+                  checked=state.form.scope.units
+                  on-change('__onChecked')/>
+          <label for="scope.units" class="font-medium-1">
+            <Locale>Units Test</Locale>
+            <br>
+            <p.font-small-3.text-muted>
+              <Locale>
+                Create and maintain units tests of your code
+              </Locale>
+            </p>
+          </label>
+        </div>
+      </div>
+    </div>
+  </if>
+  
+  <FormAlert alert=state.alert/>
+  
+  <br>
+  <div.text-right>
+    <Button.mx-50 type="reset" on-click('onCancel')>Cancel</Button>
+
+    <if( state.form.type && state.form.name )>
+      <Button.mx-50 
+              primary=true
+              type="submit"
+              on-click('onSubmit')>
+        <Locale text="Create"/>
+        <Preloader.pl-2.font-medium-4.float-right active=state.submitting/>
+      </Button>
+    </if>
+  </div>
+</form>

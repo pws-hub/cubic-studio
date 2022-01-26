@@ -1,0 +1,15 @@
+
+<!-- Get percentage or score: 
+      Calculate score out of percentage
+      when input only percentage -->
+$ input.score = input.percentage ? Math.round( ( input.percentage * 5 ) / 100 ) : input.score
+$ const colorClass = input.color ? input.color +'-text' : 'yellow-text text-darken-3'
+
+<ul.list-inline.m-0 class=(input.score ? colorClass : 'grey-text')>
+  <for|index| from=1 to=5 step=1>
+    <li style="color:inherit">
+      <i class=('bx '+( input.score >= index ? 'bxs-star' : Math.round( input.score ) == index ? 'bxs-star-half' : 'bx-star' ) )
+          style=( 'color:inherit;'+( input.size ? 'font-size:'+ input.size +'px' : '' ) )></i>
+    </li>
+  </for>
+</ul>

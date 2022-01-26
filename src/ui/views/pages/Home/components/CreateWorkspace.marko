@@ -1,0 +1,121 @@
+
+import FormHandler from 'markojs-form'
+
+class {
+  onCreate(){
+    this.state = { submitting: false }
+
+    this.fhandler = new FormHandler({ key: 'create-workspace', autosave: true, crosscheck: true })
+    this.fhandler.bind(this)
+  }
+  onCancel(){
+    this.fhandler.reset()
+    this.emit('dismiss')
+  }
+  
+  async onSubmit(){
+    try {
+      if( !isEmpty( this.state.formError ) 
+          && Object.values( this.state.formError ).includes( true ) ) return
+
+      const Form = this.state.form
+
+      // First member is owner of the workspace
+      Form.members = [
+        {
+          ...GState.get('user'),
+          role: 'OWNER',
+          active: true
+        }
+      ]
+      Form.domain = 'dev.multipple.com'
+      
+      const { error, message, workspaceId } = await RPost('/workspaces/create', this.state.form )
+      if( error ) throw new Error( message )
+
+      this.fhandler.alert('Workspace created')
+      this.fhandler.reset()
+
+      // Refresh the list of workspaces
+      GState.workspaces.refresh()
+
+      setTimeout( () => this.emit('dismiss'), 8000 )
+    }
+    catch( error ){
+      console.log('Failed creating workspace: ', error )
+      this.fhandler.alert('Failed! Check your connection and try again', 'warning')
+    }
+  }
+}
+
+<form key="create-workspace">
+  <div.form-group>
+    <label><Locale text="Name"/></label>
+    <div class="form-group">
+      <input.round-xs
+              type="text"
+              value=state.form.name
+              name="name"
+              class=( 'form-control form-control-lg px-2'+( state.formError.name != undefined ? ( state.formError.name ? ' is-invalid' : ' is-valid' ) : '' ) )
+              validate="required"
+              placeholder=( Locale('Name*') )
+              on-change('__onChange')/>
+      <p class=( 'small mt-50 mb-2'+( !state.formError.name ? ' d-none' : '' ) )>
+        <Locale.text-warning text="Name of the workspace"/>
+      </p>
+    </div>
+  </div>
+
+  <!-- Description -->
+  <div class="form-group">
+    <label><Locale text="Description"/></label>
+    <textarea.round-xs
+              type="text"
+              value=state.form.description
+              name="description"
+              class=`form-control form-control-lg px-2 ${state.formError.description != null ? ( state.formError.description ? ' is-invalid' : ' is-valid' ) : ''}`
+              placeholder=Locale('Description')
+              style={ height: '100px', resize: 'none' }
+              on-change('__onChange')></textarea>
+  </div>
+
+  <!-- Private group -->
+  <br>
+  <div class="mb-1">
+    <div class="checkbox checkbox-primary">
+      <input type="checkbox"
+              no-update
+              id="personal"
+              name="personal"
+              checked=state.form.personal
+              on-change('__onChecked')/>
+      <label for="personal" class="font-medium-1">
+        <Locale>Personal</Locale>
+        <br>
+        <p.font-small-3.text-muted>
+          <Locale>
+            When a workspace is set to personal, it can only be accessed 
+            and viewed by you. Leave this uncheck in case of a team
+          </Locale>
+        </p>
+      </label>
+    </div>
+  </div>
+  
+  <FormAlert alert=state.alert/>
+  
+  <br>
+  <div.text-right>
+    <Button.mx-50 type="reset" on-click('onCancel')>Cancel</Button>
+
+    <if( state.form.name )>
+      <Button.mx-50 
+              primary=true
+              type="submit"
+              on-click('onSubmit')>
+        <Locale text="Create"/>
+        <Preloader.pl-2.font-medium-4.float-right active=state.submitting/>
+      </Button>
+    </if>
+  </div>
+</form>

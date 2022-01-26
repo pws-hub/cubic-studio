@@ -1,0 +1,163 @@
+
+class {
+  onCreate({ query }){
+    this.state = {
+                  query: query || '',
+                  target: false,
+                  active: false,
+                  searching: false,
+                  selected: null,
+                  filters: {},
+                  results: []
+                }
+    GState.bind( this, ['screen'] )
+  }
+  onInput( input ){
+    this.state.target = input.target
+    this.state.filters = input.filters
+    this.state.selected = null // probable new suggestion list
+  }
+  onToggle( active, e ){
+
+    this.state.active = active
+
+    if( !e.target.value )
+      this.state.results = []
+
+    if( active ) return
+
+    /* Emit search dismiss when search input
+      blur and no query value
+    */
+    if( !e.target.value )
+      return this.emit('dismiss')
+
+    // Return input value as selected ( Facultative State )
+    setTimeout( () => {
+      this.emit('blur')
+
+      if( !this.state.selected && this.input.facultative )
+        this.emit( 'select', e.target.value )
+    }, 300 )
+  }
+  onKeyword( e ){
+
+    this.state.query = e.target.value
+    this.state.results = [] // Reinitialize search result for new query
+
+    if( !this.state.query || this.state.query.length < ( this.input.minLength || 3 ) )
+      return this.emit('no-query')
+
+    /* Send query term out in case search
+      request is prefers to be done out of the
+      compoment.
+    */
+    this.emit( 'query', this.state.query.replace(/\s+/,'+') )
+
+    /* No target mean the search requet is handled
+      externally once the query is send out
+    */
+    if( !this.state.target ) return
+
+    // Emit search start event
+    this.emit('start')
+    Array.isArray( this.state.target ) ?
+                // Multiple targets request
+                this.state.target.map( each => this.triggerRequest( each ) )
+                // Single target request
+                : this.triggerRequest( this.state.target )
+  }
+  onSelect( index ){
+
+    this.state.selected = index
+    // Replace query input with full selected item's value
+    this.state.query = this.input.suggestions[ index ][ this.input.mount || 'title' ]
+    // Tell selected item index and value
+    this.emit( 'select', index, this.state.results[ index ] )
+
+    /* Clear temporary the suggestion because
+      they are usually formated outside the
+      component therefore strictly depend
+      on input injection
+    */
+    this.input.suggestions = []
+  }
+
+  async triggerRequest( target ){
+
+    this.state.searching = true
+    try {
+      const
+      asFilters = !isEmpty( this.state.filters ) ? `&filters=${JSON.stringify( this.state.filters )}` : '',
+      params = `query=${this.state.query.replace(/\s+/,'+')}${asFilters}`,
+      { error, message, results } = await Request(`/${target}/search?${params}`)
+
+      this.state.searching = false
+      if( error ){
+        console.log('Error Searching: ', message )
+        this.emit( 'error', '<'+ target +'> Search Request Failed: ', message )
+        return
+      }
+
+      /* Merge any new results with previous results
+        during multiple target request
+      */
+      this.state.results = [ ...( new Set([ ...( this.state.results ), ...results ]) ) ]
+      this.emit( 'result', this.state.results )
+    }
+    catch( error ){
+      this.state.searching = false
+      console.log('Error Searching: ', error )
+    }
+  }
+}
+
+<div class=`position-relative w-100 zindex-${ state.active ? 3 : 2 }`
+      style=`height: ${input.size == 'xl' ? '65px' : ( state.screen.media == 'xs' ? '42px' : '50px' )}`>
+  <fieldset.search-bar.theme-bg-transparent.border.mx-auto.mb-0.overflow-hidden class=`${input.class} ${state.active ? 'active shadow' : ''}`>
+    <div>
+      <input type="text" class=('form-control form-control-'+( input.size || 'lg' )+' pl-5 border-none shadow-none')
+              placeholder=( input.placeholder || 'Search ...' )
+              value=state.query
+              on-focus( 'onToggle', true )
+              on-blur( 'onToggle', false )
+              on-keyup('onKeyword')>
+      <if( input.icon !== false )>
+        <button class=('btn btn-icon '+( input.size == 'xl' ? ' mt-1 mr-1' : '' )+' position-absolute d-block') type="button">
+          <Preloader class="font-medium-5" active=state.searching/>
+          <if( !state.searching )><i class=('bx '+( input.icon || 'bx-search') )></i></if>
+        </button>
+      </if>
+    </div>
+
+    <div class=( 'suggestions'+( !input.suggestions || !input.suggestions.length ? ' d-none' : '' ) )>
+      <ul class="list-unstyled">
+        <for|{ poster, title, subtitle, status }, index| of=input.suggestions>
+          <li class="nav-item cursor-pointer p-1" on-click( 'onSelect', index )>
+            <div class="row m-0 d-flex align-items-center">
+              <if( poster )>
+                <div class="col-xl-2 col-md-2 col-3 text-center">
+                  <if( poster.type == 'icon' )>
+                    <i class=( 'font-large-1 p-1 '+( poster.round ? 'round' : 'rounded-circle' )+' theme-bg-fade bx '+ poster.value )></i>
+                  </if>
+                  <if( poster.type == 'image' )>
+                    <Image src=poster.value
+                            class=( poster.round ? 'round' : 'rounded-circle' )
+                            style="width:50px"/>
+                  </if>
+                </div>
+              </if>
+
+              <div class="col">
+                <span class="font-medium-3">${title}</span>
+                <if( subtitle )><p class="blue-grey-text font-small-2 m-0">${subtitle}</p></if>
+              </div>
+
+              <if( status )><div class="col-3 text-center">${status}</div></if>
+            </div>
+          </li>
+        </for>
+      </ul>
+    </div>
+  </fieldset>
+</div>

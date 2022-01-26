@@ -1,0 +1,79 @@
+
+class {
+  onCreate({ name }){
+    this.storeAttr = 'folder--'+ name
+    this.state = { open: uiStore.get( this.storeAttr ) }
+
+    this.menu = [
+      {
+        id: 'OPEN_FOLDER',
+        label: 'Open',
+        fn: this.onShowContent.bind(this)
+      },
+      {
+        id: 'ADD_FILE',
+        label: 'Add new file',
+        fn: this.onHandleMenu.bind(this)
+      },
+      {
+        id: 'ADD_FOLDER',
+        label: 'Add new folder',
+        fn: this.onHandleMenu.bind(this)
+      },
+      {
+        id: 'RENAME_FOLDER',
+        label: 'Rename',
+        fn: this.onHandleMenu.bind(this)
+      },
+      {
+        id: 'DELETE_FOLDER',
+        label: 'Delete',
+        divider: true,
+        fn: this.onHandleMenu.bind(this)
+      }
+    ]
+  }
+  onShowContent(){ 
+    ( this.state.open = !this.state.open ) ? 
+                    uiStore.set( this.storeAttr, true )
+                    : uiStore.clear( this.storeAttr )
+  }
+  onHandleMenu( id ){
+    console.log( id )
+  }
+}
+
+<li>
+  <div.position-relative.py-25.hover-toggle.d-flex.align-items-center.cursor-pointer.theme-bg>
+    <Bx.font-medium-5.pl-50.pr-2 
+        type=`chevron-${state.open ? 'down' : 'right'}`
+        on-click('onShowContent')/>
+    <div.font-medium-1.text-ellipsis.w-75 on-click('onShowContent')>${input.name}</div>
+    
+    <!-- Folder options menu -->
+    <DropdownMenu.hover-show.font-medium-5.px-75.float-right
+                  vertical=true
+                  right=true
+                  menu=component.menu/>
+  </div>
+
+  <if( state.open )>
+    <ul.list-unstyled.mb-2.my-0 style="padding-left:2.4rem">
+      <!-- <Folder ...{ name: 'src' }/> -->
+
+      <File ...{ name: 'index.js', saves: [ 'hello' ] }/>
+      <File ...{ name: 'config.jsonx' }/>
+      <File ...{ name: 'style.css' }/>
+      <File ...{ name: 'contacts.page.html' }/>
+      <File ...{ name: 'index.ts' }/>
+      <File ...{ name: 'styles.less' }/>
+      <File ...{ name: 'styles.scss' }/>
+      <File ...{ name: 'init.vue' }/>
+      <File ...{ name: 'select.jsx' }/>
+      <File ...{ name: 'template.angular' }/>
+      <File ...{ name: '.cubic' }/>
+      <File ...{ name: '.gitignore' }/>
+      <File ...{ name: 'README.md' }/>
+    </ul>
+  </if>
+</li>

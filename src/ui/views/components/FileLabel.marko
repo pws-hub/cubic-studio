@@ -1,0 +1,71 @@
+
+<Switch by=input.type.toLowerCase()>
+  <@case is="js">
+    <span.text-warning.font-small-1>JS</span>
+  </@case>
+  <@case is="ts">
+    <span.text-info.font-small-1>TS</span>
+  </@case>
+  <@case is=["json", "jsonx"]>
+    <Bx.text-success type="code-curly" style="font-size:inherit"/>
+  </@case>
+  <@case is=["jsx", "tsx"]>
+    <Bx.text-info bxl=true type="react" style="font-size:inherit"/>
+  </@case>
+
+  <@case is="html">
+    <Bx.text-success bxl=true type="html5" style="font-size:inherit"/>
+  </@case>
+
+  <@case is="css">
+    <Bx.text-warning bxl=true type="css3" style="font-size:inherit"/>
+  </@case>
+  <@case is="less">
+    <Bx.text-secondary bxl=true type="less" style="font-size:inherit"/>
+  </@case>
+  <@case is=["scss", "sass"]>
+    <Bx.text-danger bxl=true type="sass" style="font-size:inherit"/>
+  </@case>
+  
+  <@case is="vue">
+    <Bx.text-success bxl=true type="vuejs" style="font-size:inherit"/>
+  </@case>
+  <@case is=["angular", "ng"]>
+    <Bx.text-danger bxl=true type="angular" style="font-size:inherit"/>
+  </@case>
+  <@case is=["markdown", "md"]>
+    <Bx.text-white bxl=true type="markdown" style="font-size:inherit"/>
+  </@case>
+  <@case is=["mp4", "webm"]>
+    <Bx.text-warning type="film" style="font-size:inherit"/>
+  </@case>
+  <@case is=["mp3", "mpeg", "m4a", "aac", "ogg"]>
+    <Bx.text-warning type="music" style="font-size:inherit"/>
+  </@case>
+  <@case is=["jpeg", "jpg", "png", "gif"]>
+    <Bx.text-success type="image-alt" style="font-size:inherit"/>
+  </@case>
+  <@case is=["rar", "zip", "taz"]>
+    <Bx.text-warning bxs=true type="file-archive" style="font-size:inherit"/>
+  </@case>
+
+  <@case is=["sh", "bash"]>
+    <Bx.text-danger type="terminal" style="font-size:inherit"/>
+  </@case>
+  <@case is=["git", "gitignore"]>
+    <Bx.text-muted bxl=true type="git" style="font-size:inherit"/>
+  </@case>
+  <@case is="lock">
+    <Bx.text-danger type="lock" style="font-size:inherit"/>
+  </@case>
+  <@case is="log">
+    <Bx.text-muted type="info-circle" style="font-size:inherit"/>
+  </@case>
+  <@case is="cubic">
+    <Bx.text-white type="cube-alt" style="font-size:inherit"/>
+  </@case>
+
+  <@default>
+    <Bx.text-white type="align-left" style="font-size:inherit"/>
+  </@default>
+</Switch>

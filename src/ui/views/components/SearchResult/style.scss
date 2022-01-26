@@ -1,0 +1,11 @@
+
+.search-result {
+  .list, .view { transition: .6s; }
+  .list { transform: translateX(0%); }
+  .view { transform: translateX(200%); }
+
+  &.view-mode {
+    .list { transform: translateX(-50%); }
+    .view { transform: translateX(100%); }
+  }
+}

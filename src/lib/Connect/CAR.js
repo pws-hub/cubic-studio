@@ -2,7 +2,7 @@
 import fetch from 'node-fetch'
 
 function initChannel( socket ){
-  console.log('FBR New Connection: ', socket.id )
+  console.log('CAR New Connection: ', socket.id )
 
   async function makeRequest( payload, callback ){
     let response
@@ -36,7 +36,7 @@ function initChannel( socket ){
 
 export default ioServer => {
   ioServer
-  .of('/'+ process.env.FBR_NAMESPACE )
+  .of('/'+ process.env.CAR_NAMESPACE )
   .use( async ( socket, next ) => {
     const { auth } = socket.handshake
     

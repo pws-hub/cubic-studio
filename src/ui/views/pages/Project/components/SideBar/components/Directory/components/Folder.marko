@@ -1,0 +1,233 @@
+
+import path from 'path-browserify'
+
+static function sortContent( content ){
+  // Sort folder content alphabetically: Folders up, files downs
+  content = content || []
+  return {
+    folders: content.filter( ({ isDir }) => { return isDir } )
+                    .sort( ( a, b ) => a.name.localeCompare( b.name ) ),
+    files: content.filter( ({ isDir }) => { return !isDir } )
+                  .sort( ( a, b ) => a.name.localeCompare( b.name ) )
+  }
+}
+
+class {
+  onCreate({ path }){
+    
+    this.state = {
+      name: '',
+      path: false,
+
+      open: false,
+      rename: false,
+      folders: [],
+      files: []
+    }
+
+    this.initialName = null
+    this.menu = [
+      {
+        id: 'ADD_FILE',
+        label: 'Add new file',
+        fn: this.onAddNewFile.bind(this)
+      },
+      {
+        id: 'ADD_FOLDER',
+        label: 'Add new folder',
+        fn: this.onAddNewFolder.bind(this)
+      },
+      {
+        id: 'RENAME_FOLDER',
+        label: 'Rename',
+        fn: (function(){ this.onRenameToggle( true ) }).bind(this)
+      },
+      {
+        id: 'DELETE_FOLDER',
+        label: 'Delete',
+        divider: true,
+        fn: (function(){
+          const folder = { name: this.state.name, path: this.state.path }
+
+          this.emit( 'remove', folder ) // Remove this temporary from its parent folder: UI
+          this.contextEmit( 'remove', folder ) // Apply change via FS
+        }).bind(this)
+      }
+    ]
+  }
+  onInput({ _new, name, path, content }){
+    this.initialName = name
+    this.storeAttr = 'folder--'+ path
+    
+    this.setState({
+      name, 
+      path,
+      open: uiStore.get( this.storeAttr ),
+      rename: _new || false,
+      ...sortContent( content )
+    })
+  }
+  
+  onAddNewFile(){
+    // Add new file: Empty input
+    const name = ''
+
+    this.state.files.unshift({ _new: true, name, path: `${this.state.path}/${name}` })
+    this.setStateDirty('files')
+  }
+  onAddNewFolder(){
+    // Add new folder: Empty input
+    const name = ''
+
+    this.state.folders.unshift({ _new: true, name, path: `${this.state.path}/${name}`, content: [] })
+    this.setStateDirty('folders')
+  }
+  onCancelNew( type ){
+    // Cancel mounted new file/folder input
+    const attr = type +'s'
+
+    this.state[ attr ].shift()
+    this.setStateDirty( attr )
+  }
+  onUpdateNew( type, element ){
+    // Update new folder details
+    const attr = type +'s'
+
+    if( type == 'folder' )
+      element.content = []
+
+    // Is still the first item of the folder at this point
+    this.state[ attr ][0] = element
+    this.setStateDirty( attr )
+  }
+  onMove( source, idx, destination ){
+    // Move file/folder to different directory
+    if( !source || !destination || path.dirname( source ) === destination ) return
+    this.contextEmit( 'move', { source, destination: `${destination}/${path.basename( source )}` } )
+  }
+  onRemove( type, element ){
+    // Delete temporarily file or folder before backend change take effect
+    const attr = type +'s'
+    this.state[ attr ] = this.state[ attr ].filter( ({ path }) => { return path != element.path } )
+  }
+
+  onRenameInput( e ){ this.state.name = e.target.value }
+  onRenameToggle( status ){ 
+    this.initialName = this.state.name
+    this.state.rename = status
+  }
+  onPressEnter( e ){
+    if( e.keyCode !== 13 ) return
+    e.target.blur() // Trigger blur to save changes
+  }
+  onSaveChanges(){
+    
+    this.state.rename = false
+
+    // Undefined name
+    if( !this.state.name ){
+      this.input._new ?
+              // Cancel new folder creation
+              this.emit('cancel-new')
+              // Revert to initial name
+              : this.state.name = this.initialName
+
+      return
+    }
+    
+    // New file path
+    if( this.input._new ) this.state.path += this.state.name
+    // No modification recorded
+    else if( this.state.name === this.initialName ) return
+    
+    // Update opened folder store attribute
+    if( this.state.open ){
+      uiStore.clear( this.storeAttr )
+      
+      this.storeAttr = 'folder--'+ this.state.path.replace( new RegExp( this.initialName +'$' ), this.state.name )
+      uiStore.set( this.storeAttr, true )
+    }
+
+    // Apply changes
+    this.initialName = this.state.name
+    const element = { name: this.state.name, path: this.state.path }
+    
+    this.input._new && this.emit( 'update-new', element )
+    this.contextEmit( this.input._new ? 'new-dir' : 'rename', element )
+  }
+  onShowContent(){
+    ( this.state.open = !this.state.open ) ? 
+                    uiStore.set( this.storeAttr, true )
+                    : uiStore.clear( this.storeAttr )
+  }
+}
+
+<context|{ active }, emit| from="Directory">
+  <!-- Attach context emitter to class component -->
+  $ component.contextEmit = emit
+  
+  <li.hover-tree data-item-key=input.itemkey>
+    <div.position-relative.py-25.hover-toggle.d-flex.align-items-center.nav-item.cursor-pointer>
+      <Bx.font-medium-5
+          type=`chevron-${state.open ? 'down' : 'right'}`
+          on-click('onShowContent')
+          style="padding:0 .4rem 0 .95rem"/>
+
+      <if( state.rename )>
+        <input.w-100.px-50.mr-75.theme-bg.border.shadow-none 
+              type="text" 
+              value=state.name
+              autofocus
+              on-keyup('onPressEnter')
+              on-blur('onSaveChanges')
+              on-input('onRenameInput')/>
+      </if>
+      <else>
+        <!-- Name -->
+        <div.font-medium-1.text-ellipsis.w-75 on-click('onShowContent')>${state.name}</div>
+        <!-- Folder options menu -->
+        <DropdownMenu.hover-show.font-medium-5.px-75.float-right
+                      vertical=true
+                      right=true
+                      menu=component.menu/>
+      </else>
+    </div>
+
+    <if( state.open )>
+      <div.tree-border style="margin-left:1.6rem">
+        <ul.move-element.list-unstyled.my-0
+            data-parent-key=input.path>
+          <Sortable containerClass="move-element"
+                    axis="Y"
+                    on-change('onMove')>
+            <for|folder, index| of=state.folders>
+              <@item>
+                <Folder key=`${folder.name}-item-${index}`
+                        itemkey=folder.path
+                        ...folder
+                        on-remove('onRemove', 'folder')
+                        on-update-new('onUpdateNew', 'folder')
+                        on-cancel-new('onCancelNew', 'folder')/>
+              </@item>
+            </for>
+          </Sortable>
+          
+          <Sortable containerClass="move-element"
+                    axis="Y"
+                    on-change('onMove')>
+            <for|file, index| of=state.files>
+              <@item>
+                <File key=`${file.name}-item-${index}`
+                      itemkey=file.path
+                      ...file 
+                      on-remove('onRemove', 'file')
+                      on-update-new('onUpdateNew', 'file')
+                      on-cancel-new('onCancelNew', 'file')/>
+              </@item>
+            </for>
+          </Sortable>
+        </ul>
+      </div>
+    </if>
+  </li>
+</context>

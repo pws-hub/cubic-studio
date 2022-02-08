@@ -16,6 +16,7 @@ $ component.once('mount', () => {
         const
         $item = ui.item,
         $parent = $item.closest('.'+ input.containerClass ),
+        parentIndex = $parent.data('parent-key'),
         fromIndex = $item.data('item-key')
   
         let 
@@ -29,7 +30,7 @@ $ component.once('mount', () => {
           counter++
         } )
         
-        fromIndex != toIndex && component.emit( 'change', fromIndex, toIndex, $item )
+        fromIndex != toIndex && component.emit( 'change', fromIndex, toIndex, parentIndex )
       }
     }
 

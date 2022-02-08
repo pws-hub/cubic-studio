@@ -60,19 +60,13 @@ class {
       const { error, message, projectId } = await RPost(`/workspaces/${this.input.params.id}/projects/create`, payload )
       if( error ) throw new Error( message )
 
-      // Create and setup project directory
-      if( payload.scope.sourceCode ){
-        await window.FSExplorer.newDir( payload.scope.sourceCode.directory )
-        
-      }
-
       // Close SetupProject form
       typeof callback == 'function' && callback()
-
-      // Refresh the list of projects
-      this.fetchProjects()
-
-      setTimeout( () => this.onCreateProjectToggle( false ), 8000 )
+      setTimeout( () => {
+        this.onCreateProjectToggle( false )
+        // Refresh the list of projects
+        navigate(`/workspace/${this.input.params.id}/${projectId}`)
+      }, 8000 )
     }
     catch( error ){
       console.log('Failed creating project: ', error )
@@ -144,31 +138,33 @@ class {
             </if>
 
             <!-- List of projects in the workspace -->
-            <if( state.projects.length )>
               <br>
               <div.all-projects>
-                <!-- Seperator label -->
-                <if( RecentProjects.length )>
-                  <h4.px-2.pb-50.font-small-3>
-                    <Locale.text-muted text="All projects"/>
-                  </h4>
+                <if( state.projects.length )>
+                  <!-- Seperator label -->
+                  <if( RecentProjects.length )>
+                    <h4.px-2.pb-50.font-small-3>
+                      <Locale.text-muted text="All projects"/>
+                    </h4>
+                  </if>
+
+                  <ul.list-unstyled>
+                    <for|each, index| of=state.projects>
+                      <!-- Generate project link -->
+                      $ each.link = `/workspace/${input.params.id}/${each.projectId}`
+                      <Project key=index ...each />
+                    </for>
+                  </ul>
+                      
+                  <br>
                 </if>
 
-                <ul.list-unstyled>
-                  <for|each, index| of=state.projects>
-                    <!-- Generate project link -->
-                    $ each.link = `/workspace/${input.params.id}/${each.projectId}`
-                    <Project key=index ...each />
-                  </for>
-                </ul>
-                    
-                <br><br>
+                <br>
                 <div.px-2>
                   <Button.mx-50 on-click('onCreateProjectToggle', 'new' )>Create new project</Button>
                   <Button.mx-50.disabled>Import project</Button>
                 </div>
               </div>
-            </if>
           </@col>
 
           <!-- Support and helps informations -->

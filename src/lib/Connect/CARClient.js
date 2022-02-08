@@ -3,17 +3,17 @@ import fetch from 'node-fetch'
 import { io } from 'socket.io-client'
 
 let 
-FBRClient,
+CARClient,
 isConnected = false
 
 function sendRequest( payload ){
   return new Promise( ( resolve, reject ) => {
 
-    if( FBRClient ){
+    if( CARClient ){
       if( !isConnected )
-        return reject('[FBR-Client] No connection to server')
+        return reject('[CAR-Client] No connection to server')
 
-      FBRClient.emit('API::REQUEST', payload, resolve )
+      CARClient.emit('API::REQUEST', payload, resolve )
       return
     }
     else {
@@ -53,17 +53,17 @@ export default ( namespace, user ) => {
       auth: { token: user.id }
     }
 
-    FBRClient = io('/'+( namespace || ''), options )
+    CARClient = io('/'+( namespace || ''), options )
     .on( 'connect', () => {
-      debugLog('[FBR-Client] Connection established')
+      debugLog('[CAR-Client] Connection established')
       resolve( isConnected = true )
     } )
     .on( 'disconnect', () => {
-      debugLog('[FBR-Client] Disconnected')
+      debugLog('[CAR-Client] Disconnected')
       isConnected = false
     } )
     .on( 'error', error => {
-      debugLog('[FBR-Client] Connected', error )
+      debugLog('[CAR-Client] Connected', error )
       reject( error )
     } )
   } )

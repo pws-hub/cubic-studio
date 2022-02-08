@@ -6,9 +6,12 @@ import Chokidar from 'chokidar'
 export default class FileSystem {
 
   constructor( options = {} ){
-    this.watcher = null
     this.cwd = options.cwd
     this.debugMode = options.debug
+    
+    // Watcher of occurances on current working directory
+    this.watcher = null
+    this.watchingPaths = false
   }
 
   // Internal operation log: Debug mode
@@ -18,7 +21,7 @@ export default class FileSystem {
   resolve( path ){ return this.cwd ? Path.resolve( this.cwd, path ) : path }
 
   // Get content tree of a directory and its sub-directories
-  async directory( path, options, depth = false ){
+  async directory( path, options = {}, depth = false ){
     path = path || ( !depth ? this.cwd : '' )
     
     const 
@@ -46,7 +49,7 @@ export default class FileSystem {
                           size,
                           path: contentPath,
                           // Deep also into sub-directory
-                          content: subdir ? await this.directory( contentPath, options, true ) : false
+                          content: subdir ? ( await this.directory( contentPath, options, true ) ).content : false
                         })
                         // Record file or ignore in case directories only required
                         : !dirsOnly ? content.push({ name, path: contentPath, size }) : null
@@ -60,6 +63,12 @@ export default class FileSystem {
     }
   }
 
+  // Read a file content
+  async readFile( path, options = {} ){
+    path = this.resolve( path )
+    return await Fs.readFile( path, options.encoding || 'UTF-8' )
+  }
+
   // Check whether file or directory exist or not
   async exists( path ){
     return await Fs.pathExists( path ? this.resolve( path ) : this.cwd )
@@ -71,11 +80,16 @@ export default class FileSystem {
   }
 
   // Create new file
-  async newFile( path, content ){
+  async newFile( path, content, options = {} ){
     path = this.resolve( path )
 
     await Fs.ensureFile( path ) // Ensure the file exist: Create directories if does not exist
-    await Fs.writeFile( path, content || '' )
+    /** Define encoding to write all type of file
+     * Eg. text as UTF-8 (Default)
+     *      media as base64
+     *      ...
+     */
+    await Fs.writeFile( path, content || '', options.encoding || 'UTF-8' )
   }
 
   // Rename file or directory
@@ -91,10 +105,6 @@ export default class FileSystem {
 
       path = this.resolve( path )
       await Fs.remove( path )
-    
-      // Automatically unwatch new directory
-      this.watcher
-      && await this.watcher.unwatch( path )
     }
     
     Array.isArray( args ) ? args.map( fn ) : await fn( args )
@@ -139,18 +149,24 @@ export default class FileSystem {
   }
 
   // Watch recursively changes that occured on files, directories 
-  watch( options, listener ){
-
+  watch( options = {}, listener ){
+    
     if( typeof options == 'function' ){
       listener = options
       options = {}
     }
     
     const 
-    { path, paths, ignore } = options || {},
+    { path, paths, ignore } = options,
     wpath = path || paths || this.cwd || 'file, dir, glob, or array'
+
+    // Already watching define paths
+    if( this.watcher 
+        && ( this.watchingPaths == wpath 
+              || this.watcher.getWatched().includes( wpath ) ) ) return
     
     this.watcher = Chokidar.watch( wpath, {
+                                            ignoreInitial: true, // Do not fire event when discovering paths
                                             ignored: ignore || false, //   /(^|[\/\\])\../, // ignore dotfiles
                                             persistent: true,
                                             alwaysStat: true,

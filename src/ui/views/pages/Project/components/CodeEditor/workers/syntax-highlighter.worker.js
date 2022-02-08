@@ -75,8 +75,7 @@ function addChildNodes( node, lines, classifications ){
 }
 
 // Respond to message from parent thread
-self.addEventListener('message', event => {
-  
+self.addEventListener( 'message', event => {
   const { code, title, version } = event.data
   try {
     const 

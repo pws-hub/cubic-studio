@@ -1,26 +1,58 @@
 
 import * as monaco from 'monaco-editor'
-import { getContent } from './fileSystem'
-import setupWorkers from './setupWorkers'
+import lspClient from './lib/lspClient'
+import defineTheme from './lib/defineTheme'
+import setupWorkers from './lib/setupWorkers'
+import * as GMLoader from './lib/grammarLoader'
+
+static const defaultOptions = {
+  fontSize: 14,
+  autoSave: true
+}
 
 class {
-  onCreate({ file }){
-    this.state = { 
-      file: file || null,
-      model: ''
+  onCreate({ file, language, options }){
+    // File input value is explicitly `null` by default
+    this.file = file || null
+    // Marko is default
+    this.language = language || {
+      id: 'marko',
+      extensions: ['.marko'],
+      aliases: ['Marko', 'marko']
+    }
+
+    this.options = options || defaultOptions
+    this.fs = false
+    this.watcher = false
+    this.workers = false
+
+    this.editorOptions = {
+      model: null,
+      lineNumbers: 'on',
+      lightbulb: { enabled: true },
+      fontSize: this.options.fontSize,
+      // theme: 'vs-'+ GState.get('theme'),
+      'semanticHighlighting.enabled': true
     }
   }
-  onInput({ file }){
+  onInput({ file, fs }){
     // Re-ajust editor block: Eg. Console close or open
     this.adjustEditorLayout()
+    this.fs = fs
+    
+    // Dispose editor when `file` explicitly have `null` value
+    if( file === null && this.editor ){
+      this.editor.setModel( null )
+      return
+    }
     
     // Open new file/model
-    if( file !== this.state.file )
-      this.editorOpen( this.state.file = file )
+    if( file && ( !this.file || file.path !== this.file.path ) )
+      this.editorOpen( this.file = file )
   }
   onMount(){
     this.initMonaco()
-    this.editorOpen( this.state.file )
+    this.editorOpen( this.file )
 
     // Adapt editor container to window resize
     $(window).on( 'resize', () => this.editor.layout() )
@@ -31,8 +63,16 @@ class {
   }
   onDestroy(){
     $(window).off('resize')
+
     this.editor && this.editor.dispose()
-    this.editorOnChange && this.editorOnChange.dispose()
+    this.editor_OnDidChangeModel && this.editor_OnDidChangeModel.dispose()
+    this.model_OnDidChangeContent && this.model_OnDidChangeContent.dispose()
+    this.editor_OnDidBlurEditorText && this.editor_OnDidBlurEditorText.dispose()
+
+    if( !this.workers ) return
+
+    const { syntaxWorker } = this.workers
+    syntaxWorker.terminate() // Terminate syntax highlighting worker
   }
   setCompilerOptions(){
     const compilerDefaults = {
@@ -62,9 +102,13 @@ class {
     monaco.languages.typescript.typescriptDefaults.setCompilerOptions( compilerDefaults )
     monaco.languages.typescript.javascriptDefaults.setCompilerOptions( compilerDefaults )
   }
+  isLoadedModel( path ){
+    return this.input
+            && this.input.paths.includes( path )
+            && !!( monaco.editor.getModel( monaco.Uri.file( path ) ) )
+  }
   adjustEditorLayout(){ this.editor && setTimeout( () => this.editor.layout(), 50 ) }
   initMonaco(){
-    
     // Typescript and Javascript Default compiler options
     this.setCompilerOptions()
     
@@ -81,109 +125,113 @@ class {
       noSemanticValidation: true,
       noSyntaxValidation: true
     })
-
-    // add some missing tokens
-    /*
-    monaco.editor.defineTheme( 'Retouch', {
-      base: 'vs-dark', // can also be vs-dark or hc-black
-      inherit: true, // can also be false to completely replace the builtin rules
-      rules: [
-        { token: 'comment', foreground: '626466' },
-        { token: 'keyword', foreground: '6CAEDD' },
-        { token: 'identifier', foreground: 'fac863' },
-      ]
-    })
-    */
-
-    /*
-    monaco.editor.defineTheme( 'retouch', {
-      base: 'vs-dark',
-      inherit: true,
-      colors: {},
-      rules: [
-        { token: 'comment', foreground: 'aaaaaa', fontStyle: 'italic' },
-        { token: 'keyword', foreground: '000000' },
-        { token: 'operator', foreground: '000000' },
-        { token: 'namespace', foreground: '66afce' },
-
-        { token: 'type', foreground: '1db010' },
-        { token: 'struct', foreground: '0000ff' },
-        { token: 'class', foreground: '0000ff', fontStyle: 'bold' },
-        { token: 'interface', foreground: '007700', fontStyle: 'bold' },
-        { token: 'enum', foreground: '0077ff', fontStyle: 'bold' },
-        { token: 'typeParameter', foreground: '1db010' },
-        { token: 'function', foreground: '94763a' },
-
-        { token: 'member', foreground: '94763a' },
-        { token: 'macro', foreground: '615a60' },
-        { token: 'variable', foreground: '3e5bbf' },
-        { token: 'parameter', foreground: '3e5bbf' },
-        { token: 'property', foreground: '3e5bbf' },
-        { token: 'label', foreground: '615a60' },
-
-        { token: 'type.static', fontStyle: 'bold' },
-        { token: 'class.static', foreground: 'ff0000', fontStyle: 'bold' }
-      ]
-    })   
-    */
+    
+    // Load custom theme
+    defineTheme( monaco )
+    // Load language server client
+    // lspClient( monaco, this.language )
   }
 
+  async initEditor(){
+    // Load hightlighting language services
+    await GMLoader.load()
+    // New Editor
+    this.editor = monaco.editor.create( this.getEl(), this.editorOptions )
+    // Load grammars by editor instance
+    await GMLoader.registerGrammar( monaco, this.editor )
+    
+    /* Capture blur event from editor: 
+        NOTE: Works for the whole widget and switching between tabs
+    */
+    this.editor_OnDidBlurEditorText = this.editor.onDidBlurEditorWidget( () => this.onSave() )
+    this.editor_OnDidChangeModel = this.editor.onDidChangeModel( async ({ newModelUrl, oldModelUrl }) => {
+      
+      if( oldModelUrl ){
+        // Dispose inactive models
+        if( !this.isLoadedModel( oldModelUrl.path ) ){
+          const model = await this.getModel( oldModelUrl.path )
+
+          model.dispose()
+          return
+        }
+        
+        // Auto-save changes on the left model
+        this.options.autoSave && this.onSave( await this.getModel( oldModelUrl.path ) )
+      }
+    } )
+  }
   async editorOpen( file ){
-    
-    if( !this.editor ){
-      this.editor = monaco.editor.create( this.getEl(), {
-        model: null,
-        // value: ['function x() {', '\tconsole.log("Hello world!");', '}'].join('\n'),
-        // language: 'typescript',
-        lineNumbers: 'on',
-        roundedSelection: false,
-        scrollBeyondLastLine: false,
-        readOnly: false,
-        theme: 'vs-'+ GState.get('theme'),
-        // theme: 'Retouch',
-        'semanticHighlighting.enabled': true
-      })
-    
-      setupWorkers( this.editor, monaco )
-    }
+    // Initialize editor
+    !this.editor && await this.initEditor()
 
-    if( !file ) return
+    // Listen to events when changes occured on Model outside of the editor
+    if( !this.watcher && this.fs )
+      this.watcher = this.fs.watch( async ( event, path, stats ) => {
+        debugLog(`[Editor-Event] ${event}: ${path}`)
 
-    this.editor.file = file
-    this.model = await this.getModel( file )
-    
-    this.editorOnChange = this.model.onDidChangeContent( () => this.onChange() )
-    this.editor.setModel( this.model )
-    this.editor.updateOptions({ tabSize: 2 })
+        if( !this.isLoadedModel( path ) ) return
+
+        const model = await this.getModel( path )
+        if( !model.file ) return
+        
+        switch( event ){
+          // Cannot overwrite unsaved changes in the editor
+          case 'change': !model.file.hasChanges && this.updateModel( model ); break
+          case 'unlink': console.log('Unlinked'); break
+        }
+      } )
+
+    file && this.setModel( file )
   }
-  async getModel( file ){
+  async getModel( path ){
     
-    const 
-    filepath = '/js/'+ file,
-    uri = monaco.Uri.file( filepath )
+    const uri = monaco.Uri.file( path )
     let model = monaco.editor.getModel( uri )
-
+    
     if( !model ){
-      content = await getContent( filepath )
+      content = await this.fs.readFile( path )
       
       model = monaco.editor.createModel( content || '', null, uri )
       //? respect tabSize option in .prettierrc
-      // model.updateOptions({ rulers: [ 20 ] })
+      // model.updateOptions({ tabSize: 2 })
     }
 
     return model
   }
+  async setModel( file ){
+    
+    const model = await this.getModel( file.path )
+    
+    model.file = file
+    model.initialContent = model.getValue()
+
+    this.editor.setModel( model )
+    this.editor.updateOptions({ tabSize: 2 })
+    
+    model.onDidChangeContent( () => this.onChange() )
+    model.onWillDispose( () => { console.log('Model Will Dispose') } )
+
+    this.activeModel = model
+  }
+  async updateModel( model ){
+    // Update model with its current value
+    const content = await this.fs.readFile( model.file.path )
+    // Model up-to-date
+    if( model.getValue() === content ) return
+    
+    model.initialContent = content
+    model.setValue( content )
+  }
   async onChange(){
+    debugLog('[Editor-Event] Change:', this.activeModel.file.name )
 
-    const code = this.model.getValue()
-    console.log( code.length )
+    const code = this.activeModel.getValue()
 
+    this.activeModel.file.hasChanges = ( code !== this.activeModel.initialContent )
+    this.emit( 'change', this.activeModel.file, code )
     
-    
-
-
     /*
-    if (value !== model.getValue()) {
+    if( code ){
       model.pushEditOperations(
         [],
         [
@@ -195,6 +243,22 @@ class {
       );
     }
     */
+  }
+  async onSave( model ){
+    // Save previous changes occured on this model
+    model = model || this.activeModel
+
+    if( !model.file.hasChanges ) return
+    debugLog('[Editor-Event] Save:', model.file.name )
+    
+    const code = model.getValue()
+    this.emit( 'save', 
+                model.file, 
+                code,
+                () => {
+                  model.file.hasChanges = false
+                  model.initialContent = code
+                } )
   }
 }
 

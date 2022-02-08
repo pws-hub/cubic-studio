@@ -1,0 +1,24 @@
+
+<WSAdapt.Emulator.section-block.px-0.border-left.theme-bg-fade
+        ns="d-none"
+        qs="col-3"
+        hs="col-6"
+        fs="position-absolute col-12">
+  <if( typeof input.meta == 'object' && input.meta.hostname )>
+    <iframe.w-100.h-100 src=input.meta.hostname style="border:none"></iframe>
+  </if>
+  <else>
+    <div.w-100.h-100.d-flex.align-items-center.justify-content-center>
+      <if( input.status === 'loading' )>
+        <div.w-100.text-center>
+          <Preloader.font-large-3 active=true/>
+          <br><br>
+          <Locale text="Loading"/>
+        </div>
+      </if>
+      <else>
+        <Bx.font-large-3.text-muted type="cube-alt"/>
+      </else>
+    </div>
+  </else>
+</WSAdapt>

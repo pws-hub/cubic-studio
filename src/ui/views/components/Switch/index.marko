@@ -13,7 +13,7 @@ $ let validCases = []
               // String case value
               : validCases.push( _case.is )
     }
-    <${_case.renderBody} key=index/>
+    <${_case.renderBody} key=`switch-${index}`/>
   </if>
 </for>
 

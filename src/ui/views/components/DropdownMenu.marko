@@ -2,8 +2,8 @@
 class {
   onCreate(){ this.state = { show: false } }
   onShowMenu( status, e ){
-
     this.state.show = status
+    status === false && this.emit('dismiss')
   }
 }
 
@@ -22,6 +22,7 @@ class {
           key=index
           class=(divider ? 'border-top' : false)
           on-click( () => { typeof fn == 'function' && fn( id ) } )>
+
         <!-- Menu option label -->
         <Locale.font-small-4 text=label/>
         <!-- Shortcut Command -->

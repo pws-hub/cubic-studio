@@ -1,14 +1,15 @@
 
 import './globals'
-import Custom from './custom'
 import App from './views/App'
 import Home from './views/pages/Home'
 import Project from './views/pages/Project'
 import Workspace from './views/pages/Workspace'
 import Locales from './json/languages.json'
 
-import RequestClient from '../lib/Connect/FBRClient'
+import Overwride from '../lib/Overwride'
+import RequestClient from '../lib/Connect/CARClient'
 import FileSystemClient from '../lib/Connect/FSTClient'
+import IProcessClient from '../lib/Connect/IPTClient'
 
 
 function getInitialScope(){
@@ -182,8 +183,8 @@ async function fetchWorkspaces(){
 		window.mode = mode
 
     /*----------------------------------------------------------------*/
-		// 
-		window.___ = Custom({ env })
+		// Set of overwridden process functions
+		window.___ = Overwride({ env })
 
     /*----------------------------------------------------------------*/
 		// Default global states
@@ -248,11 +249,15 @@ async function fetchWorkspaces(){
 		// Init Fontend - Backend communication channels
 		if( isConnected ){
 			// Request Handler
-			await RequestClient( namespaces.FBR, user )
+			await RequestClient( namespaces.CAR, user )
+
+			// Internal Processes Manager
+			window.IProcess = await IProcessClient( namespaces.IPT )
+
 			// FileSystem Manager
 			window.FileSystem = await FileSystemClient( namespaces.FST )
 			// Init Global FileSystem Explorer Interface
-			window.FSExplorer = await FileSystem.init( 'explorer', { debug: true } )
+			window.FSExplorer = await FileSystem.init( 'explorer', { ignore: false, debug: true } )
 		}
 		
 		/*----------------------------------------------------------------*/

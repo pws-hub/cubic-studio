@@ -104,12 +104,8 @@ $shadow-lg-color: rgb(0 0 0 / 18%);
   } 
 
   .nav-color { color: $nav-color !important; }
-
-
-
-
-
-
+  
+  
   hr{ border-top: 1px solid $border-color!important; }
   li.nav-item:hover,
   li.nav-item.active,
@@ -138,6 +134,13 @@ $shadow-lg-color: rgb(0 0 0 / 18%);
       margin-bottom:-1px;
       &.active{ transition: 400ms;border-bottom: 3px solid $primary-color!important; }
       /* &.active span{ color: $primary-color!important; } */
+    }
+  }
+
+  .hover-tree {
+    .tree-border { border-left: 1px solid transparent }
+    &:hover {
+      .tree-border { border-left-color: $border-color }
     }
   }
 

@@ -37,34 +37,46 @@ static const APITabs = [
     link: '...'
   }
 ]
-static const EditorTabs = [
-  {
-    active: true,
-    name: 'index.js',
-    link: '...'
-  },
-  {
-    name: 'config.json',
-    link: '...'
-  },
-  {
-    name: 'style.less',
-    link: '...'
-  },
-  {
-    name: '.cubic',
-    link: '...'
-  }
-]
 
 class {
-  onCreate(){
+  onCreate({ params }){
     this.state = {
-      activeTool: 'directory',
+      workspace: GState.workspaces.get( params.id ),
+      project: false,
+
+      IDE: {},
+      API: {},
+
+      activeTool: 'IDE',
+      activeElement: null,
+      
+      emulator: false,
+      emulatorStatus: false,
+
       showNav: true,
       showSearch: false,
       showConsole: false,
       showFormModal: false,
+
+      tabs: [],
+      ongoingSetup: false,
+      ongoingProcess: false
+    }
+
+    this.fs = false
+    this.pm = false
+    this.emulator = false
+  }
+  onMount(){ this.getProject() }
+  onAction( action, ...args ){
+    switch( action ){
+      case 'run': this.Run( ...args ); break
+      case 'open': this.Open( ...args ); break
+      case 'move':
+      case 'rename':
+      case 'remove':
+      case 'new-dir': 
+      case 'new-file': this.FSOperator( action, ...args ); break
     }
   }
   onMenuToggle( name ){ this.state.activeTool = name }
@@ -72,61 +84,327 @@ class {
   onModalToggle( args ){ this.state.showFormModal = args }
   onConsoleToggle( args ){ this.state.showConsole = args }
   onShowNavigation( status ){ this.state.showNav = status }
-
-  getContent( type ){
+  onRecordChange( element, changes ){
+    // Awarness of changes occured on this activeElement
+    if( !this.state.activeElement
+        || this.state.activeElement.path !== element.path ) return
     
-    let list = []
+    this.state.activeElement = element // Has changes or revert to initial content
+    this.setStateDirty('activeElement')
 
-    switch( type ){
-      case 'API': list = [
-                            { name: 'Collection One Name' },
-                            { name: 'Collection One Name' }
-                          ]
-          break
-      case 'environments': list = [
-                            { name: 'Environment One Name' },
-                            { name: 'Environment One Name' }
-                          ]
-          break
-      case 'directory': list = [
-                          { name: 'Root' },
-                          { name: 'Dependencies' },
-                          { name: 'Build' }
-                        ]
-          break
+    // Show changes on tabs
+    this.applyTabsChange( element )
+    
+    /* TODO: Implement auto-save to prevent lost of changes
+              when page get accidentally refreshed
+    */
+
+
+
+  }
+
+  getAttr( target ){ return `${this.state.activeTool}-${target}` }
+  applyTabsChange( arg ){
+    // Apply and reflect changes on tabs
+    if( typeof arg !== 'object' ) return
+    
+    Array.isArray( arg ) ?
+            this.state.tabs = newObject( arg ) // Update the whole tabs list
+            // Change on single tab
+            : this.state.tabs = this.state.tabs.map( tab => {
+              // Tab already exist
+              if( tab.path === arg.path )
+                return arg
+
+              return tab
+            } )
+    
+    this.setStateDirty('tabs')
+    uiStore.set( this.getAttr('tabs'), this.state.tabs )
+  }
+
+  Open( element ){
+    // Open file, request, ...
+    if( !element ){
+      this.state.activeElement = null
+      uiStore.clear( this.getAttr('active-element') )
+
+      return
     }
 
-    return { type, list }
+    this.state.activeElement = { ...element, active: true }
+    uiStore.set( this.getAttr('active-element'), this.state.activeElement )
+
+    let 
+    isActive = false,
+    focusIndex,
+    counter = 0
+
+    this.state.tabs = this.state.tabs.map( tab => {
+      // Tab already exist
+      if( tab.path === element.path ){
+        // Make tab active
+        if( !tab.active ) tab.active = true
+        // Changes state of this tab's content
+        tab.hasChanges = element.hasChanges
+          
+        isActive = true
+      }
+      
+      // Off previous active tab
+      else if( tab.active ){
+        delete tab.active
+        focusIndex = counter
+      }
+      
+      counter++
+      return tab
+    } )
+    
+    // Add new active tab
+    if( !isActive )
+      focusIndex === undefined ?
+                // At the end of the chain
+                this.state.tabs.push( this.state.activeElement )
+                // Insert right after the last active tab
+                : this.state.tabs.splice( focusIndex + 1, 0, this.state.activeElement )
+
+    this.setStateDirty('tabs')
+    uiStore.set( this.getAttr('tabs'), this.state.tabs )
+  }
+  async FSOperator( type, element ){
+    switch( type ){
+      case 'new-dir': if( !element.path || !this.fs ) return
+                      await this.fs.newDir( element.path )
+          break
+      case 'new-file': if( !element.path || !this.fs ) return
+                        await this.fs.newFile( element.path )
+          break
+      case 'rename': if( !element.path || !element.name || !this.fs ) return
+                      await this.fs.rename( element.path, element.name  )
+          break
+      case 'remove': if( !element.path || !this.fs ) return
+                      await this.fs.remove( element.path )
+          break
+      case 'move': if( !element.source || !element.destination || !this.fs ) return
+                    await this.fs.move( element.source, element.destination )
+          break
+    }
+  }
+  async Run( status, force ){
+    // Run/Stop emulator
+    if( !this.pm ){
+      debugLog('[Project Event] error: Undeclared process manager')
+      return
+    }
+    
+    // Create emulator instance
+    if( !this.emulator )
+      this.emulator = this.pm.emulator( this.state.project )
+
+    // Run
+    if( status == true ){
+      this.state.emulatorStatus = 'loading'
+      GState.ws.layout({ mode: 'auto' })
+      
+      /* Try cached config to reconnect emulator without
+        restarting it. Usefull when page got refreshed
+        and servers are up
+      */
+      const cachedImage = !force ? uiStore.get( this.getAttr(`${this.state.project.name}-emulator`) ) : false
+
+      this.state.emulator = cachedImage || await this.emulator.run()
+      this.state.emulatorStatus = 'running'
+      
+      uiStore.set( this.getAttr(`${this.state.project.name}-emulator`), this.state.emulator )
+    }
+    // Close
+    else {
+      this.state.emulatorStatus = 'stopping'
+      await this.emulator.quit()
+
+      this.state.emulator = false
+      this.state.emulatorStatus = false
+
+      GState.ws.layout({ mode: 'ns' })
+
+      // Clear cached config
+      uiStore.clear( this.getAttr(`${this.state.project.name}-emulator`) )
+    }
+  }
+  async Setup(){
+
+    let AUTORUN = true
+
+    this.state.ongoingSetup = true
+    
+    // Declare filesystem I/O handler at the project's current working directory
+    const cwd = this.state.project.scope.IDE.directory
+    this.fs = await window.FileSystem.init( 'project', { cwd, debug: true } )
+    // Declare Project's background Process Manager
+    this.pm = await window.IProcess.create({ debug: true })
+
+    // Watch external/background operations on this directory
+    let wait = 0
+    this.fs.watch( async ( event, path, stats ) => {
+      debugLog(`[DIRECTORY Event] ${event}: ${path}`, stats )
+
+      switch( event ){
+        // New file/dir added: Refresh directory tree
+        case 'add': wait && clearTimeout( wait )
+                    await this.getDirectory()
+            break
+        /** Wait for `add` event to conclude file/dir moved: 
+            In that case `add event` will refresh the directory.
+            otherwise, conclude `delete`
+        */
+        case 'unlink': wait = setTimeout( async () => await this.getDirectory(), 2000 ); break
+                        
+      }
+
+    } )
+
+    // Get project directory content
+    await this.getDirectory()
+    
+    // Project doesn't exist
+    if( isEmpty( this.state.IDE.directory ) ){
+      /* Minimum project payload requirements
+        {
+          type: 'application',
+          name: 'TestApp',
+          description: 'Test multipple micro-application',
+          scope: {
+            IDE: {
+              language: 'marko~5+',
+              platforms: [ 'multipple~2.0' ],
+              directory: '/Users/fabricemarlboro/dev-pro/Myapp-labs/Extensions/TestApp',
+              repository: 'https://gitlab.com/multipple/applications/Test-App'
+            }
+          }
+        }
+      */
+      
+      // TODO: Try importing project from specified repository
+      
+
+      
+
+      // Setup a completely new project
+      await this.pm.setup( this.state.project, ( error, stats ) => {
+
+        if( error ){
+          // TODO: Manage process exception errors
+          console.log('--Progress Error: ', error )
+          return
+        }
+
+        // TODO: Display progression stats on Footer
+        const { percent, processor, message } = stats
+        this.state.ongoingProcess = `[${percent}%] ${processor ? processor +':' : ''}${message}`
+      } )
+
+      debugLog('-- Completed indeed --')
+
+      // Automatically run project
+      AUTORUN && this.Run( true, true )
+    }
+    else {
+      // Mount project's last states
+      this.state.tabs = uiStore.get( this.getAttr('tabs') ) || []
+      this.state.activeElement = uiStore.get( this.getAttr('active-element') ) || null
+      
+      // Auto-run cached emulator state of this project
+      AUTORUN
+      && uiStore.get( this.getAttr(`${this.state.project.name}-emulator`) )
+      && this.Run( true, false )
+    }
+
+    this.state.ongoingSetup = false
+  }
+  async getProject(){
+    try {
+      const { error, message, project } = await RGet(`/workspaces/${this.input.params.id}/projects/${this.input.params.project}`)
+      if( error ) throw new Error( message )
+
+      this.state.project = project
+      await this.Setup()
+    }
+    catch( error ){
+      console.log('Failed retreiving project: ', error )
+      this.state.project = null
+    }
+  }
+  async getDirectory( path ){
+    // Get project directory content
+    if( !this.fs ) return
+
+    const dirOptions = {
+      ignore: '\\.git|(.+)\\.lock|sandbox|node_modules',
+      subdir: true
+    }
+
+    this.state.IDE.directory = await this.fs.directory( path || null, dirOptions )
+    this.state.IDE = newObject( this.state.IDE )
+  }
+  async onSave( element, changes, confirmCallback ){
+    // Awarness of changes occured on this activeElement
+    if( typeof element != 'object'
+        || !element.path
+        || !element.hasChanges ) return
+    
+    // Write changes on the disk
+    this.fs && await this.fs.newFile( element.path, changes )
+    // Show change on tab
+    this.applyTabsChange({ ...element, hasChanges: false })
+    
+    // Confirm element saved to the tool
+    typeof confirmCallback == 'function' && confirmCallback()
   }
 }
 
 <div.vh-100>
   <div style="width:calc(100% - 4rem)">
     <Row.no-gutters>
+      <!-- Main Block -->
       <div.col.px-0.overflow-hidden>
         <Row.no-gutters>
           <!-- Navigation Bar -->
           <Navigation show=state.showNav
-                      active=state.activeTool
+                      project=state.project
+                      activeTool=state.activeTool
                       on-add('onModalToggle')
                       on-import('onModalToggle')
                       on-toggle('onMenuToggle')/>
                       
           <!-- SideBar -->
           <SideBar type=state.activeTool
-                    ...component.getContent( state.activeTool )
+                    dataset=state[ state.activeTool ]
+                    active=state.activeElement
+                    status={
+                      emulator: state.emulatorStatus
+                    }
+                    on-action('onAction')
                     on-show-menu('onShowNavigation')/>
 
           <!-- Main Block -->
           <main.main-block.col.px-0.overflow-hidden>
             <!-- Tabs Bar -->
-            <TabBar type=state.activeTool list=EditorTabs/>
+            <TabBar type=state.activeTool
+                    tabs=state.tabs
+                    on-open('Open')
+                    on-update('applyTabsChange')/>
             
             <div style="height:calc(100% - 3rem)">
               <div.overflow-hidden class=(state.showConsole ? 'h-75' : 'h-100')>
                 <Switch by=state.activeTool>
-                  <@case is="directory">
-                    <CodeEditor file="hello.marko" />
+                  <@case is="IDE">
+                    <CodeEditor file=state.activeElement
+                                paths=state.tabs.map( ({ path }) => { return path } )
+                                language=null
+                                fs=component.fs
+                                on-change('onRecordChange')
+                                on-save('onSave')/>
                   </@case>
 
                   <@case is="API">
@@ -143,7 +421,6 @@ class {
             </div>
           </main>
         </Row>
-
 
         <if( state.showFormModal )>
           <Modal.p-4 noBackdrop=true on-dismiss('onModalToggle', false )>
@@ -162,13 +439,15 @@ class {
         <!-- Search plugin, app, module, ... from marketplace -->
         <if( state.showSearch )>
           <Modal.px-4.pt-2 noDismissButton=true on-dismiss('onSearchToggle', false )>
-            <SearchBar />
+            <SearchBar.round-xs />
             <SearchResult />
           </Modal>
         </if>
       </div>
 
-      <Aside />
+      <!-- Sandbox Emulator block -->
+      <Emulator meta=state.emulator
+                status=state.emulatorStatus/>
     </Row>
   </div>
   
@@ -178,29 +457,32 @@ class {
     <Row>
       <@col>
         <ul.list-inline.m-0>
-          <li.px-1.white-text>
-            Personal Space
-          </li>
-          <li.px-1.white-text>
-            Application
-          </li>
-          <li.px-1.black-text>
-            Sync
-          </li>
+          <li.px-1.white-text>${state.workspace.name}</li>
+          <if( state.project )>
+            <li.px-1.white-text>${state.project.type.toCapitalCase()}</li>
+            <li.px-1.black-text>
+              Sync
+            </li>
+          </if>
         </ul>
       </@col>
       
-      <@col.col.text-right>
+      <@col.col-8.text-right>
         <ul.list-inline.m-0>
-          <li.px-3.white-text>
-            cpm-1.0.6: Installing dependency packages ...
-          </li>
+          <!-- Display ongoing process state -->
+          <if( state.ongoingProcess )>
+            <li.px-3.white-text.text-ellipsis style="max-width:35rem">
+              ${state.ongoingProcess}
+            </li>
+          </if>
+
           <li.px-1.white-text.cursor-pointer on-click('onConsoleToggle', true )>
             Console
           </li>
-          <li.px-1.white-text>
-            Marko
-          </li>
+
+          <if( state.project )>
+            <li.px-1.white-text>${state.project.scope.IDE.language.replace('~', ' ').toCapitalCase()}</li>
+          </if>
           <li.px-1.white-text>
             Ln 12, Col 9
           </li>

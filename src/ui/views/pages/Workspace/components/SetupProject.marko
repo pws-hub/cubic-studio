@@ -9,11 +9,13 @@ class {
     this.fhandler.bind( this, {
       type: 'application', // Default
       scope: {
-        sourceCode: {
+        IDE: {
+          platforms: [ 'multipple~2.0' ],
+          language: 'marko~5+',
           directory: '',
           repository: ''
         },
-        APIs: false,
+        API: false,
         sockets: false,
         units: false
       }
@@ -34,7 +36,7 @@ class {
     
     // Automatically add project as directory
     path += '/'+ this.state.form.name
-    this.fhandler.set('scope.sourceCode.directory', path )
+    this.fhandler.set('scope.IDE.directory', path )
   }
   onSubmit(){
     if( !isEmpty( this.state.formError )
@@ -123,9 +125,46 @@ class {
   
   <!-- Project scope details -->
   <if( state.form.type )>
-    <h5.py-50><Locale.font-small-3.text-muted text="Project Scope"/></h5>
+    <h5.pb-1><Locale.font-small-3.text-muted text="Project Scope"/></h5>
     
     <if( ['application', 'plugin', 'library'].includes( state.form.type ) )>
+      <div.form-row>
+        <!-- Targeted platforms -->
+        <div.col-4>
+          <label><Locale text="Platforms"/></label>
+          <div class="form-group">
+            <Select.round-xs
+                    value=state.form.scope.IDE.platforms[0]
+                    name="scope.IDE.platforms"
+                    disabled
+                    validate="required"
+                    placeholder=( Locale('Platforms*') )
+                    options=[
+                      { label: 'Multipple 2.0', value: 'multipple~2.0' }
+                    ]
+                    on-select('__onChange')/>
+          </div>
+        </div>
+
+        <!-- Programming language -->
+        <div.col-4>
+          <label><Locale text="Language"/></label>
+          <div class="form-group">
+            <Select.round-xs
+                    value=state.form.scope.IDE.language
+                    name="scope.IDE.language"
+                    validate="required"
+                    placeholder=( Locale('Language*') )
+                    options=[
+                      { label: 'Marko 5', value: 'marko~5+' },
+                      { label: 'Marko 4', value: 'marko~4' },
+                      { label: 'React JSX', value: 'react', disabled: true }
+                    ]
+                    on-select('__onChange')/>
+          </div>
+        </div>
+      </div>
+
       <!-- Source code locations -->
       <div.form-group>
         <label><Locale text="Directory"/></label>
@@ -133,9 +172,9 @@ class {
           <div class="input-group">
             <input.round-xs
                     type="text"
-                    value=state.form.scope.sourceCode.directory
-                    name="scope.sourceCode.directory"
-                    class=( 'form-control form-control-lg px-2'+( state.formError['scope.sourceCode.directory'] != undefined ? ( state.formError['scope.sourceCode.directory'] ? ' is-invalid' : ' is-valid' ) : '' ) )
+                    value=state.form.scope.IDE.directory
+                    name="scope.IDE.directory"
+                    class=( 'form-control form-control-lg px-2'+( state.formError['scope.IDE.directory'] != undefined ? ( state.formError['scope.IDE.directory'] ? ' is-invalid' : ' is-valid' ) : '' ) )
                     validate="required"
                     placeholder=( Locale('Directory*') )
                     on-change('__onChange')/>
@@ -148,7 +187,7 @@ class {
               </button>
             </div>
           </div>
-          <if( state.formError['scope.sourceCode.directory'] )>
+          <if( state.formError['scope.IDE.directory'] )>
             <p.small.mt-50.mb-2>
               <Locale.text-warning text="Directory of the project"/>
             </p>
@@ -167,15 +206,15 @@ class {
         <div class="form-group">
           <input.round-xs
                   type="text"
-                  value=state.form.scope.sourceCode.repository
-                  name="scope.sourceCode.repository"
-                  class=( 'form-control form-control-lg px-2'+( state.formError['scope.sourceCode.repository'] != undefined ? ( state.formError['scope.sourceCode.repository'] ? ' is-invalid' : ' is-valid' ) : '' ) )
+                  value=state.form.scope.IDE.repository
+                  name="scope.IDE.repository"
+                  class=( 'form-control form-control-lg px-2'+( state.formError['scope.IDE.repository'] != undefined ? ( state.formError['scope.IDE.repository'] ? ' is-invalid' : ' is-valid' ) : '' ) )
                   placeholder=( Locale('Git Repository') )
                   on-change('__onChange')/>
           <p.small.mt-50.mb-2.text-muted>
             <Locale>
-              It always a best practice recommendation to initialize a new project with 
-              a Git repository to keep your code safe and on good progression track.
+              We recommand to initialize a new project with a Git repository 
+              to keep your code safe and on good progression track.
             </Locale>
           </p>
         </div>

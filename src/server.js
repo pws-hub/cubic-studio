@@ -1,5 +1,6 @@
 import os from 'os'
 import hpp from 'hpp'
+import http from 'http'
 import redis from 'redis'
 import logger from 'morgan'
 import helmet from 'helmet'
@@ -11,9 +12,10 @@ import redisConnect from 'connect-redis'
 import cookieParser from 'cookie-parser'
 import multipart from 'express-form-data'
 import markoMiddleware from '@marko/express'
+import * as Core from './core'
 import CDNAssets from '../lib/CDNAssets'
-import Entrypoint from './views/www.marko'
-import ErrorPage from './views/pages/error.marko'
+import Entrypoint from './ui/views/www.marko'
+import ErrorPage from './ui/views/pages/error.marko'
 
 const 
 getInitialScope = ( req, res ) => {
@@ -22,8 +24,9 @@ getInitialScope = ( req, res ) => {
     env: process.env.NODE_ENV,
     mode: process.env.APPMODE,
     namespaces: {
-      FBR: process.env.FBR_NAMESPACE,
-      FST: process.env.FST_NAMESPACE
+      CAR: process.env.CAR_NAMESPACE, // Cubic API Request namespace
+      FST: process.env.FST_NAMESPACE, // File System Transaction namespace
+      IPT: process.env.IPT_NAMESPACE // Internal Process Transaction namespace
     },
     isConnected: req.session.isConnected,
     user: req.session.user
@@ -139,7 +142,7 @@ app.use( express.static( process.env.RAZZLE_PUBLIC_DIR ) )
 .get( '/init', getInitialScope )
 
 // Routes
-.use( '/', require('../routers/index').default )
+.use( '/', require('./routers/index').default )
 
 // User Account handler
 .get( '/*', ( req, res ) => {
@@ -183,5 +186,15 @@ app.use( express.static( process.env.RAZZLE_PUBLIC_DIR ) )
                         } )
 })
 
-export default app
+/*---------------------------------------------------------------------------*/
+// Create HTTPS & Socket Server
+const
+server = http.Server( app ),
+{ ioServer } = Core.init( server )
+
+// Attach socket Server to app
+app.io = ioServer
+
+
+export default server
  

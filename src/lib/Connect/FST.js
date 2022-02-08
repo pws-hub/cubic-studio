@@ -1,11 +1,13 @@
 
 import os from 'os'
-import FileSystem from '../FileSystem'
+import FileSystem from '../../core/FileSystem'
+
+const ACTIVE_CWD_WATCHERS = {}
 
 function initChannel( socket ){
   console.log('FST New Connection: ', socket.id )
 
-  function initFS( type, options = {}, callback ){
+  function init( type, options = {}, callback ){
     
     if( options && typeof options !== 'object' ){
       typeof callback == 'function' 
@@ -20,14 +22,39 @@ function initChannel( socket ){
                       socket.data.FS = new FileSystem( options )
           break
       case 'project':
-      default: socket.data.FS = new FileSystem( options )
+      default: if( !options.cwd ){
+                  typeof callback == 'function' 
+                  && callback({ error: true, message: 'Undefined FS options <cwd>'})
+                  return
+                }
+      
+                socket.data.FS = new FileSystem( options )
+                
+                // Report watch event to client
+                const 
+                ignore = [
+                  '**/.git/**',
+                  '**/dist/**',
+                  '**/build/**',
+                  '**/cache/**',
+                  '**/sandbox/**',
+                  '**/node_modules/**'
+                ],
+                listener = ( event, path, stats ) => socket.emit( 'FS::EVENT', event, path, stats )
+
+                // Drop existing watcher
+                if( ACTIVE_CWD_WATCHERS.hasOwnProperty( options.cwd ) )
+                  ACTIVE_CWD_WATCHERS[ options.cwd ].close()
+
+                // Watch this cwd
+                ACTIVE_CWD_WATCHERS[ options.cwd ] = socket.data.FS.watch( { ignore }, listener )
     }
 
     typeof callback == 'function' 
     && callback({ error: false })
   }
 
-  async function handleRequest( method, ...args ){
+  async function execute( method, ...args ){
     
     let callback = () => {}
     // Extract callback function
@@ -43,13 +70,23 @@ function initChannel( socket ){
     }
     catch( error ){ 
       console.log( error )
-      callback({ error: true, message: error }) 
+      callback({ error: true, message: error.message }) 
     }
   }
 
+  async function exit( callback ){
+    // Close FileSystem Handler and the communication channel
+    delete socket.data
+    socket.disconnect( true )
+
+    typeof callback == 'function'
+    && callback({ error: false, message: 'Closed' }) 
+  }
+
   socket
-  .on( 'FS::INIT', initFS )
-  .on( 'FS::REQUEST', handleRequest )
+  .on( 'FS::INIT', init )
+  .on( 'FS::EXEC', execute )
+  .on( 'FS::EXIT', exit )
 }
 
 export default ioServer => {

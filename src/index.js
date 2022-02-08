@@ -1,38 +1,17 @@
 
-import http from 'http'
 import './globals'
-import * as Core from './core'
-import uiServer from './ui/server'
+import server from './server'
 
 // Hot Realoding in of UI Server: dev mode
-if( process.env.NODE_ENV == 'development' && module.hot ){
-  module.hot.accept( './ui/server', () => {
-    console.log('[HMR] Reloading `./ui/server`...')
+if( process.env.NODE_ENV == 'development' && module.hot )
+  module.hot.accept( './server', () => {
+    console.log('[HMR] Reloading `./server`...')
 
-    try { uiServer = require('./ui/server').default } 
+    try { require('./server') } 
     catch( error ){ console.error( error ) }
   })
-
-  module.hot.accept( './core', () => {
-    console.log('[HMR] Reloading `./core`...')
-
-    try { require('./core').default } 
-    catch( error ){ console.error( error ) }
-  })
-
-  // require('./core')
-}
-
-/*---------------------------------------------------------------------------*/
-const
-port = process.env.HTTP_PORT || 9000,
-server = http.Server( uiServer ),
-{ ioServer } = Core.init( server )
-
-// Attach socket Server to app
-uiServer.io = ioServer
-
-/*---------------------------------------------------------------------------*/
+  
+const port = process.env.HTTP_PORT || 9000
 
 export default server
 // .use( ( req, res ) => uiServer.handle( req, res ) )

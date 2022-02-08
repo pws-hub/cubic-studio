@@ -27,7 +27,8 @@ module.exports = {
     webpackConfig.resolve.alias = {
       ...webpackConfig.resolve.alias,
       ['~']: path.resolve(__dirname, './public'),
-      ['handlers']: path.resolve(__dirname, './custom/handlers')
+      'handlers': path.resolve(__dirname, './custom/handlers'),
+      'vscode': require.resolve('@codingame/monaco-languageclient/lib/vscode-compatibility')
     }
     webpackConfig.resolve.fallback = { 
       ...webpackConfig.resolve.fallback,
@@ -55,9 +56,7 @@ module.exports = {
     webpackConfig.module.rules.push({
       test: /\.worker\.(c|m)?js$/i,
       loader: 'worker-loader',
-      options: {
-        inline: true
-      }
+      options: { inline: true }
     })
     
     const monacoConfig = {
@@ -66,11 +65,9 @@ module.exports = {
         'html',
         'javascript',
         'json',
-        'kotlin',
         'less',
         'scss',
-        'typescript',
-        'yaml'
+        'typescript'
       ],
     }
     webpackConfig.plugins = [ 

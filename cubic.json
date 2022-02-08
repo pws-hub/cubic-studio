@@ -1,7 +1,15 @@
 {
+  "PACKAGE_MANAGER": "yarn",
+
+  "GIT_ACCESS": {
+    "username": "fabrice8",
+    "password": "$vAm-KMNRy@3227*obj"
+  },
+
   "AUTH_HANDLERS": {
     "multipple": "multipple.auth.js"
   },
+
   "REQUEST_HANDLERS": {
     "multipple": "multipple.request.js"
   }

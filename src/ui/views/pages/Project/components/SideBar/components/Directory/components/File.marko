@@ -1,0 +1,129 @@
+
+class {
+  onCreate(){
+    this.state = {
+      name: '',
+      path: false,
+      label: false,
+
+      rename: false
+    }
+
+    this.initialName = null
+    this.menu = [
+      {
+        id: 'DOWNLOAD_FILE',
+        label: 'Download',
+        fn: (function(){ }).bind(this)
+      },
+      {
+        id: 'RENAME_FILE',
+        label: 'Rename',
+        divider: true,
+        fn: (function(){ this.onRenameToggle( true ) }).bind(this)
+      },
+      {
+        id: 'DELETE_FILE',
+        label: 'Delete',
+        fn: (function(){
+          const file = { name: this.state.name, path: this.state.path }
+
+          this.emit( 'remove', file ) // Remove this temporary from its parent folder: UI
+          this.contextEmit( 'remove', file ) // Apply change via FS
+        }).bind(this)
+      }
+    ]
+  }
+  onInput({ _new, name, path }){
+    this.initialName = name
+    this.setState({
+      name,
+      path,
+      label: name.split('.').pop(),
+      rename: _new || false
+    }) 
+  }
+  onRenameToggle( status ){ 
+    this.initialName = this.state.name
+    this.state.rename = status
+  }
+  onRenameInput( e ){
+    const value = e.target.value
+
+    this.setState({
+      name: value,
+      label: value.split('.').pop()
+    })
+  }
+  onPressEnter( e ){
+    if( e.keyCode !== 13 ) return
+    e.target.blur() // Trigger blur to save changes
+  }
+  onSaveChanges(){
+    
+    this.state.rename = false
+
+    // Undefined name
+    if( !this.state.name ){
+      this.input._new ?
+              // Cancel new file creation
+              this.emit('cancel-new')
+              // Revert to initial name
+              : this.setState({
+                name: this.initialName,
+                label: this.initialName.split('.').pop()
+              })
+
+      return
+    }
+    
+    // New file path
+    if( this.input._new ) this.state.path += this.state.name
+    // No modification recorded
+    else if( this.state.name === this.initialName ) return
+    
+    // Apply changes
+    this.initialName = this.state.name
+    const element = { name: this.state.name, path: this.state.path }
+
+    this.input._new && this.emit( 'update-new', element )
+    this.contextEmit( this.input._new ? 'new-file' : 'rename', { name: this.state.name, path: this.state.path } )
+  }
+}
+
+<context|{ active }, emit| from="Directory">
+  <!-- Attach context emitter to class component -->
+  $ component.contextEmit = emit
+
+  <li.position-relative.py-25.hover-toggle.d-flex.align-items-center.nav-item.cursor-pointer
+      class=( active && active.path == state.path ? 'theme-bg-fade' : false )
+      style="padding-left:1.18rem"
+      data-item-key=input.itemkey>
+    $ const current = { name: input.name, path: input.path }
+
+    <!-- File type -->
+    <span.font-small-4.pr-4 on-click( emit, 'open', current )>
+      <FileLabel type=state.label/>
+    </span>
+
+    <if( state.rename )>
+      <input.w-100.px-50.mr-75.theme-bg.border.shadow-none 
+            type="text" 
+            value=state.name
+            autofocus
+            spellcheck="false"
+            on-keyup('onPressEnter')
+            on-blur('onSaveChanges')
+            on-input('onRenameInput')/>
+    </if>
+    <else>
+      <!-- Name -->
+      <div.font-medium-1.text-ellipsis.w-75 on-click( emit, 'open', current )>${state.name}</div>
+      <!-- File options menu -->
+      <DropdownMenu.hover-show.font-medium-5.px-75.float-right
+                    vertical=true
+                    right=true
+                    menu=component.menu/>
+    </else>
+  </li>
+</context>

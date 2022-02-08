@@ -135,11 +135,13 @@ html{
   outline: 0!important;
 }
 .hover-toggle {
-  .hover-show { visibility:hidden }
+  .hover-show { visibility: hidden }
+  .hover-hide { visibility: visible }
   .hover-block { display: none }
   .hover-inline-block { display: none }
   &:hover {
-    .hover-show { visibility:visible }
+    .hover-show { visibility: visible }
+    .hover-hide { visibility: hidden }
     .hover-block { display: block }
     .hover-inline-block { display: inline-block }
   }

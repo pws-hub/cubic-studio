@@ -91,6 +91,8 @@ class {
   onSelect( index ){
 
     const option = ( this.state.xOptions.length ? this.state.xOptions : this.state.options )[ index ]
+    if( option.disabled ) return
+    
     this.state.value = option.label || option.value
 
     this.getEl('in-input').blur()
@@ -107,6 +109,7 @@ class {
     <div class="position-relative zindex-1 d-flex align-items-center">
       <input key="in-input"
               type="text"
+              disabled=input.disabled
               class=`form-control form-control-${input.size || 'lg'} h-100 px-1 shadow-none border-none`
               placeholder=( input.placeholder || '-- Select Options --' )
               value=state.value
@@ -132,14 +135,14 @@ class {
       <AutoScroll class="options position-relative animated faster slideInDown"
                     style=`max-height:${input.maxHeight || '220px'}`>
         <ul class="list-unstyled m-0">
-          <for|{ value, label, sublabel }, index| of=( state.xOptions.length ? state.xOptions : state.options )>
+          <for|{ value, label, sublabel, disabled }, index| of=( state.xOptions.length ? state.xOptions : state.options )>
             <if( ( label || value ) !== state.value )>
               <li key=`opt-${index}`
-                  class=`nav-item ${input.fontSize || 'font-medium-2'} px-2 py-1 ${state.target == index ? 'theme-bg-fade' : ''}`
+                  class=`nav-item ${input.fontSize || 'font-medium-2'} px-2 py-1 ${state.target == index ? 'theme-bg-fade' : ''} ${disabled ? 'text-muted' : ''}`
                   data-value=value
                   style=input.optionStyle
                   on-click( 'onSelect', index )>
-                <span>${label || value.toCapitalCase()}</span>
+                <span style="color:inherit">${label || value.toCapitalCase()}</span>
                 <if( sublabel )>
                   <br><span.text-muted.font-small-3>${sublabel}</span>
                 </if>

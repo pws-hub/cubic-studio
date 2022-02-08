@@ -1,6 +1,7 @@
 
 import Path from 'path'
 import Git from 'simple-git'
+import rs from '../lib/RunScript'
 
 export default class GitManager {
 
@@ -22,27 +23,31 @@ export default class GitManager {
     if( repository ){
       this.remote = repository
 
-      if( typeof auth == 'object' && auth.username && auth.password ){
+      if( typeof auth == 'object' 
+          && auth.username 
+          && ( auth.password || auth.token) ){
         const { username, password, token } = auth
         this.remote = `https://${username}:${token || password}@${repository.replace(/http(s?):\/\//, '')}`
       }
     }
     
     this.git = Git({
-      baseDir: this.cwd, // process.cwd(),
+      baseDir: this.cwd, // process.cwd()
       binary: 'git',
       maxConcurrentProcesses: 6
     })
   }
 
-  async initProject( force ){
+  async initProject( remote, force ){
     const 
     isRepository = await this.git.checkIsRepo('root'),
     sync = async () => {
+      console.log( remote || this.remote )
       return await this.git.add('./*')
                             .commit('Initial commit!')
-                            .addRemote( 'origin', this.remote )
-                            .push('origin', 'master')
+                            .addRemote( 'origin', remote || this.remote )
+                            // .fetch() 
+                            .push([ '--set-upstream', 'origin', 'master'])
     }
 
     if( isRepository ){
@@ -52,14 +57,28 @@ export default class GitManager {
       // Force init on .git initialize repo: Just replace current remote origin
       await this.git.removeRemote('origin')
       await sync()
+
+      return
     }
 
     await this.git.init()
     await sync()
   }
 
-  async cloneProject( repository, path ){
+  async cloneProject( repository, path, clean ){
+    // Clone Git repository to local
     await this.git.clone( repository || this.repository, path )
+    
+    // Completely uninitialize (remove) .git after project cloned
+    if( clean ){
+      const options = { 
+        cwd: Path.resolve( this.cwd, path ), 
+        stdio: 'pipe', 
+        shell: false 
+      }
+      
+      await rs('rm -rf .git', options )
+    }
   }
 
 }

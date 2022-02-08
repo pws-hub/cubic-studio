@@ -2,20 +2,22 @@
 import DefaultLogo from '~/images/logo/cubic-default.png'
 
 static const Menu = [
-  { name: 'directory', label: 'Code' }, 
-  { name: 'API', label: 'APIs' },
-  { name: 'socket', label: 'Sockets' },
-  { name: 'test', label: 'Test' }, 
-  { name: 'roadmaps', label: 'Roadmaps' }
+  { name: 'IDE' }, 
+  { name: 'API', disabled: true },
+  { name: 'socket', label: 'Sockets', disabled: true },
+  { name: 'test', label: 'Test', disabled: true }, 
+  { name: 'roadmaps', label: 'Roadmaps', disabled: true }
 ]
 
 class {
-  onCreate({ active }){
-    this.state = { active: active || null }
+  onCreate({ activeTool }){
+    this.state = { activeTool: activeTool || null }
   }
-  onToggleMenu( active ){ 
-    this.state.active = active
-    this.emit('toggle', active )
+  onToggleMenu( name ){
+    if( !name ) return
+
+    this.state.activeTool = name
+    this.emit('toggle', name )
   }
 }
 
@@ -25,16 +27,16 @@ class {
           qs="col-1"
           hs="d-none">
     <div.text-center.py-2>
-      <Image.mr-2.round-sm.border src=DefaultLogo style="width:50px;height:50px"/>
-      <div.font-medium-3.py-1.text-ellipsis>EvaluationPro</div>
+      <Image.mr-2.round-sm.border src=( input.project.logo || DefaultLogo ) style="width:50px;height:50px"/>
+      <div.font-medium-3.py-1.text-ellipsis>${input.project.name}</div>
     </div>
 
     <div.position-relative.overflow-auto>
       <ul.list-unstyled>
-        <for|{ name, label }, index| of=Menu>
+        <for|{ name, label, disabled }, index| of=Menu>
           <li.px-1.py-75.my-1.border.border-2.round.text-center.nav-item.cursor-pointer
-              class=(state.active == name ? 'only-dark-bg-lighten' : false)
-              on-click('onToggleMenu', name )>
+              class=(state.activeTool == name ? 'only-dark-bg-lighten' : ( disabled ? 'text-muted cursor-not-allowed' : false ) )
+              on-click('onToggleMenu', !disabled ? name : false )>
             <Locale text=(label || name)/>
           </li>
         </for>

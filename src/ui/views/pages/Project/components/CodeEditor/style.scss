@@ -1,84 +1,45 @@
 
 .code-editor {
-  width: 100%;
-  height: 100%;
-  
-  * { font-size: 14px; }
-
-  // .monaco-editor, .monaco-editor-background {
-  //   background: none!important;
-  
-  //   .margin { background: none; }
-  // }
-
-  // .JsxText {
-  //   color: #ffffff;
-  // }
-
-  // .JsxSelfClosingElement,
-  // .JsxOpeningElement,
-  // .JsxClosingElement,
-  // .tagName-of-JsxOpeningElement,
-  // .tagName-of-JsxClosingElement,
-  // .tagName-of-JsxSelfClosingElement {
-  //   color: #8c9dff;
-  // }
-
-  // .name-of-JsxAttribute {
-  //   color: #598dfd;
-  // }
-
-  // .name-of-PropertyAssignment {
-  //   color: #86b300;
-  // }
-
-  // .name-of-PropertyAccessExpression {
-  //   color: #25468d;
-  // }
-
   position: relative;
   width: 100%;
   height: 100%;
   z-index: 30;
+
+  color: #84a1ff;
   
-  // .monaco-editor .view-overlays .current-line {
-  //   border: none !important;
-  //   background-color: rgba(23, 25, 27, 1);
+  // .mtk5 {
+  //   color: #99c794 !important;
+  // }
+  // .mtk7 {
+  //   color: #6ca5a2 !important;
+  // }
+  // .mtk7 {
+  //   color: #6282c7 !important;
   // }
 
-  .mtk5 {
-    color: #99c794 !important;
-  }
-  .mtk7 {
-    color: #6ca5a2 !important;
-  }
-  .mtk7 {
-    color: #6282c7 !important;
-  }
+  // .JsxText,
+  // .JsxSelfClosingElement,
+  // .JsxClosingElement {
+  //   color: #e0e0e0;
+  // }
 
-  .JsxText,
-  .JsxSelfClosingElement,
-  .JsxClosingElement {
-    color: #e0e0e0;
-  }
+  // .tagName-of-JsxOpeningElement,
+  // .tagName-of-JsxClosingElement,
+  // .tagName-of-JsxSelfClosingElement {
+  //   color: #ec5f67;
+  // }
 
-  .tagName-of-JsxOpeningElement,
-  .tagName-of-JsxClosingElement,
-  .tagName-of-JsxSelfClosingElement {
-    color: #ec5f67;
-  }
+  // .name-of-JsxAttribute {
+  //   color: #aa759f;
+  // }
 
-  .name-of-JsxAttribute {
-    color: #aa759f;
-  }
+  // .name-of-PropertyAssignment {
+  //   color: #99c794;
+  // }
 
-  .name-of-PropertyAssignment {
-    color: #99c794;
-  }
-
-  .typeName-of-TypeReference {
-    color: #5faeec;
-  }
+  // .typeName-of-TypeReference {
+  //   color: #5faeec;
+  // }
 
   // .name-of-PropertyAccessExpression {
   //   color: #83bdc9;

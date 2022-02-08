@@ -1,0 +1,82 @@
+[
+  {
+    "id": "marko",
+    "extensions": [".marko"],
+    "aliases": ["Marko", "marko"],
+    "mimetypes": ["text/marko"],
+    "extendConfig": true,
+    "grammar": {
+      "scopeName": "source.marko",
+      "fileName": "marko.tmLanguage",
+      "format": "plist"
+    }
+  },
+  {
+    "id": "css",
+    "extensions": [".css"],
+    "aliases": ["CSS", "css"],
+    "mimetypes": ["text/css"],
+    "grammar": {
+      "scopeName": "source.css",
+      "fileName": "css.tmLanguage.json",
+      "format": "json"
+    }
+  },
+  {
+    "id": "less",
+    "extensions": [".less"],
+    "aliases": ["LESS", "less"],
+    "mimetypes": ["text/less"],
+    "grammar": {
+      "scopeName": "source.css.less",
+      "fileName": "less.tmLanguage.json",
+      "format": "json"
+    }
+  },
+  {
+    "id": "scss",
+    "extensions": [".scss"],
+    "aliases": ["scss"],
+    "mimetypes": ["text/scss"],
+    "grammar": {
+      "scopeName": "source.css.scss",
+      "fileName": "scss.tmLanguage.json",
+      "format": "json"
+    }
+  },
+  {
+    "id": "sassdoc",
+    "extensions": [".sassdoc"],
+    "aliases": ["Sass", "sass", "sassdoc"],
+    "mimetypes": ["text/sass"],
+    "grammar": {
+      "scopeName": "source.sassdoc",
+      "fileName": "sassdoc.tmLanguage.json",
+      "format": "json"
+    }
+  },
+  {
+    "id": "javascript",
+    "extensions": [".js", ".es6", ".jsx", ".mjs", ".cjs"],
+    "firstLine": "^#!.*\\bnode",
+    "filenames": ["jakefile"],
+    "aliases": ["JavaScript", "javascript", "js"],
+    "mimetypes": ["text/javascript"],
+    "grammar": {
+      "scopeName": "source.js",
+      "fileName": "javascript.tmLanguage.json",
+      "format": "json"
+    }
+  },
+  {
+    "id": "typescript",
+    "extensions": [".ts", ".tsx"],
+    "aliases": ["TypeScript", "typescript", "ts"],
+    "mimetypes": ["text/typescript", "text/javascript"],
+    "grammar": {
+      "scopeName": "source.ts",
+      "fileName": "typescript.tmLanguage.json",
+      "format": "json"
+    }
+  }
+]

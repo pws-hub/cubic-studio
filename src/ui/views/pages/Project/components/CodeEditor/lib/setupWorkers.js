@@ -1,9 +1,6 @@
-// import SHWorker from './syntaxHighlighter.worker.js'
-
 /* eslint-disable import/no-webpack-loader-syntax */
-import SyntaxHighlightWorker from './workers/syntax-highlighter.worker'
+import SyntaxHighlightWorker from './../workers/syntax-highlighter.worker'
 // import LinterWorker from './workers/linter/index.worker'
-// import TypingsFetcherWorker from './workers/fetch-dependency-typings.worker'
 
 let 
 syntaxWorker,
@@ -19,32 +16,29 @@ function setupWorkers( _editor, _monaco ){
     const { classifications, version } = event.data
     requestAnimationFrame( () => processDecoration( classifications, version ) )
   })
-  // syntaxWorker.addEventListener( 'message', ({ data }) => {
-  //   const 
-  //   { markers, version } = data,
-  //   model = editor.getModel()
-  //
-  //   if( model && model.getVersionId() === version )
-  //     monaco.editor.setModelMarkers( model, 'eslint', markers )
-  // })
-
+  
   editor.onDidChangeModelContent( syntaxHighlight )
   editor.onDidChangeModel( syntaxHighlight )
 
-  requestAnimationFrame( syntaxHighlight ) // For first time load
+  requestAnimationFrame( syntaxHighlight ) // First time load
+
+  return {
+    syntaxWorker
+  }
 }
 
 function syntaxHighlight(){
-  if( !/\.(js|jsx|marko|ts|tsx|mjs|cjs)$/.test( editor.file ) ) return
   
   const model = editor.getModel()
   if( !model ) return
+
+  if( !model.file || !/\.(js|jsx|marko|ts|tsx|mjs|cjs)$/.test( model.file.path ) ) return
   
   // Reset the markers
   monaco.editor.setModelMarkers( model, 'eslint', [] )
   // Send the code to the worker
   syntaxWorker.postMessage({
-    title: editor.file,
+    title: model.file.name,
     code: model.getValue(),
     // Unique identifier to avoid displaying outdated validation
     version: model.getVersionId()

@@ -68,6 +68,7 @@ class {
     this.editor_OnDidChangeModel && this.editor_OnDidChangeModel.dispose()
     this.model_OnDidChangeContent && this.model_OnDidChangeContent.dispose()
     this.editor_OnDidBlurEditorText && this.editor_OnDidBlurEditorText.dispose()
+    this.editor_OnDidChangeCursorPosition && this.editor_OnDidChangeCursorPosition.dispose()
 
     if( !this.workers ) return
 
@@ -144,6 +145,7 @@ class {
         NOTE: Works for the whole widget and switching between tabs
     */
     this.editor_OnDidBlurEditorText = this.editor.onDidBlurEditorWidget( () => this.onSave() )
+    this.editor_OnDidChangeCursorPosition = this.editor.onDidChangeCursorPosition( ({ position }) => this.emit('cursor-position', position ) )
     this.editor_OnDidChangeModel = this.editor.onDidChangeModel( async ({ newModelUrl, oldModelUrl }) => {
       
       if( oldModelUrl ){

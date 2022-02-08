@@ -60,7 +60,9 @@ class {
 
       tabs: [],
       ongoingSetup: false,
-      ongoingProcess: false
+      ongoingProcess: false,
+
+      editorCursorPosition: null
     }
 
     this.fs = false
@@ -77,6 +79,7 @@ class {
       case 'remove':
       case 'new-dir': 
       case 'new-file': this.FSOperator( action, ...args ); break
+      case 'cursor-position': this.state.editorCursorPosition = args[0]; break
     }
   }
   onMenuToggle( name ){ this.state.activeTool = name }
@@ -403,8 +406,9 @@ class {
                                 paths=state.tabs.map( ({ path }) => { return path } )
                                 language=null
                                 fs=component.fs
+                                on-save('onSave')
                                 on-change('onRecordChange')
-                                on-save('onSave')/>
+                                on-cursor-position('onAction', 'cursor-position')/>
                   </@case>
 
                   <@case is="API">
@@ -476,22 +480,24 @@ class {
             </li>
           </if>
 
+          <!-- Toggle console display block -->
           <li.px-1.white-text.cursor-pointer on-click('onConsoleToggle', true )>
             Console
           </li>
 
+          <!-- Display main programming language -->
           <if( state.project )>
             <li.px-1.white-text>${state.project.scope.IDE.language.replace('~', ' ').toCapitalCase()}</li>
           </if>
-          <li.px-1.white-text>
-            Ln 12, Col 9
-          </li>
-          <li.px-1.white-text>
-            Spaces: 2
-          </li>
-          <li.px-1.white-text>
-            UTF-8
-          </li>
+
+          <!-- Display editor's cusor current position -->
+          <if( state.editorCursorPosition )>
+            $ const { lineNumber, column } = state.editorCursorPosition
+            <li.px-1.white-text>Ln ${lineNumber}, Col ${column}</li>
+          </if>
+
+          <li.px-1.white-text>Spaces: 2</li>
+          <li.px-1.white-text>UTF-*</li>
         </ul>
       </@col>
     </Row>

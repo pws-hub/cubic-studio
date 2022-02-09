@@ -5,13 +5,57 @@ static const REQUIRED_FEATURES = ['geolocation']
 static const SANDBOX_RULES = ['allow-scripts', 'allow-same-origin']
 
 class {
+  onCreate(){
+    this.state = {
+      canLoad: false,
+      reloading: false,
+      languages: null
+    }
+  }
+  onInput({ meta, status }){
+
+    if( this.state.reloading ){
+      // Still reloading
+      if( status !== 'running' ) return
+      // Reloading completed
+      this.state.reloading = false
+    }
+
+    if( !meta ) return
+
+    // Check whether the emulator server is available
+    window.fetch( meta.hostname, { mode: 'no-cors', cache: 'no-cache' } )
+          .then( resp => resp.text() )
+          .then( () => this.state.canLoad = true ) // Can load the iframe
+          .catch( error => this.emit('run') ) // Run emulator & process
+  }
   onFrameLoaded( e ){
     this.iof = new IOF({ type: 'window', debug: true })
     this.iof.initiate( e.target.contentWindow, this.input.meta.hostname )
 
+    this.iof.once( 'connect', () => {
+      // Get supported languages manifest of app/plugin
+      this.iof.emit( 'get:languages', ( error, list ) => {
+        if( error ) return
+        this.state.languages = list
+      } )
+
+    } )
+
     // Communicate workspace and screen change to iframe
     GState.on( 'ws', data => this.iof.emit( 'ws:change', data ) )
     GState.on( 'screen', data => this.iof.emit( 'screen:change', data ) )
+  }
+  onControlAction( _event, data ){ this.iof.emit( _event, data ) }
+  onReload(){
+    this.state.reloading = true
+    this.emit('reload')
+  }
+  onQuit(){
+    // Send QUIT signal to extension
+    this.iof.emit('signal', 'USER:QUIT')
+    // Delay closing emulator to observe extension behaviour during quiting process
+    setTimeout( () => this.emit('quit'), 5000 )
   }
 }
 
@@ -20,9 +64,9 @@ class {
         qs="col-3"
         hs="col-6"
         fs="position-absolute col-12">
-  <if( typeof input.meta == 'object' && input.meta.hostname )>
+  <if( state.canLoad )>
     $ const { name, hostname, pid } = input.meta
-
+    
     <iframe.w-100.h-100 
             src=`${hostname}?wp=iframe&base=${pid}`
             title=name
@@ -32,14 +76,20 @@ class {
             allow=REQUIRED_FEATURES.join()
             sandbox=SANDBOX_RULES.join(' ')
             on-load('onFrameLoaded')></iframe>
+
+    <!-- Controls -->
+    <ControlBar languages=state.languages
+                on-quit('onQuit')
+                on-reload('onReload')
+                on-action('onControlAction')/>
   </if>
   <else>
     <div.w-100.h-100.d-flex.align-items-center.justify-content-center>
-      <if( input.status === 'loading' )>
+      <if( state.reloading || input.status )>
         <div.w-100.text-center>
           <Preloader.font-large-3 active=true/>
           <br><br>
-          <Locale text="Loading"/>
+          <Locale text=input.status.toCapitalCase()/>
         </div>
       </if>
       <else>

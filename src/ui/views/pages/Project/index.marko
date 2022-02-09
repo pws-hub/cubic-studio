@@ -72,7 +72,6 @@ class {
   onMount(){ this.getProject() }
   onAction( action, ...args ){
     switch( action ){
-      case 'run': this.Run( ...args ); break
       case 'open': this.Open( ...args ); break
       case 'move':
       case 'rename':
@@ -80,6 +79,8 @@ class {
       case 'new-dir': 
       case 'new-file': this.FSOperator( action, ...args ); break
       case 'cursor-position': this.state.editorCursorPosition = args[0]; break
+      case 'run': this.RunEmulator( ...args ); break
+      case 'reload': this.ReloadEmulator(); break
     }
   }
   onMenuToggle( name ){ this.state.activeTool = name }
@@ -194,47 +195,6 @@ class {
           break
     }
   }
-  async Run( status, force ){
-    // Run/Stop emulator
-    if( !this.pm ){
-      debugLog('[Project Event] error: Undeclared process manager')
-      return
-    }
-    
-    // Create emulator instance
-    if( !this.emulator )
-      this.emulator = this.pm.emulator( this.state.project )
-
-    // Run
-    if( status == true ){
-      this.state.emulatorStatus = 'loading'
-      GState.ws.layout({ mode: 'auto' })
-      
-      /* Try cached config to reconnect emulator without
-        restarting it. Usefull when page got refreshed
-        and servers are up
-      */
-      const cachedImage = !force ? uiStore.get( this.getAttr(`${this.state.project.name}-emulator`) ) : false
-
-      this.state.emulator = cachedImage || await this.emulator.run()
-      this.state.emulatorStatus = 'running'
-      
-      uiStore.set( this.getAttr(`${this.state.project.name}-emulator`), this.state.emulator )
-    }
-    // Close
-    else {
-      this.state.emulatorStatus = 'stopping'
-      await this.emulator.quit()
-
-      this.state.emulator = false
-      this.state.emulatorStatus = false
-
-      GState.ws.layout({ mode: 'ns' })
-
-      // Clear cached config
-      uiStore.clear( this.getAttr(`${this.state.project.name}-emulator`) )
-    }
-  }
   async Setup(){
 
     let AUTORUN = true
@@ -310,17 +270,19 @@ class {
       debugLog('-- Completed indeed --')
 
       // Automatically run project
-      AUTORUN && this.Run( true, true )
+      AUTORUN && this.RunEmulator( true, true )
     }
     else {
       // Mount project's last states
       this.state.tabs = uiStore.get( this.getAttr('tabs') ) || []
       this.state.activeElement = uiStore.get( this.getAttr('active-element') ) || null
       
-      // Auto-run cached emulator state of this project
-      AUTORUN
-      && uiStore.get( this.getAttr(`${this.state.project.name}-emulator`) )
-      && this.Run( true, false )
+      // Reload cached emulator state of this project
+      const cachedEMImage = uiStore.get( this.getAttr(`${this.state.project.name}-emulator`) )
+      if( AUTORUN && cachedEMImage )
+        window.env == 'production' ? 
+                      this.ReloadEmulator() // Reload backend process
+                      : this.RunEmulator( true ) // Connect frontend to process or run process if not available
     }
 
     this.state.ongoingSetup = false
@@ -363,6 +325,64 @@ class {
     
     // Confirm element saved to the tool
     typeof confirmCallback == 'function' && confirmCallback()
+  }
+
+  async RunEmulator( status, force ){
+    // Run/Stop emulator
+    if( !this.pm ){
+      debugLog('[Project Event] error: Undeclared process manager')
+      return
+    }
+    
+    // Create emulator instance
+    if( !this.emulator )
+      this.emulator = this.pm.emulator( this.state.project )
+
+    // Run
+    if( status == true ){
+      this.state.emulatorStatus = 'loading'
+      GState.ws.layout({ mode: 'auto' })
+      
+      /* Try cached config to reconnect emulator without
+        restarting it. Usefull when page got refreshed
+        and servers are up
+      */
+      const cachedEMImage = !force ? uiStore.get( this.getAttr(`${this.state.project.name}-emulator`) ) : false
+
+      this.state.emulator = cachedEMImage || await this.emulator.run()
+      this.state.emulatorStatus = 'running'
+      
+      uiStore.set( this.getAttr(`${this.state.project.name}-emulator`), this.state.emulator )
+    }
+    // Close
+    else {
+      this.state.emulatorStatus = 'stopping'
+      await this.emulator.quit()
+
+      this.state.emulator = false
+      this.state.emulatorStatus = false
+
+      GState.ws.layout({ mode: 'ns' })
+
+      // Clear cached config
+      uiStore.clear( this.getAttr(`${this.state.project.name}-emulator`) )
+    }
+  }
+  async ReloadEmulator(){
+    // Reload emulator
+    if( !this.pm ){
+      debugLog('[Project Event] error: Undeclared process manager')
+      return
+    }
+    
+    // Create emulator instance
+    if( !this.emulator )
+      this.emulator = this.pm.emulator( this.state.project )
+    
+    this.state.emulatorStatus = 'reloading'
+
+    this.state.emulator = await this.emulator.reload()
+    this.state.emulatorStatus = 'running'
   }
 }
 
@@ -451,7 +471,10 @@ class {
 
       <!-- Sandbox Emulator block -->
       <Emulator meta=state.emulator
-                status=state.emulatorStatus/>
+                status=state.emulatorStatus
+                on-reload( 'onAction', 'reload' )
+                on-run( 'onAction', 'run', true )
+                on-quit( 'onAction', 'run', false )/>
     </Row>
   </div>
   

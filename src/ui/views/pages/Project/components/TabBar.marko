@@ -119,11 +119,17 @@ class {
     </Sortable>
   </ul>
     
-  <!-- Add & More options -->
+  <!-- More tabs options -->
   <div.d-inline-block.position-sticky.right-0.h-100.theme-bg.d-flex.align-items-center.border-left style="margin-left:-1px">
+    <!-- Add new tab -->
     <Bx.font-medium-5.px-1.cursor-pointer 
         type="plus"
         on-click( () => component.emit('add') )/>
+      
+    <!-- Split Editor -->
+    <Bx.font-medium-5.px-1.cursor-pointer 
+        type="columns"
+        on-click( () => component.emit('split-editor') )/>
     
     <!-- File options menu -->
     <DropdownMenu.font-medium-5.px-1.cursor-pointer

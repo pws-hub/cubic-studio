@@ -30,6 +30,7 @@
     "globe-sdk": "^0.0.12",
     "helmet": "^4.6.0",
     "hpp": "^0.2.3",
+    "iframe.io": "^0.0.8",
     "install": "^0.13.0",
     "intl-tel-input": "^17.0.13",
     "jquery": "^3.6.0",

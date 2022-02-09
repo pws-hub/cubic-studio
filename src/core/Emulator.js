@@ -35,7 +35,7 @@ export default class Emulator {
       // Connected
       if( this.esm ) return resolve()
       
-      pm2.connect( true, error => {
+      pm2.connect( error => {
         if( error ) 
           return reject( error )
 
@@ -129,13 +129,52 @@ export default class Emulator {
 
       this.connect()
           .then( () => {
-            this.esm.reload( this.process.name, ( error, _process ) => {
+            this.esm.reload( this.process.name, ( error, metadata ) => {
               if( error ){
                 this.disconnect()
                 return reject( error )
               }
+              
+              const
+              { pid } = metadata[0],
+              { name, cwd, env } = this.process,
+              hostname = toOrigin(`${env.HOST}:${env.PORT}`)
 
-              resolve( _process )
+              /** HACK: Check frequently whether the started
+               *        process (server) has finished compiling
+               *        an now listener.
+               * 
+               * TODO: Handle this with PM2 process.send & process.launchBus event manager
+               * ISSUE: Razzle spawn the sandbox server process so PM2
+               *        only run a script to start the process without
+               *        managing it. Therefore process.send(...) & bus.on(...)
+               *        between started sandbox-server and Emulator doen't work
+               */
+              let 
+              MAX_ATTEMPT = 45, // 45 seconds
+              untilServerUp = setInterval( () => {
+                fetch( hostname, { method: 'GET' } )
+                  .then( resp => resp.text() )
+                  .then( () => {
+                    // Server is up
+                    clearInterval( untilServerUp )
+                    resolve({ pid, cwd, name, hostname })
+                  } )
+                  .catch( error => {
+                    MAX_ATTEMPT--
+                    this.debug(`Failed [${45 - MAX_ATTEMPT}]: `, error.message )
+
+                    // Maximum attempt reached
+                    if( MAX_ATTEMPT == 0 ){
+                      // Emulator server still not available: exit
+                      clearInterval( untilServerUp )
+
+                      this.exit()
+                          .then( () => reject('Emulator server failed to load.') )
+                          .catch( error => reject('Unexpected error occured: ', error.message ) )
+                    }
+                  })
+              }, 1000 )
             } )
           } )
           .catch( reject )

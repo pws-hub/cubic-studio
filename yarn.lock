@@ -5373,6 +5373,11 @@ iferr@^0.1.5:
   resolved "https://registry.yarnpkg.com/iferr/-/iferr-0.1.5.tgz#c60eed69e6d8fdb6b3104a1fcbca1c192dc5b501"
   integrity sha1-xg7taebY/bazEEofy8ocGS3FtQE=
 
+iframe.io@^0.0.8:
+  version "0.0.8"
+  resolved "https://registry.yarnpkg.com/iframe.io/-/iframe.io-0.0.8.tgz#f9a26ee8c0225edafd2d0fdf754f4a0d7afdef6b"
+  integrity sha512-La5Wrdw3Zwq1JPnV50QGbdT0KdouSmQxtbk4yyAzDXg7w5+CJqHNQQlFEl416jqxPKLva8OoqVN39Bxbc7+ZUg==
+
 ignore@^5.1.4, ignore@^5.2.0:
   version "5.2.0"
   resolved "https://registry.yarnpkg.com/ignore/-/ignore-5.2.0.tgz#6d3bac8fa7fe0d45d9f9be7bac2fc279577e345a"

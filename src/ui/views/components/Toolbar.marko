@@ -41,17 +41,6 @@ class {
 				<Bx.white-text type=(state.marketplace ? 'x' : 'plus')/>
 			</span>
 		</li> -->
-    
-		<!-- Workspace mode controls -->
-		<li class=`position-absolute width-100 bottom-0 ${state.ws.mode == 'ns' ? 'd-none' : ''}` 
-				style="margin-bottom:8rem">
-			$ const isQuaterScreen = state.ws.mode == 'qs'
-			<span class="bg-active cursor-pointer"
-						title=Locale( isQuaterScreen ? 'Half Screen' : 'Quarter Screen' )
-						on-click('onWorkspaceSwitch')>
-				<Bx.px-1.py-2.font-medium-5 type=`dock-${isQuaterScreen ? 'left' : 'right'}` class="white-text"/>
-			</span>
-		</li>
 
 		<!-- Full workspace toggle -->
 		<li class=`position-absolute width-100 bottom-0 ${state.ws.mode == 'ns' ? 'd-none' : ''}`

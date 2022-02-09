@@ -66,6 +66,18 @@ function ProcessHandler( client ){
           return false
         }
       },
+      reload: async () => {
+        try {
+          const { error, message, response } = await run( 'reloadEM', emulatorId, dataset )
+          if( error ) throw new Error( message )
+          
+          return response
+        }
+        catch( error ){
+          console.log( error )
+          return false
+        }
+      },
       quit: async () => {
         try {
           const { error, message, response } = await run( 'quitEM', emulatorId )

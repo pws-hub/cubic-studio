@@ -1,0 +1,105 @@
+
+class {
+	onCreate(){ 
+    this.state = {
+      option: false,
+      darkMode: false
+    }
+    GState.bind( this, ['ws'] )
+
+    this.theme = {
+      name: 'smoothy~1.0',
+      color: 'default',
+      mode: 'light'
+    }
+  }
+  onExtendOption( option ){ this.state.option = ( this.state.option !== option ? option : false ) }
+	onWorkspaceSwitch(){ GState.ws.layout({ mode: this.state.ws.mode == 'qs' ? 'hs' : 'qs' }) }
+  onLanguageSwitch( locale ){
+    // Switch language
+    this.emit( 'action', 'locale:change', locale )
+    this.onExtendOption( false )
+  }
+  onThemeModeSwitch(){
+    // Switch theme mode from light to dark and visa-versa
+    this.state.darkMode = !this.state.darkMode
+
+    this.theme.mode = !this.state.darkMode ? 'light' : 'dark'
+    this.emit( 'action', 'theme:change', this.theme )
+  }
+}
+
+$ const isQuaterScreen = state.ws.mode == 'qs'
+
+<if( state.ws.mode !== 'fs' )>
+  <div.position-absolute.h-100.top-0.d-flex.align-items-center style="left:-1.7rem">
+    <div.position-relative.round-sm.d-flex.align-items-stretch.overflow-hidden>
+      <ul.h-100.list-unstyled.m-0.position-relative.zindex-1.theme-bg-lighten.py-1>
+        <!-- Workspace mode switcher -->
+        <li.cursor-pointer.p-50
+            title=Locale( isQuaterScreen ? 'Half Screen' : 'Quarter Screen' )
+            on-click('onWorkspaceSwitch')>
+          <Bx.font-medium-5.p-50.white-text type=`dock-${isQuaterScreen ? 'left' : 'right'}`/>
+        </li>
+
+        <!-- Theme type & color -->
+        <li.cursor-not-allowed.p-50
+            title=Locale('Change theme & color')>
+          <Bx.font-medium-5.p-50.text-muted type="palette"/>
+        </li>
+        
+        <!-- Theme mode switcher -->
+        <li.cursor-pointer.p-50
+            title=Locale( state.darkMode ? 'Light' : 'Dark' )
+            on-click('onThemeModeSwitch')>
+          <Bx.font-medium-5.p-50 type="moon" bxs=state.darkMode/>
+        </li>
+
+        <!-- List of available languages supported -->
+        <if( input.languages && !isEmpty( input.languages ) )>
+          <li.cursor-pointer.p-50
+              title=Locale('Change language')
+              on-click('onExtendOption', 'language')>
+            <Bx.font-medium-5.p-50.rounded-circle
+              type="world" 
+              class=( state.option == 'language' ? 'theme-bg-fade' : false )/>
+          </li>
+        </if>
+        
+        <!-- Reload emulator -->
+        <li.cursor-pointer.p-50
+            title=Locale('Reload')
+            on-click( () => component.emit('reload') )>
+          <Bx.font-medium-5.p-50 type="rotate-left"/>
+        </li>
+
+        <!-- Exit emulator -->
+        <li.cursor-pointer.p-50
+            title=Locale('Quit')
+            on-click( () => component.emit('quit') )>
+          <Bx.font-medium-5.p-50 type="power-off"/>
+        </li>
+      </ul>
+
+      <if( state.option )>
+        <div.position-relative.theme-bg-lighten.py-1.align-self-stretch.overflow-auto.animated.slideInLeft.fast 
+            style="width:18rem;border-radius: 0 1.2rem 1.2rem 0">
+          <Switch by=state.option>
+            <@case is="language"><LanguageSettings/></@case>
+          </Switch>
+        </div>
+      </if>
+    </div>
+  </div>
+</if>
+
+<macro name="LanguageSettings">
+  <p.font-small-3.px-1.text-muted><Locale text="Language"/></p>
+  
+  <ul.list-unstyled>
+    <for|id, { locale, name }| in=input.languages>
+      <li.nav-item.cursor-pointer.px-1.py-50
+          on-click('onLanguageSwitch', locale )>${name}</li>
+    </for>
+  </ul>
+</macro>

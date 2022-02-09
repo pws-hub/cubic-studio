@@ -177,7 +177,7 @@ export default class IProcess {
   async runEM( id, dataset ){
     // Start an Emulator Instance
     try {
-      const 
+      const
       { type, name, scope } = dataset,
       { directory } = scope.IDE,
       
@@ -204,6 +204,27 @@ export default class IProcess {
     }
   }
 
+  async reloadEM( id, dataset ){
+    // Reload emulator instance
+    try {
+      // Reconnect to process in case development server was reloaded
+      if( !this.emulators[ id ] ){
+        const
+        { type, name, scope } = dataset,
+        { directory } = scope.IDE
+      
+        this.emulators[ id ] = new Emulator({ cwd: directory, name, debug: this.debugMode })
+      }
+        
+      // Reload process
+      return await this.emulators[ id ].reload()
+    }
+    catch( error ){
+      this.debug('Error occured: ', error )
+      this.watcher( 'emulator', error )
+    }
+  }
+
   async quitEM( id ){
     // Close emulator instance
     try {
@@ -218,6 +239,4 @@ export default class IProcess {
       this.watcher( 'emulator', error )
     }
   }
-
-
 }

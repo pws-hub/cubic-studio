@@ -3,7 +3,8 @@ class {
 	onCreate(){ 
     this.state = {
       option: false,
-      darkMode: false
+      darkMode: false,
+      accountType: 'ADMIN'
     }
     GState.bind( this, ['ws'] )
 
@@ -15,6 +16,18 @@ class {
   }
   onExtendOption( option ){ this.state.option = ( this.state.option !== option ? option : false ) }
 	onWorkspaceSwitch(){ GState.ws.layout({ mode: this.state.ws.mode == 'qs' ? 'hs' : 'qs' }) }
+  onAccountTypeSwitch( type ){
+    // Switch user account type
+    this.state.accountType = type
+
+    this.emit( 'action', 'user:change', { accountType: type } )
+    this.onExtendOption( false )
+  }
+  onContextSwitch( context ){
+    // Switch context
+    this.emit( 'action', 'context:change', { ...context, accountType: this.state.accountType } )
+    this.onExtendOption( false )
+  }
   onLanguageSwitch( locale ){
     // Switch language
     this.emit( 'action', 'locale:change', locale )
@@ -40,6 +53,24 @@ $ const isQuaterScreen = state.ws.mode == 'qs'
             title=Locale( isQuaterScreen ? 'Half Screen' : 'Quarter Screen' )
             on-click('onWorkspaceSwitch')>
           <Bx.font-medium-5.p-50.white-text type=`dock-${isQuaterScreen ? 'left' : 'right'}`/>
+        </li>
+        
+        <!-- Select & inject user account type -->
+        <li.cursor-pointer.p-50
+            title=Locale('Change user account type')
+            on-click('onExtendOption', 'accounttype')>
+          <Bx.font-medium-5.p-50.rounded-circle
+            type="user-check" 
+            class=( state.option == 'accounttype' ? 'theme-bg-fade' : false )/>
+        </li>
+        
+        <!-- Select & inject context -->
+        <li.cursor-pointer.p-50
+            title=Locale('Change context')
+            on-click('onExtendOption', 'context')>
+          <Bx.font-medium-5.p-50.rounded-circle
+            type="analyse" 
+            class=( state.option == 'context' ? 'theme-bg-fade' : false )/>
         </li>
 
         <!-- Theme type & color -->
@@ -85,13 +116,29 @@ $ const isQuaterScreen = state.ws.mode == 'qs'
         <div.position-relative.theme-bg-lighten.py-1.align-self-stretch.overflow-auto.animated.slideInLeft.fast 
             style="width:18rem;border-radius: 0 1.2rem 1.2rem 0">
           <Switch by=state.option>
+            <@case is="accounttype"><AccountTypes/></@case>
             <@case is="language"><LanguageSettings/></@case>
+            <@case is="context"><Contexts/></@case>
           </Switch>
         </div>
       </if>
     </div>
   </div>
 </if>
+
+<macro name="AccountTypes">
+  <p.font-small-3.px-1.text-muted><Locale text="User account type"/></p>
+  
+  <ul.list-unstyled>
+    <for|id, { label, description }| in=input.accountTypes>
+      <li.nav-item.cursor-pointer.px-1.py-50
+          on-click('onAccountTypeSwitch', label )>
+        <div.mb-1 class=( label == state.accountType ? 'text-success' : false )>${id.toCapitalCase()}</div>
+        <span.font-small-2.text-muted>${description}</span>
+      </li>
+    </for>
+  </ul>
+</macro>
 
 <macro name="LanguageSettings">
   <p.font-small-3.px-1.text-muted><Locale text="Language"/></p>
@@ -100,6 +147,17 @@ $ const isQuaterScreen = state.ws.mode == 'qs'
     <for|id, { locale, name }| in=input.languages>
       <li.nav-item.cursor-pointer.px-1.py-50
           on-click('onLanguageSwitch', locale )>${name}</li>
+    </for>
+  </ul>
+</macro>
+
+<macro name="Contexts">
+  <p.font-small-3.px-1.text-muted><Locale text="Switch Context"/></p>
+  
+  <ul.list-unstyled>
+    <for|id, value| in=input.contexts>
+      <li.nav-item.cursor-pointer.px-1.py-50
+          on-click('onContextSwitch', value )>${id.toCapitalCase()}</li>
     </for>
   </ul>
 </macro>

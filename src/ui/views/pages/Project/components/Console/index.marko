@@ -1,15 +1,76 @@
 
-<div.in-block>
-  <div.header.theme-bg-fade.p-50>
-    <ul.list-inline.m-0>
-      <li.px-1.cursor-pointer>Console</li>
-      <li.px-1.cursor-pointer>Terminal</li>
-      <li.px-1.cursor-pointer>Build</li>
-      <li.px-1.cursor-pointer>Errors</li>
+static const Tabs = [ 'terminal', 'debug', 'build', 'errors' ]
 
-      <li.px-1.cursor-pointer.float-right>
+class {
+  onCreate(){
+    this.state = {
+      active: 'debug'
+    }
+    GState.bind( this, ['logs'] )
+  }
+  onUpdate(){
+    const elem = this.getEl('scroll-up-body')
+		$(elem).animate({ scrollTop: elem.scrollHeight }, 400 )
+  }
+  onToggle( type ){ this.state.active = type }
+  getCountBy( type ){ return this.state.logs.filter( log => { return log.type === type } ).length }
+}
+
+<div.in-block.h-100.position-relative>
+  <div.header.position-relative.zindex-1.theme-bg-fade>
+    <ul.list-inline.m-0>
+      <for|type, index| of=Tabs>
+        <li.px-1.py-50.cursor-pointer.d-inline-flex.align-items-center
+            class=( state.active == type ? 'theme-bg' : false )
+            on-click( 'onToggle', type )>
+          <span>${type.toCapitalCase()}</span>
+          
+          <!-- Display number of logs -->
+          <if( state.active !== type )>
+            $ const count = component.getCountBy( type )
+
+            <if( count )>
+              <span.rounded-circle.font-small-3.px-50.mx-25.theme-bg-lighten>${count}</span>
+            </if>
+          </if>
+        </li>
+      </for>
+
+      <li.px-1.py-50.cursor-pointer.float-right>
         <Bx.font-medium-5 type="x" on-click( () => component.emit('dismiss') )/>
       </li>
     </ul>
+  </div>
+
+  <div.position-absolute.top-0.w-100.h-100.overflow-auto 
+      key="scroll-up-body" 
+      style="padding: 3rem 0 1rem 0">
+    <Switch by=state.active>
+      <@case is="terminal">
+
+      </@case>
+      <@case is="debug">
+        <!-- Initial log -->
+        <div.px-1.py-50.text-muted>
+          <Locale>Initialized</Locale>
+        </div>
+
+        <!-- Realtime `debug` logs -->
+        <for|{ type, name, message, status }| of=state.logs>
+          <if( type === 'debug' )>
+            <div.px-1.py-25>
+              <span>[${name}]</span>
+              <span.px-1 class=( status && status !== 'normal' ? `text-${status}` : false )>${message}</span>
+            </div>
+          </if>
+        </for>
+      </@case>
+      <@case is="build">
+
+      </@case>
+      <@case is="errors">
+
+      </@case>
+    </Switch>
   </div>
 </div>

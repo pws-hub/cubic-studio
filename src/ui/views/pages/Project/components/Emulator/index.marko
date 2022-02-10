@@ -3,6 +3,32 @@ import IOF from 'iframe.io'
 
 static const REQUIRED_FEATURES = ['geolocation']
 static const SANDBOX_RULES = ['allow-scripts', 'allow-same-origin']
+static const ACCOUNT_TYPES = {
+  'admin': {
+    label: 'ADMIN',
+    description: 'Wrap all SUPER-ADMIN, ADMIN & SUPERVISOR accounts'
+  },
+  'instructor': {
+    label: 'INSTRUCTOR',
+    description: 'Standard instructor account'
+  },
+  'learner': {
+    label: 'LEARNER',
+    description: 'Standard learner/student account'
+  }
+}
+static const ACTIVITY_CONTEXTS = {
+  'Explore Courses': { 
+    page: 'course',
+    event: { id: 'course-id' },
+    keywords: [ 'course', 'program', 'activity' ]
+  },
+  'Classroom': {
+    page: 'classroom',
+    event: { id: 'enrollment-id' },
+    keywords: [ 'course', 'program', 'activity', 'note', 'library' ]
+  }
+}
 
 class {
   onCreate(){
@@ -29,11 +55,13 @@ class {
           .then( () => this.state.canLoad = true ) // Can load the iframe
           .catch( error => this.emit('run') ) // Run emulator & process
   }
+  onControlAction( _event, data ){ this.iof.emit( _event, data ) }
   onFrameLoaded( e ){
     this.iof = new IOF({ type: 'window', debug: true })
     this.iof.initiate( e.target.contentWindow, this.input.meta.hostname )
 
-    this.iof.once( 'connect', () => {
+    this.iof
+    .once( 'connect', () => {
       // Get supported languages manifest of app/plugin
       this.iof.emit( 'get:languages', ( error, list ) => {
         if( error ) return
@@ -41,12 +69,12 @@ class {
       } )
 
     } )
+    .on( 'console:log', dataset => GState.console.log( dataset ) )
 
     // Communicate workspace and screen change to iframe
     GState.on( 'ws', data => this.iof.emit( 'ws:change', data ) )
     GState.on( 'screen', data => this.iof.emit( 'screen:change', data ) )
   }
-  onControlAction( _event, data ){ this.iof.emit( _event, data ) }
   onReload(){
     this.state.reloading = true
     this.emit('reload')
@@ -78,7 +106,9 @@ class {
             on-load('onFrameLoaded')></iframe>
 
     <!-- Controls -->
-    <ControlBar languages=state.languages
+    <ControlBar accountTypes=ACCOUNT_TYPES
+                contexts=ACTIVITY_CONTEXTS
+                languages=state.languages
                 on-quit('onQuit')
                 on-reload('onReload')
                 on-action('onControlAction')/>

@@ -236,6 +236,17 @@ async function fetchWorkspaces(){
     } )
 
     /*----------------------------------------------------------------*/
+    // Initial Console State
+    GState.set( 'logs', [] )
+    GState
+    .define('console')
+    .action( 'log', log => {
+			const logs = GState.get('logs')
+			logs.push( log )
+      GState.dirty( 'logs', logs )
+    } )
+
+    /*----------------------------------------------------------------*/
     // Initial media window sizes
     initScreenSet()
     // Watch screen resize for responsiveness updates

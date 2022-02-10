@@ -57,7 +57,7 @@
   },
   {
     "id": "javascript",
-    "extensions": [".js", ".es6", ".jsx", ".mjs", ".cjs"],
+    "extensions": [".js", ".es6", ".jsx", ".mjs", ".cjs", ".js.kit"],
     "firstLine": "^#!.*\\bnode",
     "filenames": ["jakefile"],
     "aliases": ["JavaScript", "javascript", "js"],

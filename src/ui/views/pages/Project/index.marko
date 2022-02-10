@@ -55,7 +55,7 @@ class {
 
       showNav: true,
       showSearch: false,
-      showConsole: false,
+      showConsole: uiStore.get('active-console'),
       showFormModal: false,
 
       tabs: [],
@@ -86,8 +86,14 @@ class {
   onMenuToggle( name ){ this.state.activeTool = name }
   onSearchToggle( args ){ this.state.showSearch = args }
   onModalToggle( args ){ this.state.showFormModal = args }
-  onConsoleToggle( args ){ this.state.showConsole = args }
   onShowNavigation( status ){ this.state.showNav = status }
+  onConsoleToggle( status ){
+    this.state.showConsole = status
+
+    status !== false ? 
+            uiStore.set( 'active-console', true )
+            : uiStore.clear('active-console')
+  }
   onRecordChange( element, changes ){
     // Awarness of changes occured on this activeElement
     if( !this.state.activeElement
@@ -214,8 +220,9 @@ class {
 
       switch( event ){
         // New file/dir added: Refresh directory tree
-        case 'add': wait && clearTimeout( wait )
-                    await this.getDirectory()
+        case 'add':
+        case 'addDir': wait && clearTimeout( wait )
+                        await this.getDirectory()
             break
         /** Wait for `add` event to conclude file/dir moved: 
             In that case `add event` will refresh the directory.
@@ -520,7 +527,7 @@ class {
           </if>
 
           <li.px-1.white-text>Spaces: 2</li>
-          <li.px-1.white-text>UTF-*</li>
+          <li.px-1.white-text>UTF-8</li>
         </ul>
       </@col>
     </Row>

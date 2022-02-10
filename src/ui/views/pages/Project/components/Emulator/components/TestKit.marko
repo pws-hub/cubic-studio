@@ -1,0 +1,143 @@
+
+class {
+  onCreate({ iof }){
+    this.state = { 
+      active: false,
+      registry: false,
+      running: false,
+      runningList: [],
+      error: false
+    }
+  }
+  onOpenTest( type ){
+    // Start a given test kit
+    if( this.state.active == type ) return
+    
+    // Close/Stop other currently active test
+    this.state.active && this.onCloseTest( this.state.active )
+
+    this.emit( 'action', 'test:start', type, ( error, registry ) => {
+      if( error ) {
+        this.state.error = { type, message: error }
+        return
+      }
+
+      this.setState({ active: type, registry })
+    } )
+  }
+  onCloseTest( type ){
+    this.emit( 'action', 'test:stop', type, error => {
+      if( error ) {
+        this.state.error = { type, message: error }
+        return
+      }
+
+      this.setState({ active: false, registry: false })
+    } )
+  }
+  onToRun( id, e ){
+    e.target.checked ? 
+          !this.state.runningList.includes( id ) ? this.state.runningList.push( id ) : null
+          : this.state.runningList = this.state.runningList.filter( each => { return each !== id } )
+
+    this.setStateDirty('runningList')
+  }
+  onRun(){
+    // Run single or bulk of test sessions
+    this.emit( 'action', 'test:run', this.state.runningList, ( error, id, status ) => {
+
+      console.log(`[Test] Track Event \n\tID: ${id}\n\tError: ${error}\n\tStatus: ${status}`)
+    } )
+  }
+  onSelectAll(){
+    this.state.runningList = Object.keys( this.state.registry )
+  }
+}
+
+<div.position-fixed.w-30.round.theme-bg.shadow-lg.py-2 style="z-index:1000;left:25%;top:30%;min-height:200px;">
+  <h5.text-primary.px-3>
+    Test Kit
+    <!-- Dismiss test kit -->
+    <Bx.font-medium-5.float-right.cursor-pointer type="x"/>
+  </h5>
+  <br>
+
+  <for|type, { title, path }| in=input.tests>
+    $ const isActive = state.active === type
+
+    <div.nav-item.px-3.py-50 key=type class=( isActive ? 'theme-bg-fade' : false )>
+      <Row.no-gutters.d-flex.align-items-center>
+        <!-- Test kit caption -->
+        <@col.col.p-0>
+          <span.font-medium-2.text-muted>${title}</span>
+        </@col>
+        <@col.col-4.text-right>
+          <Button.btn-sm primary=!isActive
+            on-click( !isActive ? 'onOpenTest' : 'onCloseTest', type )>
+            ${ !isActive ? 'Open' : 'Close' }
+          </Button>
+        </@col>
+
+        <!-- Display error message -->
+        <@col.col-12>
+          <if( state.error && state.error.type === type )>
+            <span.text-danger.font-small-2>${state.error.message}</span>
+          </if>
+        </@col>
+      </Row>
+
+      <!-- Test registry: Containing sessions and running status -->
+      <if( isActive && state.registry )>
+        <div.pl-4.py-50>
+          <span.font-small-2.text-muted>Sessions</span>
+          <ul.list-unstyled.py-50>
+            <for|id, { description, status }| in=state.registry>
+              <li.py-50>
+                <Row.no-gutters.d-flex.align-items-center>
+                  <!-- Selectable test session -->
+                  <@col.col.px-0.pb-1.text-ellipsis>
+                    <div class="checkbox checkbox-primary">
+                      <input type="checkbox"
+                              no-update
+                              id=id
+                              checked=state.runningList.includes( id )
+                              on-change('onToRun', id )/>
+                      <label for=id>
+                        <Locale>${description}</Locale>
+                      </label>
+                    </div>
+                  </@col>
+
+                  <!-- Status -->
+                  <@col.col-4.text-right>
+                    <Switch by=status>
+                      <@case is="SUCCEED">
+                        <span.font-small-2.text-success>SUCCEED</span>
+                      </@case>
+                      <@case is="FAILED">
+                        <span.font-small-2.text-danger>FAILED</span>
+                      </@case>
+                    </Switch>
+                  </@col>
+                </Row>
+              </li>
+            </for>
+          </ul>
+
+          <!-- Run test sessions controls -->
+          <div>
+            <!-- Select all to run -->
+            <if( state.runningList.length < Object.keys( state.registry ).length )>
+              <Button.btn-sm.mx-25 on-click('onSelectAll')>Select All</Button>
+            </if>
+
+            <!-- Toggle run one/list of tests -->
+            <if( state.runningList.length )>
+              <Button.btn-warning.btn-sm.mx-25 on-click('onRun')>Run</Button>
+            </if>
+          </div>
+        </div>
+      </if>
+    </div>
+  </for>
+</div>

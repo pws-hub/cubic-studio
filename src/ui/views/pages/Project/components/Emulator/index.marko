@@ -35,7 +35,9 @@ class {
     this.state = {
       canLoad: false,
       reloading: false,
-      languages: null
+      languages: null,
+      tests: null,
+      openTest: false
     }
   }
   onInput({ meta, status }){
@@ -55,17 +57,23 @@ class {
           .then( () => this.state.canLoad = true ) // Can load the iframe
           .catch( error => this.emit('run') ) // Run emulator & process
   }
-  onControlAction( _event, data ){ this.iof.emit( _event, data ) }
-  onFrameLoaded( e ){
+  onAction( _event, data, fn ){ this.iof.emit( _event, data, fn ) }
+  onLoaded( e ){
     this.iof = new IOF({ type: 'window', debug: true })
     this.iof.initiate( e.target.contentWindow, this.input.meta.hostname )
 
     this.iof
     .once( 'connect', () => {
       // Get supported languages manifest of app/plugin
-      this.iof.emit( 'get:languages', ( error, list ) => {
+      this.iof.emit( 'get:languages', ( error, manifest ) => {
         if( error ) return
-        this.state.languages = list
+        this.state.languages = manifest
+      } )
+
+      // Get created test manifest of app/plugin
+      this.iof.emit( 'get:tests', ( error, manifest ) => {
+        if( error ) return
+        this.state.tests = manifest
       } )
 
     } )
@@ -79,6 +87,7 @@ class {
     this.state.reloading = true
     this.emit('reload')
   }
+  onTest( status ){ this.state.openTest = status }
   onQuit(){
     // Send QUIT signal to extension
     this.iof.emit('signal', 'USER:QUIT')
@@ -103,15 +112,17 @@ class {
             referrerpolicy="origin"
             allow=REQUIRED_FEATURES.join()
             sandbox=SANDBOX_RULES.join(' ')
-            on-load('onFrameLoaded')></iframe>
+            on-load('onLoaded')></iframe>
 
     <!-- Controls -->
     <ControlBar accountTypes=ACCOUNT_TYPES
                 contexts=ACTIVITY_CONTEXTS
                 languages=state.languages
+                tests=state.tests
                 on-quit('onQuit')
                 on-reload('onReload')
-                on-action('onControlAction')/>
+                on-test('onTest')
+                on-action('onAction')/>
   </if>
   <else>
     <div.w-100.h-100.d-flex.align-items-center.justify-content-center>
@@ -128,3 +139,8 @@ class {
     </div>
   </else>
 </WSAdapt>
+
+<if( state.openTest )>
+  <TestKit tests=state.tests
+          on-action('onAction')/>
+</if>

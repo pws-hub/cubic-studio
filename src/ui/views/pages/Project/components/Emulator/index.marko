@@ -37,7 +37,7 @@ class {
       reloading: false,
       languages: null,
       tests: null,
-      openTest: false
+      testMode: false
     }
   }
   onInput({ error, meta, status }){
@@ -90,7 +90,7 @@ class {
     this.state.reloading = true
     this.emit('reload')
   }
-  onTest( status ){ this.state.openTest = status }
+  onOpenTest( status ){ this.state.testMode = status }
   onQuit(){
     // Send QUIT signal to extension
     this.iof.emit('signal', 'USER:QUIT')
@@ -122,10 +122,11 @@ class {
                 contexts=ACTIVITY_CONTEXTS
                 languages=state.languages
                 tests=state.tests
+                testMode=state.testMode
                 on-quit('onQuit')
                 on-reload('onReload')
-                on-test('onTest')
-                on-action('onAction')/>
+                on-action('onAction')
+                on-open-test('onOpenTest')/>
   </if>
   <else>
     <div.w-100.h-100.d-flex.align-items-center.justify-content-center>
@@ -155,7 +156,9 @@ class {
   </else>
 </WSAdapt>
 
-<if( state.openTest )>
+<if( state.testMode )>
   <TestKit tests=state.tests
-          on-action('onAction')/>
+            iof=component.iof
+            on-action('onAction')
+            on-dismiss('onOpenTest', false )/>
 </if>

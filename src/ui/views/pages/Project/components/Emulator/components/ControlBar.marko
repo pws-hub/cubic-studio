@@ -16,6 +16,7 @@ class {
       mode: 'light'
     }
   }
+  onInput({ testMode }){ this.state.testMode = testMode }
   onExtendOption( option ){ this.state.option = ( this.state.option !== option ? option : false ) }
 	onWorkspaceSwitch(){ GState.ws.layout({ mode: this.state.ws.mode == 'qs' ? 'hs' : 'qs' }) }
   onAccountTypeSwitch( type ){
@@ -42,10 +43,10 @@ class {
     this.theme.mode = !this.state.darkMode ? 'light' : 'dark'
     this.emit( 'action', 'theme:change', this.theme )
   }
-  onOpenTest(){
+  onTestMode(){
     // Start/End test
     this.state.testMode = !this.state.testMode
-    this.emit( 'test', this.state.testMode, status => this.state.testMode = status )
+    this.emit( 'open-test', this.state.testMode, status => this.state.testMode = status )
   }
 }
 
@@ -84,7 +85,7 @@ $ const isQuaterScreen = state.ws.mode == 'qs'
         <if( input.tests && !isEmpty( input.tests ) )>
           <li.cursor-pointer.p-50
               title=Locale('Test tools')
-              on-click('onOpenTest')>
+              on-click('onTestMode')>
             <Bx.font-medium-5.p-50.rounded-circle
               type="check-shield"
               class=( state.testMode ? 'theme-bg-fade' : false )/>

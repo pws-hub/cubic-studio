@@ -1,4 +1,6 @@
 
+import Path from 'path-browserify'
+
 class {
   onCreate({ iof }){
     this.state = { 
@@ -9,6 +11,7 @@ class {
       error: false
     }
   }
+  onInput({ iof }){ this.iof = iof }
   onOpenTest( type ){
     // Start a given test kit
     if( this.state.active == type ) return
@@ -16,7 +19,7 @@ class {
     // Close/Stop other currently active test
     this.state.active && this.onCloseTest( this.state.active )
 
-    this.emit( 'action', 'test:start', type, ( error, registry ) => {
+    this.iof.emit( 'test:start', type, ( error, registry ) => {
       if( error ) {
         this.state.error = { type, message: error }
         return
@@ -26,13 +29,17 @@ class {
     } )
   }
   onCloseTest( type ){
-    this.emit( 'action', 'test:stop', type, error => {
+    this.iof.emit( 'test:stop', type, error => {
       if( error ) {
         this.state.error = { type, message: error }
         return
       }
 
-      this.setState({ active: false, registry: false })
+      this.setState({ 
+        active: false, 
+        registry: false,
+        runningList: []
+      })
     } )
   }
   onToRun( id, e ){
@@ -44,21 +51,43 @@ class {
   }
   onRun(){
     // Run single or bulk of test sessions
-    this.emit( 'action', 'test:run', this.state.runningList, ( error, id, status ) => {
+    this.state.running = true
 
-      console.log(`[Test] Track Event \n\tID: ${id}\n\tError: ${error}\n\tStatus: ${status}`)
+    this.iof
+    .off('test:progress') // Remove previously defined progress listeners
+    .on( 'test:progress', ({ id, status, error }) => {
+      // progress status
+      // debugLog(`[Test] Progress Event \n\tID: ${id}\n\tError: ${error}\n\tStatus: ${status}`)
+
+      switch( status ){
+        case 'RUNNING':
+        case 'SUCCEED': this.state.registry[ id ].status = status; break
+        case 'FAILED': this.state.registry[ id ] = { ...(this.state.registry[ id ]), status, error }
+      }
+
+      this.setStateDirty('registry')
+    } )
+    .emit('test:run', this.state.runningList, error => {
+
+      if( error ){
+        debugLog('[Test] Run failed: ', error )
+        this.state.running = false
+        return
+      }
+      
+      this.state.running = false
     } )
   }
-  onSelectAll(){
-    this.state.runningList = Object.keys( this.state.registry )
-  }
+  onSelectAll(){ this.state.runningList = Object.keys( this.state.registry ) }
 }
 
 <div.position-fixed.w-30.round.theme-bg.shadow-lg.py-2 style="z-index:1000;left:25%;top:30%;min-height:200px;">
   <h5.text-primary.px-3>
     Test Kit
     <!-- Dismiss test kit -->
-    <Bx.font-medium-5.float-right.cursor-pointer type="x"/>
+    <Bx.font-medium-5.float-right.cursor-pointer 
+        type="x"
+        on-click( () => component.emit('dismiss') )/>
   </h5>
   <br>
 
@@ -87,55 +116,77 @@ class {
       </Row>
 
       <!-- Test registry: Containing sessions and running status -->
-      <if( isActive && state.registry )>
+      <if( isActive )>
         <div.pl-4.py-50>
-          <span.font-small-2.text-muted>Sessions</span>
-          <ul.list-unstyled.py-50>
-            <for|id, { description, status }| in=state.registry>
-              <li.py-50>
-                <Row.no-gutters.d-flex.align-items-center>
-                  <!-- Selectable test session -->
-                  <@col.col.px-0.pb-1.text-ellipsis>
-                    <div class="checkbox checkbox-primary">
-                      <input type="checkbox"
-                              no-update
-                              id=id
-                              checked=state.runningList.includes( id )
-                              on-change('onToRun', id )/>
-                      <label for=id>
-                        <Locale>${description}</Locale>
-                      </label>
-                    </div>
-                  </@col>
+          <!-- Display defined test sessions -->
+          <if( state.registry && Object.keys( state.registry ).length )>
+            <span.font-small-2.text-muted>Sessions</span>
+            <ul.list-unstyled.py-50>
+              <for|id, { description, status, error }| in=state.registry>
+                <li.py-50>
+                  <Row.no-gutters.d-flex.align-items-center>
+                    <!-- Selectable test session -->
+                    <@col.col.px-0.pb-1.text-ellipsis>
+                      <div class="checkbox checkbox-primary">
+                        <input type="checkbox"
+                                no-update
+                                id=id
+                                checked=state.runningList.includes( id )
+                                on-change('onToRun', id )/>
+                        <label for=id>
+                          <Locale>${description}</Locale>
 
-                  <!-- Status -->
-                  <@col.col-4.text-right>
-                    <Switch by=status>
-                      <@case is="SUCCEED">
-                        <span.font-small-2.text-success>SUCCEED</span>
-                      </@case>
-                      <@case is="FAILED">
-                        <span.font-small-2.text-danger>FAILED</span>
-                      </@case>
-                    </Switch>
-                  </@col>
-                </Row>
-              </li>
-            </for>
-          </ul>
+                          <!-- Display error occured during this session -->
+                          <if( error )>
+                            <div.font-small-2.text-danger>${error}</div>
+                          </if>
+                        </label>
+                      </div>
+                    </@col>
 
-          <!-- Run test sessions controls -->
-          <div>
-            <!-- Select all to run -->
-            <if( state.runningList.length < Object.keys( state.registry ).length )>
-              <Button.btn-sm.mx-25 on-click('onSelectAll')>Select All</Button>
-            </if>
+                    <!-- Status -->
+                    <@col.col-4.text-right>
+                      <Switch by=status>
+                        <@case is="RUNNING">
+                          <Preloader.font-medium-2 active=true />
+                        </@case>
+                        <@case is="SUCCEED">
+                          <span.font-small-2.text-success>SUCCEED</span>
+                        </@case>
+                        <@case is="FAILED">
+                          <span.font-small-2.text-danger>FAILED</span>
+                        </@case>
+                      </Switch>
+                    </@col>
+                  </Row>
+                </li>
+              </for>
+            </ul>
 
-            <!-- Toggle run one/list of tests -->
-            <if( state.runningList.length )>
-              <Button.btn-warning.btn-sm.mx-25 on-click('onRun')>Run</Button>
-            </if>
-          </div>
+            <!-- Run test sessions controls -->
+            <div>
+              <!-- Select all to run -->
+              <if( state.runningList.length < Object.keys( state.registry ).length )>
+                <Button.btn-sm.mx-25 on-click('onSelectAll')>Select All</Button>
+              </if>
+
+              <!-- Toggle run one/list of tests -->
+              <if( state.runningList.length && !state.running )>
+                <Button.btn-warning.btn-sm.mx-25 on-click('onRun')>Run</Button>
+              </if>
+            </div>
+          </if>
+
+          <!-- Emty test kit -->
+          <else>
+            <div>
+              <Locale>
+                Nothing found under this test. Open the 
+                file <u.text-info>${Path.join('/test/', path )}</u> and define 
+                some sessions.
+              </Locale>
+            </div>
+          </else>
         </div>
       </if>
     </div>

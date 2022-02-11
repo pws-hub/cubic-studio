@@ -3,6 +3,7 @@ import * as monaco from 'monaco-editor'
 import lspClient from './lib/lspClient'
 import defineTheme from './lib/defineTheme'
 import setupWorkers from './lib/setupWorkers'
+import controlActions from './lib/controlActions'
 import * as GMLoader from './lib/grammarLoader'
 
 static const defaultOptions = {
@@ -140,6 +141,9 @@ class {
     this.editor = monaco.editor.create( this.getEl(), this.editorOptions )
     // Load grammars by editor instance
     await GMLoader.registerGrammar( monaco, this.editor )
+
+    // Load control actions: ContextMenu, KeyControl, ...
+    controlActions( monaco, this.editor, this )
     
     /* Capture blur event from editor: 
         NOTE: Works for the whole widget and switching between tabs

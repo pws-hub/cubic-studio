@@ -50,12 +50,14 @@ export default class GitManager {
     sync = async () => {
       
       // TODO: Check & pull if remote exists
-      
+
 
       return await this.git.add('./*')
                             .commit('Initial commit!')
                             .addRemote( 'origin', remote || this.remote )
-                            .fetch() 
+
+                            // Fetch only when remote already exists
+                            // .fetch() 
                             .push([ '--set-upstream', 'origin', 'master'])
     }
 

@@ -73,7 +73,7 @@ class {
   async onInput({ params }){
     // Fetch project metadata
     await this.getProject( params.id, params.project )
-
+    
     this.state.showConsole = uiStore.get( this.getAttr('active-console') )
   }
   onAction( action, ...args ){
@@ -100,8 +100,8 @@ class {
     this.state.showConsole = status
 
     status !== false ? 
-            uiStore.set( 'active-console', true )
-            : uiStore.clear('active-console')
+            uiStore.set( this.getAttr('active-console'), true )
+            : uiStore.clear( this.getAttr('active-console') )
   }
   onRecordChange( element, changes ){
     // Awarness of changes occured on this activeElement

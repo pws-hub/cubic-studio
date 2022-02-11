@@ -1,4 +1,14 @@
 
+class {
+  onCreate(){ this.state = { showDeps: uiStore.get('show-deps') } }
+  onShowDeps(){
+    this.state.showDeps = !this.state.showDeps
+    this.state.showDeps ? 
+                uiStore.set( 'show-deps', true )
+                : uiStore.clear('show-deps')
+  }
+}
+
 <context active=input.active 
           on-open( element => component.emit( 'open', element ) )
           on-move( element => component.emit( 'move', element ) )
@@ -6,18 +16,106 @@
           on-remove( element => component.emit( 'remove', element ) )
           on-new-dir( element => component.emit( 'new-dir', element ) )
           on-new-file( element => component.emit( 'new-file', element ) )>
-  <ul.directory.list-unstyled.my-0>
-    <for|folder| of=input.list>
-      <Folder ...folder/>
-    </for>
-    
-    <li>
-      <div.hover-toggle.py-1.d-flex.align-items-center.cursor-pointer>
-        <Bx.font-medium-5 type="plus" style="padding:0 .4rem 0 .95rem"/>
-        <div.font-medium-1.text-ellipsis.w-75>
-          <Locale text="Add Folder"/>
+  <!-- Directory row -->
+  <div.position-relative.overflow-auto
+      style=`height:${state.showDeps ? '60%' : 'calc(100% - 3rem)'}`>
+    <div.position-sticky.zindex-2.top-0.w-100.theme-bg.d-flex.align-items-center.border-bottom style="height:3rem">
+      <div.w-100>
+        <ul.list-inline.m-0.px-25>
+          <li>
+            <Bx.font-medium-5.px-1.cursor-pointer
+                type="sidebar"
+                on-click('onShowMenu')/>
+          </li>
+          
+          <li.float-right>
+            <Bx.font-medium-5.px-75.cursor-pointer
+                title=Locale('Git branch')
+                type="git-branch"/>
+          </li>
+          <li.float-right>
+            <Bx.font-medium-5.px-75.cursor-pointer
+                title=Locale('Git commit')
+                type="git-commit"/>
+          </li>
+
+          <!-- Run/Stop emulator control -->
+          <if( !['loading', 'stopping'].includes( input.status.emulator ) )>
+            <li.float-right>
+              <Bx.font-medium-5.px-75.cursor-pointer
+                  title=Locale( !input.status.emulator ? 'Run' : 'Close' )
+                  type=`${!input.status.emulator ? 'play' : 'pause'}`
+                  on-click( () => component.emit( !input.status.emulator ? 'run' : 'quit' ) )/>
+            </li>
+          </if>
+        </ul>
+      </div>
+    </div>
+
+    <ul.list-unstyled.py-1.my-0>
+      <for|folder| of=input.directory>
+        <Folder ...folder/>
+      </for>
+      
+      <li>
+        <div.hover-toggle.py-1.d-flex.align-items-center.cursor-pointer>
+          <Bx.font-medium-5 type="plus" style="padding:0 .4rem 0 .95rem"/>
+          <div.font-medium-1.text-ellipsis.w-75>
+            <Locale text="Add Folder"/>
+          </div>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Dependencies Row -->
+  <div.position-relative.border-top.overflow-auto
+      style=`height:${state.showDeps ? '40%' : '3rem'}`>
+    <div.position-sticky.zindex-2.top-0.w-100.theme-bg.d-flex.align-items-center.border-bottom.px-1 style="height:3rem">
+      <div.w-100.d-flex.align-items-center>
+        <div.w-70>
+          <Locale.px-25 text="Dependencies"/>
+        </div>
+
+        <div.px-25.text-right.d-flex.align-items-center>
+          <!-- Update all dependencies in package.json button -->
+          <Bx.font-medium-5.cursor-pointer.px-50
+              type="sync"
+              title="Update All"
+              on-click( () => component.emit( 'update-dependency', 'all' ) )/>
+
+          <!-- Add new dependency button -->
+          <Bx.font-medium-5.cursor-pointer.px-50
+              type="plus"
+              title="Add dependency"
+              on-click( () => component.emit('add-dependency') )/>
+
+          <!-- Open/Close deps row button -->
+          <Bx.font-medium-5.cursor-pointer.px-50
+              type=`chevron-${!state.showDeps ? 'up' : 'down'}`
+              title=( !state.showDeps ? 'Show' : 'Close' )
+              on-click('onShowDeps')/>
         </div>
       </div>
-    </li>
-  </ul>
+    </div>
+
+    <if( state.showDeps )>
+      <if( Array.isArray( input.dependencies ) && input.dependencies.length  )>
+        <ul.list-unstyled.py-1>
+          <for|dependency| of=input.dependencies>
+            <Dependency ...dependency/>
+          </for>
+        </ul>
+      </if>
+      <else>
+        <div.h-100.d-flex.align-items-center>
+          <div.w-100.text-center.text-muted>
+            <Bx.font-large-2.text-muted type="package"/>
+            <br><br>
+            <Locale>No dependency installed</Locale>
+          </div>
+        </div>
+      </else>
+    </if>
+  </div>
 </context>

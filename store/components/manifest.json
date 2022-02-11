@@ -1,0 +1,50 @@
+[
+  {
+    "name": "Locale",
+    "version": "1.0.0",
+    "description": "Auto-translate test in the app to locale language",
+    "package": "Locale.marko"
+  },
+  {
+    "name": "Switch",
+    "version": "1.0.0",
+    "description": "Use Javascript `switch` operator as marko-tag",
+    "package": "Switch"
+  },
+  {
+    "name": "Row",
+    "version": "1.0.0",
+    "description": "Use responsive `row` and `col` as marko-tag. Depend on `WSAdapt` component to work in multipple space",
+    "package": "Row"
+  },
+  {
+    "name": "SearchBar",
+    "version": "1.0.0",
+    "description": "Custom searchbar with auto-completion, suggestion, ...",
+    "package": "SearchBar"
+  },
+  {
+    "name": "Select",
+    "version": "1.0.0",
+    "description": "Cool select input with smooth dropdown. Inspired by select2",
+    "package": "Select"
+  },
+  {
+    "name": "Bx",
+    "version": "1.0.0",
+    "description": "Boxicons custom support tag",
+    "package": "Bx.marko"
+  },
+  {
+    "name": "Image",
+    "version": "1.0.0",
+    "description": "Image with lazy load and effect as marko-tag",
+    "package": "Image.marko"
+  },
+  {
+    "name": "WSAdapt",
+    "version": "1.0.0",
+    "description": "Component to handle responsiveness base on multipple's workspace dynanism",
+    "package": "WSAdapt.marko"
+  }
+]

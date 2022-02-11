@@ -15,7 +15,10 @@ class {
     if( !dataset ) return
     switch( type ){
       case 'IDE': if( isEmpty( dataset ) ) return
-                  this.Actives[ type ] = { list: [ dataset.directory ] }
+                  this.Actives[ type ] = { 
+                    directory: [ dataset.directory ],
+                    dependencies: dataset.dependencies
+                  }
           break
     }
     
@@ -28,62 +31,21 @@ class {
 
     this.emit( 'show-menu', this.state.showMenu )
   }
-  onRunEmulator(){
-    this.emit( 'action', !this.input.status.emulator ? 'run-emulator' : 'quit-emulator', false )
-  }
 }
 
 <div.in-block.section-block.px-0.border-right style="width:24rem">
-  <div.w-100.d-flex.align-items-center.border-bottom style="height:3rem">
-    <div.w-100>
-      
-      <ul.list-inline.m-0.px-50>
-        <!-- <li><Bx.font-medium-5.px-1 type="wifi-off"/></li> -->
-        <li>
-          <Bx.font-medium-5.px-1.cursor-pointer
-              type="sidebar"
-              on-click('onShowMenu')/>
-        </li>
-
-        <!-- Coding Project actions -->
-        <if( input.type == 'IDE' )>
-          <li.float-right>
-            <Bx.font-medium-5.px-75.cursor-pointer
-                title=Locale('Git branch')
-                type="git-branch"/>
-          </li>
-          <li.float-right>
-            <Bx.font-medium-5.px-75.cursor-pointer
-                title=Locale('Git commit')
-                type="git-commit"/>
-          </li>
-
-          <!-- Run/Stop emulator control -->
-          <if( !['loading', 'stopping'].includes( input.status.emulator ) )>
-            <li.float-right>
-              <Bx.font-medium-5.px-75.cursor-pointer
-                  title=Locale( !input.status.emulator ? 'Run' : 'Close' )
-                  type=`${!input.status.emulator ? 'play' : 'pause'}`
-                  on-click('onRunEmulator')/>
-            </li>
-          </if>
-
-
-          
-        </if>
-      </ul>
-    </div>
-  </div>
-  
-  <div.position-relative.overflow-auto style="height:calc(100% - 3rem)">
+  <div.position-relative.h-100.overflow-auto>
     <for|type, dataset| in=component.Actives>
-      <div.position-absolute.theme-bg.h-100.top-0.left-0.right-0.py-1
+      <div.position-absolute.theme-bg.h-100.top-0.left-0.right-0
           key=type
           class=( state.active == type ? 'zindex-2' : 'zindex-1')>
         <Switch by=type>
           <@case is="IDE">
             <Directory ...dataset
                         active=input.active
+                        status=input.status
+                        on-run( () => component.emit( 'action', 'run-emulator', false ) )
+                        on-quit( () => component.emit( 'action', 'quit-emulator' ) )
                         on-open( element => component.emit( 'action', 'open', element ) )
                         on-move( element => component.emit( 'action', 'move', element ) )
                         on-rename( element => component.emit( 'action', 'rename', element ) )

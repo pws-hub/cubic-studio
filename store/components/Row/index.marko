@@ -1,0 +1,16 @@
+
+<div.row 
+    id=input.id 
+    class=input.class 
+    style=input.style
+    on-click( () => component.emit('click') )>
+  <if( input.col )>
+    <for|col, index| of=input.col>
+      <!-- `class="col" is default` -->
+      <WSAdapt key=index class="col" ...col>
+        <${col.renderBody}/>
+      </WSAdapt>
+    </for>
+  </if>
+  <else><${input.renderBody}/></else>
+</div>

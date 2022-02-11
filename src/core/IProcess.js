@@ -1,4 +1,5 @@
 
+import Path from 'path'
 import GitManager from './GitManager'
 import FileSystem from './FileSystem'
 import * as GenericFile from './GenericFile'
@@ -244,6 +245,25 @@ export default class IProcess {
     catch( error ){
       this.debug('Error occured: ', error )
       this.watcher( 'emulator', error )
+    }
+  }
+
+  async addComponent( dataset, directory ){
+    // Copy a component package from store to a project's components folder
+    try {
+      const
+      store = Path.join( process.cwd(), `/store/components/${dataset.package}` ),
+      project = `${directory}/components`,
+      fs = new FileSystem({ debug: this.debugMode }),
+      
+      exist = await fs.exists( project )
+
+      if( !exist ) await fs.newDir( project )
+      await fs.copy( store, project )
+    }
+    catch( error ){
+      this.debug('Error occured: ', error )
+      this.watcher( 'setup', error )
     }
   }
 }

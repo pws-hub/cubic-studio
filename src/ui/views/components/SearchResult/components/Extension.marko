@@ -1,0 +1,58 @@
+
+import Extensions from './defaults.json'
+
+<Row.m-0>
+  <for|each, index| of=Extensions>
+    $ const { type, name, description, favicon, configs } = each
+
+    <@col ns="col-6" qs="col-6" hs="col-12" fs="col-12">
+      <div.nav-item.cursor-pointer.shadow-none.border-bottom.rounded-0.m-0.py-50>
+        <div.card-content>
+          <Row.no-gutters>
+            <div.col-lg-2.col-sm-3.py-2.text-center.cursor-pointer.no-effect on-click('onOpen', each )>
+              <!-- Icon -->
+              <if( /\.(png|jpe?g|gif|webp|svg)/.test( favicon ) )>
+                <Image.cursor-pointer src=favicon
+                        width=44
+                        alt=name
+                        title=description/><br>
+              </if>
+              <else>
+                <span title=description>
+                  <i.font-large-2.bx class=favicon></i>
+                </span>
+              </else>
+            </div>
+
+            <div.col-lg-8.col-sm-6.px-1.py-50.position-relative.cursor-pointer.no-effect on-click('onOpen', each )>
+              <p.mb-2>${name}</p>
+              <p.mb-2.w-100.font-small-2.text-ellipsis>${description}</p>
+              
+              <StarRating score=4.5 size="12" color="grey"/>
+            </div>
+
+            <!-- <div.col-lg-2.col-sm-3.px-1.py-50.text-right>
+              <if( window.Extensions.isInstalled( name ) )>
+                <Locale.font-small-2.float-right.text-success text="Installed"/>
+
+                <if( !configs || !configs.default )>
+                  <br><br>
+                  <Bx.font-medium-5.border.rounded-circle.p-50.cursor-pointer 
+                      type="export" 
+                      title=Locale('Uninstall')
+                      on-click( () => component.emit('uninstall', name ) )/>
+                </if>
+              </if>
+              <else>
+                <Bx.font-medium-5.border.rounded-circle.p-50.cursor-pointer 
+                    type="import"
+                    title=Locale('Install')
+                    on-click( () => component.emit('install', each ) )/>
+              </else>
+            </div> -->
+          </Row>
+        </div>
+      </div>
+    </@col>
+  </for>
+</Row>

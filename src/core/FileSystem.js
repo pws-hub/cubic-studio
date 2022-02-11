@@ -66,7 +66,12 @@ export default class FileSystem {
   // Read a file content
   async readFile( path, options = {} ){
     path = this.resolve( path )
-    return await Fs.readFile( path, options.encoding || 'UTF-8' )
+
+    switch( options.encoding ){
+      case 'json': return await Fs.readJson( path )
+      // case 'base64': 
+      default: return await Fs.readFile( path, options.encoding || 'UTF-8' )
+    }
   }
 
   // Check whether file or directory exist or not

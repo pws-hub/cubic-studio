@@ -245,6 +245,8 @@ class {
 
     // Get project directory content
     await this.getDirectory()
+    // Get project dependencies
+    await this.getDependencies()
     
     // Project doesn't exist
     if( isEmpty( this.state.IDE.directory ) ){
@@ -326,6 +328,40 @@ class {
     }
 
     this.state.IDE.directory = await this.fs.directory( path || null, dirOptions )
+    this.state.IDE = newObject( this.state.IDE )
+  }
+  async getDependencies( path ){
+    // Get project dependencies in package.json
+    if( !this.fs ) return
+    
+    const packageJson = await this.fs.readFile( 'package.json', { encoding: 'json' } )
+    if( !packageJson )
+      throw new Error('[Dependency] No package.json file found at the project root')
+
+    const 
+    { dependencies, devDependencies } = packageJson,
+    deps = [],
+    collector = async ( name, version, dev ) => {
+      // Get more information about the package in node_modules
+      let dep = { name, version: version.replace('^', ''), dev }
+      try {
+        const { description, repository } = await this.fs.readFile(`./node_modules/${name}/package.json`, { encoding: 'json' } )
+        dep = { ...dep, description, repository }
+      }
+      catch( error ){
+        // Failed fetching package.json of the dependency
+      }
+
+      deps.push( dep )
+    }
+    
+    for( const name in dependencies )
+      await collector( name, dependencies[ name ] )
+
+    for( const name in devDependencies )
+      await collector( name, devDependencies[ name ], true )
+    
+    this.state.IDE.dependencies = deps
     this.state.IDE = newObject( this.state.IDE )
   }
   async onSave( element, changes, confirmCallback ){
@@ -420,6 +456,24 @@ class {
     // Clear cached config
     uiStore.clear( this.getAttr('emulator') )
   }
+
+  async onAddElement( type, element, progress ){
+    
+    if( !this.pm ){
+      debugLog('[AddElement Event] error: Undeclared process manager')
+      return
+    }
+
+    switch( type ){
+      // Copy store component to this project directory
+      case 'component': progress( false, 'ONGOING' )
+                        const result = await this.pm.addComponent( element, this.state.project.scope.IDE.directory )
+                        result === false ?
+                                progress('Unexpected error occured')
+                                : progress( false, 'DONE' )
+          break
+    }
+  }
 }
 
 <div.vh-100>
@@ -498,10 +552,8 @@ class {
 
         <!-- Search plugin, app, module, ... from marketplace -->
         <if( state.showSearch )>
-          <Modal.px-4.pt-2 noDismissButton=true on-dismiss('onSearchToggle', false )>
-            <SearchBar.round-xs />
-            <SearchResult />
-          </Modal>
+          <Search on-add('onAddElement')
+                  on-dismiss('onSearchToggle', false )/>
         </if>
       </div>
 

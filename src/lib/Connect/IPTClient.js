@@ -45,7 +45,6 @@ function ProcessHandler( client ){
   }
 
   this.emulator = ( dataset, tracker ) => {
-    
     // Unique ID of emulator control instance
     const emulatorId = `${dataset.type}:${dataset.name}`
     
@@ -97,7 +96,20 @@ function ProcessHandler( client ){
     }
   }
 
+  this.addComponent = async ( dataset, directory ) => {
+    try {
+      const { error, message, response } = await run( 'addComponent', dataset, directory )
+      if( error ) throw new Error( message )
+
+      return response || true
+    }
+    catch( error ){
+      console.log( error )
+      return false
+    }
+  }
   
+
   // Exist initiated process channel
   this.close = () => {
     isConnected = false

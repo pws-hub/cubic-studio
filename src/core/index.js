@@ -118,8 +118,8 @@ import PackageManager from './PackageManager'
     //     }
     //   }
     // })
+    // await ps.addComponent({ name: 'Locale', package: 'Switch' }, '/Users/fabricemarlboro/dev-pro/Myapp-labs/multiple/Extensions' )
     
-
   }
   catch( error ){ 
     console.log( error )

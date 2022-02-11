@@ -28,6 +28,7 @@ module.exports = {
       ...webpackConfig.resolve.alias,
       ['~']: path.resolve(__dirname, './public'),
       'handlers': path.resolve(__dirname, './custom/handlers'),
+      'store': path.resolve(__dirname, './store'),
       'vscode': require.resolve('@codingame/monaco-languageclient/lib/vscode-compatibility')
     }
     webpackConfig.resolve.fallback = { 

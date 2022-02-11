@@ -62,7 +62,7 @@ export default class IProcess {
          *              for all next commands cause project
          *              directory is now created
          */
-        git.cwd( directory )
+        git.setCWD( directory )
 
         // Append template project to the directory
         await git.cloneProject( `https://github.com/multipple/create-${sampleType}-${plang}.git`, directory, true )

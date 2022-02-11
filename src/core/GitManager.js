@@ -39,7 +39,7 @@ export default class GitManager {
   }
 
   // Update current working directory
-  cwd( cwd ){ this.git.cwd({ cwd, root: false }) }
+  setCWD( cwd ){ this.git.cwd({ cwd: cwd || this.cwd, root: false }) }
 
   async initProject( remote, force ){
 

@@ -1,6 +1,12 @@
 
 import pm2 from 'pm2'
+import fs from 'fs-extra'
 import fetch from 'node-fetch'
+import kebabCase from 'kebab-case'
+
+function isValidEnv( env ){
+  return typeof env == 'object' && !isEmpty( env )
+}
 
 export default class Emulator {
 
@@ -8,13 +14,13 @@ export default class Emulator {
     // Process config
     this.process = {
       cwd: options.cwd || process.cwd(),
-      name: options.name || 'sandbox-server',
+      name: `${kebabCase( options.name || 'test' ).toLowerCase()}:cubic:sandbox`,
       script: options.script || 'cd ./sandbox && yarn start',
       env: {
         NODE_ENV: 'development',
         HOST: 'localhost',
         PORT: 33000,
-        PORT_DEV: 33001,
+        PORT_DEV: 33001
       },
       watch: false // Disable watch & restart server by pm2
     }
@@ -28,6 +34,19 @@ export default class Emulator {
 
   // Internal operation log: Debug mode
   debug( ...args ){ this.debugMode && console.log( ...args ) }
+
+  async getConfig(){
+    // Fetch emulator config in .cubic
+    let config
+    try { config = JSON.parse( await fs.readFile( this.process.cwd +'/.cubic', 'UTF-8' ) ) }
+    catch( error ){ throw new Error('Not found or Invalid .cubic file at the project root') }
+
+    if( !config.emulator )
+      throw new Error('No emulator configuration found in .cubic file')
+
+    console.log( config )
+    return config.emulator
+  }
 
   connect(){
     // Establish connection with local PM2 instance
@@ -69,41 +88,51 @@ export default class Emulator {
   run(){
     // Start emulator
     return new Promise( ( resolve, reject ) => {
-
       this.connect()
-          .then( () => {
-            this.esm.start( this.process, ( error, metadata ) => {
-              if( error ){
-                this.disconnect()
-                return reject( error )
-              }
-              
-              const
-              { pid } = metadata[0],
-              { name, cwd, env } = this.process,
-              hostname = toOrigin(`${env.HOST}:${env.PORT}`)
+          .then( async () => {
+            try {
+              const config = await this.getConfig()
 
-              /** HACK: Check frequently whether the started
-               *        process (server) has finished compiling
-               *        an now listener.
-               * 
-               * TODO: Handle this with PM2 process.send & process.launchBus event manager
-               * ISSUE: Razzle spawn the sandbox server process so PM2
-               *        only run a script to start the process without
-               *        managing it. Therefore process.send(...) & bus.on(...)
-               *        between started sandbox-server and Emulator doen't work
-               */
-              let 
-              MAX_ATTEMPT = 45, // 45 seconds
-              untilServerUp = setInterval( () => {
-                fetch( hostname, { method: 'GET' } )
-                  .then( resp => resp.text() )
-                  .then( () => {
+              if( isValidEnv( config.env ) )
+                this.process.env = {
+                  ...this.process.env, // Default or previous `env`
+                  ...config.env, // Defined `env`
+
+                  // Set development server PORT
+                  PORT_DEV: Number( config.env.PORT || this.process.env.PORT ) + 1
+                }
+                
+              this.esm.start( this.process, ( error, metadata ) => {
+                if( error ){
+                  this.disconnect()
+                  return reject( error )
+                }
+                
+                const
+                { pid } = metadata[0],
+                { name, cwd, env } = this.process,
+                hostname = toOrigin(`${env.HOST}:${env.PORT}`)
+
+                /** HACK: Check frequently whether the started
+                 *        process (server) has finished compiling
+                 *        an now listener.
+                 * 
+                 * TODO: Handle this with PM2 process.send & process.launchBus event manager
+                 * ISSUE: Razzle spawn the sandbox server process so PM2
+                 *        only run a script to start the process without
+                 *        managing it. Therefore process.send(...) & bus.on(...)
+                 *        between started sandbox-server and Emulator doen't work
+                 */
+                let 
+                MAX_ATTEMPT = 45, // 45 seconds
+                untilServerUp = setInterval( async () => {
+                  try {
+                    const up = await ( await fetch( hostname, { method: 'GET' } ) ).text()
                     // Server is up
                     clearInterval( untilServerUp )
                     resolve({ pid, cwd, name, hostname })
-                  } )
-                  .catch( error => {
+                  }
+                  catch( error ){
                     MAX_ATTEMPT--
                     this.debug(`Failed [${45 - MAX_ATTEMPT}]: `, error.message )
 
@@ -116,9 +145,11 @@ export default class Emulator {
                           .then( () => reject('Emulator server failed to load.') )
                           .catch( error => reject('Unexpected error occured: ', error.message ) )
                     }
-                  })
-              }, 1000 )
-            } )
+                  }
+                }, 1000 )
+              } )
+            }
+            catch( error ){ reject( error ) }
           } )
           .catch( reject )
     } )
@@ -126,41 +157,62 @@ export default class Emulator {
 
   reload(){
     return new Promise( ( resolve, reject ) => {
-
       this.connect()
-          .then( () => {
-            this.esm.reload( this.process.name, ( error, metadata ) => {
-              if( error ){
-                this.disconnect()
-                return reject( error )
-              }
-              
-              const
-              { pid } = metadata[0],
-              { name, cwd, env } = this.process,
-              hostname = toOrigin(`${env.HOST}:${env.PORT}`)
+          .then( async () => {
+            try {
+              const config = await this.getConfig()
 
-              /** HACK: Check frequently whether the started
-               *        process (server) has finished compiling
-               *        an now listener.
-               * 
-               * TODO: Handle this with PM2 process.send & process.launchBus event manager
-               * ISSUE: Razzle spawn the sandbox server process so PM2
-               *        only run a script to start the process without
-               *        managing it. Therefore process.send(...) & bus.on(...)
-               *        between started sandbox-server and Emulator doen't work
-               */
-              let 
-              MAX_ATTEMPT = 45, // 45 seconds
-              untilServerUp = setInterval( () => {
-                fetch( hostname, { method: 'GET' } )
-                  .then( resp => resp.text() )
-                  .then( () => {
+              if( isValidEnv( config.env ) )
+                this.process.env = {
+                  ...this.process.env, // Default or previous `env`
+                  ...config.env, // Defined `env`
+
+                  // Set development server PORT
+                  PORT_DEV: Number( config.env.PORT || this.process.env.PORT ) + 1
+                }
+                
+              this.esm.reload( this.process.name, async ( error, metadata ) => {
+                if( error ){
+                  this.disconnect()
+                  return reject( error )
+                }
+
+                const config = await this.getConfig()
+
+                if( isValidEnv( config.env ) )
+                  this.process.env = {
+                    ...this.process.env, // Default or previous `env`
+                    ...config.env, // Defined `env`
+
+                    // Set development server PORT
+                    PORT_DEV: Number( config.env || this.process.env.PORT ) + 1
+                  }
+                
+                const
+                { pid } = metadata[0],
+                { name, cwd, env } = this.process,
+                hostname = toOrigin(`${env.HOST}:${env.PORT}`)
+
+                /** HACK: Check frequently whether the started
+                 *        process (server) has finished compiling
+                 *        an now listener.
+                 * 
+                 * TODO: Handle this with PM2 process.send & process.launchBus event manager
+                 * ISSUE: Razzle spawn the sandbox server process so PM2
+                 *        only run a script to start the process without
+                 *        managing it. Therefore process.send(...) & bus.on(...)
+                 *        between started sandbox-server and Emulator doen't work
+                 */
+                let 
+                MAX_ATTEMPT = 45, // 45 seconds
+                untilServerUp = setInterval( async () => {
+                  try {
+                    const up = await ( await fetch( hostname, { method: 'GET' } ) ).text()
                     // Server is up
                     clearInterval( untilServerUp )
                     resolve({ pid, cwd, name, hostname })
-                  } )
-                  .catch( error => {
+                  }
+                  catch( error ){
                     MAX_ATTEMPT--
                     this.debug(`Failed [${45 - MAX_ATTEMPT}]: `, error.message )
 
@@ -173,9 +225,11 @@ export default class Emulator {
                           .then( () => reject('Emulator server failed to load.') )
                           .catch( error => reject('Unexpected error occured: ', error.message ) )
                     }
-                  })
-              }, 1000 )
-            } )
+                  }
+                }, 1000 )
+              } )
+            }
+            catch( error ){ reject( error ) }
           } )
           .catch( reject )
     } )

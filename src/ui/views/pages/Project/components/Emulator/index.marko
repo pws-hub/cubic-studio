@@ -40,7 +40,7 @@ class {
       openTest: false
     }
   }
-  onInput({ meta, status }){
+  onInput({ error, meta, status }){
 
     if( this.state.reloading ){
       // Still reloading
@@ -49,8 +49,11 @@ class {
       this.state.reloading = false
     }
 
-    if( !meta ) return
-
+    if( !meta ){
+      this.state.canLoad = false
+      return
+    }
+    
     // Check whether the emulator server is available
     window.fetch( meta.hostname, { mode: 'no-cors', cache: 'no-cache' } )
           .then( resp => resp.text() )
@@ -126,6 +129,7 @@ class {
   </if>
   <else>
     <div.w-100.h-100.d-flex.align-items-center.justify-content-center>
+      <!-- Processing stage status -->
       <if( state.reloading || input.status )>
         <div.w-100.text-center>
           <Preloader.font-large-3 active=true/>
@@ -133,6 +137,17 @@ class {
           <Locale text=input.status.toCapitalCase()/>
         </div>
       </if>
+      <!-- Display error message -->
+      <else-if( input.error )>
+        <div.text-center>
+          <Bx.font-large-3.text-warning type="cube-alt"/>
+          <br><br>
+          <p.px-4>${input.error}</p>
+          <br>
+          <Button on-click('onReload')>Retry</Button>
+        </div>
+      </else-if>
+      
       <else>
         <Bx.font-large-3.text-muted type="cube-alt"/>
       </else>

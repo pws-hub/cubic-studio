@@ -1,10 +1,9 @@
 
 import Path from 'path'
+import Rimraf from 'rimraf'
 import Git from 'simple-git'
-import rs from '../lib/RunScript'
 
 export default class GitManager {
-
   /**
    * @params {Object} options
    *    - cwd
@@ -41,7 +40,7 @@ export default class GitManager {
   // Update current working directory
   setCWD( cwd ){ this.git.cwd( cwd || this.cwd || process.cwd() ) }
 
-  async initProject( remote, force ){
+  async initProject( remote, force, progress ){
 
     if( !this.git )
       throw new Error('Git is not initialized')
@@ -49,11 +48,14 @@ export default class GitManager {
     const 
     isRepository = await this.git.checkIsRepo('root'),
     sync = async () => {
-      console.log( remote || this.remote )
+      
+      // TODO: Check & pull if remote exists
+      
+
       return await this.git.add('./*')
                             .commit('Initial commit!')
                             .addRemote( 'origin', remote || this.remote )
-                            // .fetch() 
+                            .fetch() 
                             .push([ '--set-upstream', 'origin', 'master'])
     }
 
@@ -72,20 +74,16 @@ export default class GitManager {
     await sync()
   }
 
-  async cloneProject( repository, path, clean ){
+  async cloneProject( repository, path, clear ){
     // Clone Git repository to local
     await this.git.clone( repository || this.repository, path )
     
     // Completely uninitialize (remove) .git after project cloned
-    if( clean ){
-      const options = { 
-        cwd: Path.resolve( this.cwd, path ), 
-        stdio: 'pipe', 
-        shell: false 
-      }
-      
-      await rs('rm -rf .git', options )
-    }
+    if( clear ) this.clear( path )
   }
 
+  clear( path ){
+    // Remove git completely from a directory
+    return new Promise( resolve => Rimraf( Path.resolve( this.cwd, ( path || '' )+'/.git' ), resolve ) )
+  }
 }

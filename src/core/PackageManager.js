@@ -15,7 +15,22 @@ export default class PackageManager {
 
   async init( packageJson ){
     // Write initial package.json
-    await fs.outputJSON( this.cwd +'/package.json', packageJson, { spaces: '\t' } )
+    const filepath = this.cwd +'/package.json'
+    
+    // Check & Fetch existing package.json content
+    try {
+      const existing = await fs.readJson( filepath )
+      
+      /** Merge new information with exising
+       *  package.json content.
+       */
+      if( typeof existing == 'object' )
+        packageJson = { ...existing, ...packageJson }
+    }
+    catch( error ){}
+
+    // Generate a new package.json file
+    await fs.outputJSON( filepath, packageJson, { spaces: '\t' } )
   }
 
   install( params = '', progress = () => {} ){

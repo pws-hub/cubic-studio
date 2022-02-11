@@ -30,17 +30,11 @@ export const configJson = async ({ name, description, scope }) => {
   let config
   try { config = JSON.parse( await fs.readFile( scope.IDE.directory +'/config.json', 'utf8' ) ) }
   catch( error ){ throw error }
-
-  console.log('1: ', config )
-
-  config = {
+  
+  return {
     ...config,
     name,
     description,
     nsi: kebabCase( name ).replace(/^-/, '')
   }
-
-  console.log('2: ', config )
-  
-  return config
 }

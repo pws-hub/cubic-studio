@@ -106,10 +106,10 @@ export default class IProcess {
                       })
 
         const 
-        starter = `${pm.manager} ${pm.manager == 'npm' ? 'run' : ''}`,
+        starter = `${pm.manager}${pm.manager == 'npm' ? ' run' : ''}`,
         packageJson = {
           name: configJson.nsi || name,
-          description,
+          description: description || 'Short description of the '+ type,
           version: configJson.version || '1.0.0',
           private: true,
           scripts: {
@@ -118,7 +118,7 @@ export default class IProcess {
           },
           main: 'src/index.'+ plang,
           author: configJson.author.name,
-          repository,
+          repository: repository || '-',
           licence: 'GNU'
         }
 
@@ -137,16 +137,16 @@ export default class IProcess {
                         processor: 'cpm',
                         message: 'Installing project dependencies'
                       })
-        // await pm.install( ( _, length, message ) => {
-        //   // Installation progress tracking
-        //   this.watcher( 'setup',
-        //                 false,
-        //                 {
-        //                   percent: Math.floor( 59 + ( length / 40 ) ),
-        //                   processor: 'cpm',
-        //                   message
-        //                 })
-        // } )
+        await pm.install( ( _, length, message ) => {
+          // Installation progress tracking
+          this.watcher( 'setup',
+                        false,
+                        {
+                          percent: Math.floor( 59 + ( length / 40 ) ),
+                          processor: 'cpm',
+                          message
+                        })
+        } )
 
         /*-------------------------------------------------------------------------*/
         // Init Git & commit if repository is defined

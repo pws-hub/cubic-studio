@@ -44,7 +44,7 @@ import PackageManager from './PackageManager'
     
     // await gp.initProject( false, true )
     // await gp.cloneProject( 'https://github.com/multipple/create-app-marko', '../TestApp', true ) 
-
+    // console.log('clear: ', await gp.clear()  )
 
     // const
     // options = {

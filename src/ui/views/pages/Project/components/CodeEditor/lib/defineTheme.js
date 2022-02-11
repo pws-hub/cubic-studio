@@ -73,7 +73,7 @@ export default monaco => {
       { token: 'metatag.html', foreground: 'e2fabd' },
       { token: 'metatag.xml', foreground: 'e2fabd' },
       { token: 'key', foreground: 'a4e1ff' },
-      { token: 'string', foreground: '87b49e' },
+      // { token: 'string', foreground: '87b49e' },
       { token: 'string.key.json', foreground: 'a4e1ff' },
       // { token: 'string.value.json', foreground: 'e2fabd' },
       // { token: 'string.yaml', foreground: 'e2fabd' },

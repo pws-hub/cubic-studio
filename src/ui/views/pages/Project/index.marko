@@ -55,7 +55,7 @@ class {
 
       showNav: true,
       showSearch: false,
-      showConsole: uiStore.get('active-console'),
+      showConsole: false,
       showFormModal: false,
 
       tabs: [],
@@ -69,7 +69,12 @@ class {
     this.pm = false
     this.emulator = false
   }
-  onMount(){ this.getProject() }
+  async onInput({ params }){
+    // Fetch project metadata
+    await this.getProject( params.id, params.project )
+
+    this.state.showConsole = uiStore.get( this.getAttr('active-console') )
+  }
   onAction( action, ...args ){
     switch( action ){
       case 'open': this.Open( ...args ); break
@@ -113,7 +118,7 @@ class {
 
   }
 
-  getAttr( target ){ return `${this.state.activeTool}-${target}` }
+  getAttr( target ){ return `${this.state.project.name}-${this.state.activeTool}-${target}` }
   applyTabsChange( arg ){
     // Apply and reflect changes on tabs
     if( typeof arg !== 'object' ) return
@@ -294,9 +299,9 @@ class {
 
     this.state.ongoingSetup = false
   }
-  async getProject(){
+  async getProject( workspaceId, projectId ){
     try {
-      const { error, message, project } = await RGet(`/workspaces/${this.input.params.id}/projects/${this.input.params.project}`)
+      const { error, message, project } = await RGet(`/workspaces/${workspaceId}/projects/${projectId}`)
       if( error ) throw new Error( message )
 
       this.state.project = project
@@ -491,7 +496,11 @@ class {
     <Row>
       <@col>
         <ul.list-inline.m-0>
-          <li.px-1.white-text>${state.workspace.name}</li>
+          <li.px-1.white-text>
+            <route-link href=`/workspace/${state.workspace.workspaceId}`>
+              ${state.workspace.name}
+            </route-link>
+          </li>
           <if( state.project )>
             <li.px-1.white-text>${state.project.type.toCapitalCase()}</li>
             <li.px-1.black-text>

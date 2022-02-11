@@ -58,6 +58,13 @@ export default class IProcess {
         sampleType = type == 'application' ? 'app' : type,
         plang = language.split('~')[0] // Specified programming language or Framework
 
+        /** IMPORTANT: Define git's current working directory 
+         *              for all next commands cause project
+         *              directory is now created
+         */
+        git.cwd( directory )
+
+        // Append template project to the directory
         await git.cloneProject( `https://github.com/multipple/create-${sampleType}-${plang}.git`, directory, true )
 
         /*-------------------------------------------------------------------------*/

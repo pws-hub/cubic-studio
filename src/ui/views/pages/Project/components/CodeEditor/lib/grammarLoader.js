@@ -11,7 +11,13 @@ function getTmGrammar( scopeName ){
 }
 
 export const load = async () => {
-  await loadWASM(`/onigasm.wasm`)
+  try {
+    if( window.onigasmLoaded ) return
+    
+    await loadWASM(`/onigasm.wasm`)
+    window.onigasmLoaded = true
+  }
+  catch( error ){ console.log('[Editor] Grammar loader: ', error.message ) }
 }
 
 export const registerGrammar = async ( monaco, editor ) => {

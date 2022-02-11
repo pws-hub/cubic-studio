@@ -32,13 +32,20 @@ export default class GitManager {
     }
     
     this.git = Git({
-      baseDir: this.cwd, // process.cwd()
+      baseDir: cwd || this.cwd, // process.cwd()
       binary: 'git',
       maxConcurrentProcesses: 6
     })
   }
 
+  // Update current working directory
+  cwd( cwd ){ this.git.cwd({ cwd, root: false }) }
+
   async initProject( remote, force ){
+
+    if( !this.git )
+      throw new Error('Git is not initialized')
+
     const 
     isRepository = await this.git.checkIsRepo('root'),
     sync = async () => {

@@ -56,6 +56,17 @@
     }
   },
   {
+    "id": "cubic",
+    "extensions": [".cubic"],
+    "aliases": ["cubic"],
+    "mimetypes": ["text/cubic"],
+    "grammar": {
+      "scopeName": "source.cubic",
+      "fileName": "json.tmLanguage.json",
+      "format": "json"
+    }
+  },
+  {
     "id": "javascript",
     "extensions": [".js", ".es6", ".jsx", ".mjs", ".cjs", ".js.kit"],
     "firstLine": "^#!.*\\bnode",

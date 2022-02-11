@@ -14,7 +14,7 @@ export default class Emulator {
     // Process config
     this.process = {
       cwd: options.cwd || process.cwd(),
-      name: `${kebabCase( options.name || 'test' ).toLowerCase()}:cubic:sandbox`,
+      name: `${kebabCase( ( options.name || 'test' ).toLowerCase() )}:cubic:sandbox`,
       script: options.script || 'cd ./sandbox && yarn start',
       env: {
         NODE_ENV: 'development',

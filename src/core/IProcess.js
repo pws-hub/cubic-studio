@@ -137,16 +137,16 @@ export default class IProcess {
                         processor: 'cpm',
                         message: 'Installing project dependencies'
                       })
-        await pm.install( ( _, length, message ) => {
-          // Installation progress tracking
-          this.watcher( 'setup',
-                        false,
-                        {
-                          percent: Math.floor( 59 + ( length / 40 ) ),
-                          processor: 'cpm',
-                          message
-                        })
-        } )
+        // await pm.install( ( _, length, message ) => {
+        //   // Installation progress tracking
+        //   this.watcher( 'setup',
+        //                 false,
+        //                 {
+        //                   percent: Math.floor( 59 + ( length / 40 ) ),
+        //                   processor: 'cpm',
+        //                   message
+        //                 })
+        // } )
 
         /*-------------------------------------------------------------------------*/
         // Init Git & commit if repository is defined

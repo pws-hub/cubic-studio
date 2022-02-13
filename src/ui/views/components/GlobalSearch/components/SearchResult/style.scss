@@ -1,5 +1,7 @@
 
 .search-result {
+  margin-top:-2rem;
+  
   .list, .view { transition: .6s; }
   .list { transform: translateX(0%); }
   .view { transform: translateX(200%); }

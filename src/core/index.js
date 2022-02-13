@@ -118,7 +118,8 @@ import PackageManager from './PackageManager'
     //     }
     //   }
     // })
-    // await ps.addComponent({ name: 'Locale', package: 'Switch' }, '/Users/fabricemarlboro/dev-pro/Myapp-labs/multiple/Extensions' )
+    // await ps.addComponents({ name: 'Locale', package: 'Switch' }, '/Users/fabricemarlboro/dev-pro/Myapp-labs/multiple/Extensions' )
+    // await ps.addPackages( [{ source: 'npm', name: 'express', version: '1.0.0' }], '/Users/fabricemarlboro/dev-pro/Myapp-labs/multiple/Extensions/Calendar' )
     
   }
   catch( error ){ 

@@ -8,6 +8,7 @@ export default class PackageManager {
     this.manager = options.manager || 'yarn' // Yarn as default package manager: (Install in packages)
     this.cwd = options.cwd
     this.debugMode = options.debug
+    this.watcher = options.watcher || (() => {})
 
     // Script runner options
     this.rsOptions = { cwd: this.cwd, stdio: 'pipe', shell: true }
@@ -33,21 +34,23 @@ export default class PackageManager {
     await fs.outputJSON( filepath, packageJson, { spaces: '\t' } )
   }
 
-  install( params = '', progress = () => {} ){
+  install( params = '' ){
     return new Promise( ( resolve, reject ) => {
 
       if( typeof params == 'function' ){
         progress = params,
         params = ''
       }
+
+      progress = progress || this.watcher
       
       rs( `${this.manager} install ${params}`, this.rsOptions, progress )
-        .then( stdio => resolve( stdio.stdout.toString() ) )
-        .catch( error => reject( error.toString() ) ) 
+        .then( resolve )
+        .catch( reject ) 
     } )
   }
 
-  add( packages, params = '', progress = () => {} ){
+  add( packages, params = '', progress ){
 
     return new Promise( ( resolve, reject ) => {
 
@@ -55,6 +58,8 @@ export default class PackageManager {
         progress = params,
         params = ''
       }
+
+      progress = progress || this.watcher
 
       let verb
       switch( this.manager ){
@@ -68,12 +73,12 @@ export default class PackageManager {
       packages = Array.isArray( packages ) ? packages.join(' ') : packages || ''
       
       rs( `${this.manager} ${verb} ${packages} ${params}`, this.rsOptions, progress )
-        .then( stdio => resolve( stdio.stdout.toString() ) )
-        .catch( error => reject( error.toString() ) ) 
+        .then( resolve )
+        .catch( reject )
     } )
   }
 
-  remove( packages, params = '', progress = () => {} ){
+  remove( packages, params = '', progress ){
 
     return new Promise( ( resolve, reject ) => {
 
@@ -84,6 +89,8 @@ export default class PackageManager {
         progress = params,
         params = ''
       }
+
+      progress = progress || this.watcher
 
       let verb
       switch( this.manager ){
@@ -97,12 +104,12 @@ export default class PackageManager {
       packages = Array.isArray( packages ) ? packages.join(' ') : packages || ''
 
       rs( `${this.manager} ${verb} ${packages} ${params}`, this.rsOptions, progress )
-        .then( stdio => resolve( stdio.stdout.toString() ) )
-        .catch( error => reject( error.toString() ) )
+        .then( resolve )
+        .catch( reject )
     })
   }
 
-  update( packages, params = '', progress = () => {} ){
+  update( packages, params = '', progress ){
 
     return new Promise( ( resolve, reject ) => {
 
@@ -114,12 +121,14 @@ export default class PackageManager {
         params = ''
       }
 
+      progress = progress || this.watcher
+
       // Specified packages to uninstall
       packages = Array.isArray( packages ) ? packages.join(' ') : packages || ''
 
       rs( `${this.manager} update ${packages} ${params}`, this.rsOptions, progress )
-        .then( stdio => resolve( stdio.stdout.toString() ) )
-        .catch( error => reject( error.toString() ) )
+        .then( resolve )
+        .catch( reject )
     })
   }
 }

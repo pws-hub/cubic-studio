@@ -42,6 +42,11 @@ async ( req, res ) => {
     case 'blob': req.pipe( request( url ).on( 'error', onError ) )
                     .pipe( res )
         break
+    case 'json': request({ url, json: true }, ( error, response, body ) => {
+                  if( error ) return onError( error )
+                  res.json( body )
+                })
+        break
     // Text & binary contents
     case 'text':
     default: request({ url, encoding: 'binary' }, 

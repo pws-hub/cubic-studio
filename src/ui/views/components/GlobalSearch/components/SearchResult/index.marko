@@ -1,0 +1,94 @@
+
+class {
+  onCreate(){
+    this.state = {
+      item: false
+    }
+  }
+  onOpen( type, item ){ this.state.item = type ? { type, ...item } : false }
+}
+
+<section.search-result.position-relative.py-2.theme-bg.overflow-hidden.border.round-xs
+        class=(!!state.item ? 'view-mode' : '')>
+  <!-- Display search results -->
+  <if( Object.values( input.table ).filter( list => { return list.length } ).length )>
+    <div.list.overflow-auto 
+        style=`min-height:40rem;max-height:46rem;${Array.isArray( input.memory ) && input.memory.length ? 'padding-bottom:2.45rem' : ''}`>
+      <br>
+      <for|type, list| in=input.table>
+        <Switch by=type>
+          <@case is="component">
+            <Component list=list on-open( 'onOpen', type )/>
+          </@case>
+          <@case is="package">
+            <Package list=list on-open( 'onOpen', type )/>
+          </@case>
+          <@case is="extension">
+            <Extension list=list on-open( 'onOpen', type )/>
+          </@case>
+        </Switch>
+      </for>
+    </div>
+  </if>
+
+  <!-- No results placeholder -->
+  <else>
+    <div.d-flex.align-items-center.justify-content-center style="height:40rem">
+      <div.w-100.text-center>
+        <if( !input.searching )>
+          <Bx.font-large-2.text-muted type="search"/>
+          <div.font-medium-5.text-muted.py-1>
+            <Locale>No result found</Locale>
+          </div>
+        </if>
+      </div>
+    </div>
+  </else>
+
+  <!-- Display more details of result items -->
+  <div.align-self-stretch.view.position-absolute.top-0.w-50 style="height:40rem">
+    <br><br>
+    <if( state.item )>
+      <Switch by=state.item.type>
+        <@case is="component">
+          <ViewComponent item=state.item on-dismiss('onOpen', false )/>
+        </@case>
+        <@case is="package">
+          <ViewPackage item=state.item on-dismiss('onOpen', false )/>
+        </@case>
+        <@case is="extension">
+          <ViewExtension item=state.item on-dismiss('onOpen', false )/>
+        </@case>
+      </Switch>
+    </if>
+  </div>
+
+  <!-- Display memorized selected search results -->
+  <if( Array.isArray( input.memory ) && input.memory.length )>
+    <div.position-absolute.bottom-0.w-100.theme-bg.border-top.shadow-md.py-75>
+      <ul.w-80.list-inline.px-1.m-0.d-inline-flex.align-items-center 
+          style="overflow-x:auto;overflow-y:hidden">
+        <for|item, index| of=input.memory>
+          <li.px-25>
+            <Switch by=item.source>
+              <@case is="package">
+                <span.theme-bg-lighten.round.text-nowrap.d-flex.align-items-center>
+                  <span.px-1>${item.name}@${item.version}</span>
+
+                  <!-- Remove this item from memory -->
+                  <Bx.font-medium-4.rounded-circle.theme-bg.p-25.m-25.cursor-pointer 
+                      type="x"
+                      on-click( () => component.emit( 'memorize', item, false ) )/>
+                </span>
+              </@case>
+            </Switch>
+          </li>
+        </for>
+      </ul>
+
+      <div.position-absolute.w-20.top-0.right-0.h-100.d-flex.align-items-center.text-center>
+        <Button.btn-primary.btn-sm on-click( () => component.emit('return') )>Continue</Button>
+      </div>
+    </div>
+  </if>
+</section>

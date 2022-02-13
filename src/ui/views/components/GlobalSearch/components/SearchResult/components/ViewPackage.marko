@@ -1,0 +1,117 @@
+
+class {
+  onCreate(){
+    this.state = {
+      manifest: null,
+      error: false,
+      status: false,
+      similars: [] 
+    }
+
+    this.current = false
+  }
+  onInput({ item }){
+    if( this.current === item.name ) return
+
+    this.current = item.name
+    this.fetchManifest() 
+  }
+  async fetchManifest( name ){
+
+    this.state.manifest = null
+    try {
+      const manifest = await ( await fetch(`/proxy?url=https://registry.npmjs.org/${this.current}&responseType=json`) ).json()
+      // console.log('Manifest: ', manifest )
+      this.state.manifest = manifest
+    }
+    catch( error ){
+      console.log('Failed fetching package manifest: ', error )
+      this.state.manifest = false
+      this.state.error = error.message
+    }
+  }
+}
+
+<context|{}, emit| from="GlobalSearch">
+  <div.px-3.pt-4.overflow-auto style="max-height:46rem">
+    <div.text-right>
+      <Bx.font-large-1 type="right-arrow-alt" on-click( () => component.emit('dismiss') )/>
+    </div>
+
+    <h5>${input.item.name}</h5>
+    <if( input.item.author && input.item.author.name )>
+      <p.font-small-3.text-muted>By ${input.item.author.name}</p>
+    </if>
+    <p>${input.item.description}</p>
+
+    <!-- Links -->
+    $ const { npm, repository, bugs } = input.item.links
+    <ul.list-inline.py-25>
+      <!-- Github repository url -->
+      <if( repository )>
+        <li.px-75 title="github">
+          <a href=repository target="_blank">
+            <Bx.font-medium-5.text-muted bxl type="github"/>
+          </a>
+        </li>
+      </if>
+
+      <!-- npm package url -->
+      <if( npm )>
+        <li.px-75 title="NPM">
+          <a href=npm target="_blank">
+            <Bx.font-medium-5.text-muted type="package"/>
+          </a>
+        </li>
+      </if>
+
+      <!-- bug report url -->
+      <if( bugs )>
+        <li.px-75 title="Report bugs">
+          <a href=bugs target="_blank">
+            <Bx.font-medium-5.text-muted type="bug"/>
+          </a>
+        </li>
+      </if>
+    </ul>
+
+    <!-- Loading package versions -->
+    <if( state.manifest === null )>
+      <div.d-flex.align-items-center.justify-content-center style="height:10rem">
+        <Preloader.font-large-2 active/>
+      </div>
+    </if>
+
+    <else-if( state.manifest )>
+      <!-- Display all available versions -->
+      <ul.position-relative.zindex-2.list-inline.my-1>
+        <for|version| of=Object.keys( state.manifest.versions ).reverse()>
+          $ const isLatest = state.manifest['dist-tags'].latest === version
+
+          <li.px-75.py-25.m-25.font-small-3.round.cursor-pointer.scale-down
+              class=( isLatest ? 'bg-success text-dark' : 'theme-bg-lighten' )
+              on-click( emit, 'memorize', { source: 'package', name: input.item.name, version }, true )>
+            <Locale text=version/>
+          </li>
+        </for>
+      </ul>
+      
+      <!-- Display similar items: Same categories -->
+      <if( input.item.keywords )>
+        <section.py-2>
+          <h5.font-medium-2>Keyworkds</h5>
+          <ul.position-relative.zindex-2.list-inline.my-1>
+            <for|keyword| of=input.item.keywords>
+              <li.px-75.py-25.m-25.font-small-3.round.border.cursor-pointer.scale-down>${keyword}</li>
+            </for>
+          </ul>
+        </section>
+      </if>
+    </else-if>
+
+    <!-- Display occurred error -->
+    <else-if( state.error )>
+      <p.text-danger>${state.error}</p>
+    </else-if>
+  </div>
+</context>

@@ -96,8 +96,12 @@ function ProcessHandler( client ){
     }
   }
 
-  this.addComponent = async ( dataset, directory ) => {
+  this.addComponents = async ( dataset, directory, tracker ) => {
     try {
+      // Register `add-component` tracker
+      if( typeof tracker == 'function' )
+        this.trackers['add-components'] = tracker
+
       const { error, message, response } = await run( 'addComponent', dataset, directory )
       if( error ) throw new Error( message )
 
@@ -108,8 +112,24 @@ function ProcessHandler( client ){
       return false
     }
   }
-  
 
+  this.addPackages = async ( dataset, directory, tracker ) => {
+    try {
+      // Register `add-packages` tracker
+      if( typeof tracker == 'function' )
+        this.trackers['add-packages'] = tracker
+
+      const { error, message, response } = await run( 'addPackages', dataset, directory, 'npm' )
+      if( error ) throw new Error( message )
+
+      return response || true
+    }
+    catch( error ){
+      console.log( error )
+      return false
+    }
+  }
+  
   // Exist initiated process channel
   this.close = () => {
     isConnected = false

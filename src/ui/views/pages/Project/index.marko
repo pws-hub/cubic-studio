@@ -1,4 +1,6 @@
 
+import ADDONS from './addons.json'
+
 static const APITabs = [
   {
     type: 'GET',
@@ -57,7 +59,7 @@ class {
       showNav: true,
       showSearch: false,
       showConsole: false,
-      showFormModal: false,
+      showAddElement: false,
 
       tabs: [],
       ongoingSetup: false,
@@ -94,7 +96,7 @@ class {
   }
   onMenuToggle( name ){ this.state.activeTool = name }
   onSearchToggle( args ){ this.state.showSearch = args }
-  onModalToggle( args ){ this.state.showFormModal = args }
+  onShowAddElementToggle( args ){ this.state.showAddElement = args }
   onShowNavigation( status ){ this.state.showNav = status }
   onConsoleToggle( status ){
     this.state.showConsole = status
@@ -467,12 +469,39 @@ class {
     switch( type ){
       // Copy store component to this project directory
       case 'component': progress( false, 'ONGOING' )
-                        const result = await this.pm.addComponent( element, this.state.project.scope.IDE.directory )
+                        const result = await this.pm.addComponents( element, this.state.project.scope.IDE.directory )
                         result === false ?
                                 progress('Unexpected error occured')
                                 : progress( false, 'DONE' )
           break
+      // Add dependency package to project
+      case 'package': this.state.showSearch = false
+                      await this.pm.addPackages( element, this.state.project.scope.IDE.directory, ( error, stats ) => {
+
+                        if( error ){
+                          // TODO: Manage process exception errors
+                          console.log('--Progress Error: ', error )
+                          return
+                        }
+
+                        // TODO: Display progression stats on Footer
+                        const { percent, processor, message } = stats
+                        this.state.ongoingProcess = `[${percent}%] ${processor ? processor +' : ' : ''}${message}`
+                      } )
+                      
+                      typeof progress == 'function' && progress('DONE')
+                      setTimeout( () => this.state.ongoingProcess = false, 8000 )
+          break
     }
+  }
+  async onAddElementToggle( type ){
+
+    switch( type ){
+      case 'component': this.onSearchToggle({ filters: { targets: ['component'] } }); break
+      case 'dependency': this.onSearchToggle({ filters: { targets: ['package', 'library'] } }); break
+    }
+
+    this.onShowAddElementToggle( false )
   }
 }
 
@@ -485,10 +514,11 @@ class {
           <!-- Navigation Bar -->
           <Navigation show=state.showNav
                       project=state.project
+                      workspace=state.workspace
                       activeTool=state.activeTool
-                      on-add('onModalToggle')
-                      on-import('onModalToggle')
-                      on-toggle('onMenuToggle')/>
+                      on-toggle('onMenuToggle')
+                      on-add('onShowAddElementToggle')
+                      on-search('onSearchToggle', true )/>
                       
           <!-- SideBar -->
           <SideBar type=state.activeTool
@@ -536,24 +566,12 @@ class {
           </main>
         </Row>
 
-        <if( state.showFormModal )>
-          <Modal.p-4 noBackdrop=true on-dismiss('onModalToggle', false )>
-            <h5><Locale text="Create a Group"/></h5>
-            <p>
-              <Locale>
-                Groups are where your mates communicates. They’re best organized around topic — Eg. #activities, #assignments, ...
-              </Locale>
-            </p>
-            <br>
-
-
-          </Modal>
-        </if>
-
         <!-- Search plugin, app, module, ... from marketplace -->
         <if( state.showSearch )>
-          <Search on-add('onAddElement')
-                  on-dismiss('onSearchToggle', false )/>
+          <GlobalSearch ...state.showSearch
+                        project=state.project
+                        on-return('onAddElement')
+                        on-dismiss('onSearchToggle', false )/>
         </if>
       </div>
 
@@ -570,7 +588,7 @@ class {
   <Toolbar />
 
   <Footer>
-    <Row>
+    <Row.d-flex.align-items-center>
       <@col>
         <ul.list-inline.m-0>
           <li.px-1.white-text>
@@ -587,12 +605,13 @@ class {
         </ul>
       </@col>
       
-      <@col.col-8.text-right>
-        <ul.list-inline.m-0>
+      <@col.col-8.d-flex.justify-content-end>
+        <ul.list-inline.m-0.d-flex.align-items-center>
           <!-- Display ongoing process state -->
           <if( state.ongoingProcess )>
-            <li.px-3.white-text.text-ellipsis style="max-width:35rem">
-              ${state.ongoingProcess}
+            <li.px-3.white-text.text-ellipsis.d-inline-flex.align-items-center style="max-width:38rem">
+              <Bx.bx-burst.font-medium-4 type="cloud-download"/>
+              <span.px-50>${state.ongoingProcess}</span>
             </li>
           </if>
 
@@ -619,3 +638,26 @@ class {
     </Row>
   </Footer>
 </div>
+
+<!-- List of element to app to project -->
+<if( state.showAddElement )>
+  <Modal.p-3 width=40 noBackdrop=true on-dismiss('onShowAddElementToggle', false )>
+    <Row>
+      <for|type, { label, description, icon }| in=ADDONS>
+        <@col.col-4.py-50.cursor-pointer.scale-down key=type>
+          <div.d-flex.py-50.align-items-center on-click('onAddElementToggle', type )>
+            <Bx.font-large-1
+                type=icon.type
+                bxs=icon.bxs 
+                bxl=icon.bxl
+                class=`text-${icon.color}`/>
+            <span.font-medium-2.px-1>${label || type.toCapitalCase()}</span>
+          </div>
+          <p.w-100.text-muted.text-ellipsis-2.font-small-4>
+            <Locale>${description}</Locale>
+          </p>
+        </@col>
+      </for>
+    </Row>
+  </Modal>
+</if>

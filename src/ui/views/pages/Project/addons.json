@@ -1,0 +1,22 @@
+{
+  "project": {
+    "description": "Import project from online repository or your computer.",
+    "icon": { "type": "product-hunt", "bxl": true, "color": "success" }
+  },
+  "dependency": {
+    "description": "Install dependency packages from NPM, CPM to your project.",
+    "icon": { "type": "package", "color": "danger" }
+  },
+  "component": {
+    "description": "Import in-build components tags from the store.",
+    "icon": { "type": "component", "bxs": true, "color": "info" }
+  },
+  "plugin": {
+    "description": "Add extensions/plugins from the marketplace.",
+    "icon": { "type": "extension", "color": "danger" }
+  },
+  "test": {
+    "description": "Create & run integration tests on your application/plugin.",
+    "icon": { "type": "wrench", "color": "warning" }
+  }
+}

@@ -12,10 +12,11 @@ class {
                 }
     GState.bind( this, ['screen'] )
   }
-  onInput( input ){
-    this.state.target = input.target
-    this.state.filters = input.filters
+  onInput({ target, filters, searching }){
+    this.state.target = target
+    this.state.filters = filters
     this.state.selected = null // probable new suggestion list
+    this.state.searching = searching
   }
   onToggle( active, e ){
 

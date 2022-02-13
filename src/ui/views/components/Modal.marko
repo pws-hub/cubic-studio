@@ -6,7 +6,8 @@
     <div.position-absolute.w-100.h-100.theme-bg-transparent on-click( () => component.emit('dismiss') )></div>
   </if>
 
-  <div.position-relative.theme-bg.shadow-lg.round class=`w-${input.width || 50} ${input.class}`>
+  <div.position-relative.round 
+      class=`w-${input.width || 50} ${input.class} ${!input.transparent ? 'theme-bg shadow-lg' : ''}`>
     <if( !input.noDismissButton )>
       <span.position-absolute.zindex-4.top-0.right-0.p-2 on-click( () => component.emit('dismiss') )>
         <Bx.font-large-1 type="x"/>

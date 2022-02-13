@@ -18,7 +18,7 @@ class {
   }
 }
 
-<context|{}, emit| from="Search">
+<context|{}, emit| from="GlobalSearch">
   <div.px-3.pt-4.overflow-auto style="max-height:46rem">
     <div.text-right>
       <Bx.font-large-1 type="right-arrow-alt" on-click( () => component.emit('dismiss') )/>
@@ -27,7 +27,7 @@ class {
     <Row>
       <!-- Caption -->
       <@col>
-        <h5>${input.item.name} ~ <span.font-small-2>v${input.item.version}</span></h5>
+        <h5>${input.item.name} <span.font-small-2.px-1.text-muted>v${input.item.version}</span></h5>
         <p>${input.item.description}</p>
       </@col>
 
@@ -37,7 +37,7 @@ class {
           <!-- Adding signal status -->
           $ const isAdding = state.status === 'ONGOING'
           
-          <Button primary=true type="sm" on-click( emit, 'add', 'component', input.item, component.addingProgress.bind( component ) )>
+          <Button primary=true type="sm" on-click( emit, 'return', 'component', input.item, component.addingProgress.bind( component ) )>
             <Locale text=( isAdding ? 'adding...' : 'Add')/>
             <Preloader.font-medium-5.float-right active=isAdding/>
           </Button>

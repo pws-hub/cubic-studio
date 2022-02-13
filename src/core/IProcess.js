@@ -1,11 +1,64 @@
 
 import Path from 'path'
+import Fs from 'fs-extra'
 import GitManager from './GitManager'
 import FileSystem from './FileSystem'
 import * as GenericFile from './GenericFile'
 import PackageManager from './PackageManager'
 import Config from '../../cubic.json'
 import Emulator from './Emulator'
+
+async function PackageProcess( action, dataset, directory, source, _process ){
+  
+  const processName = action +'-packages'
+  source = source || 'cpm'
+
+  try {
+    if( !Array.isArray( dataset ) )
+      throw new Error('Invalid packages dataset argument. Expecte an <Array>')
+
+    if( !directory || !( await Fs.pathExists( directory ) ) )
+      throw new Error('Invalid project directory.')
+    
+    _process.watcher( processName,
+                      false,
+                      {
+                        percent: 1,
+                        processor: source,
+                        message: 'Installing dependency pagkages'
+                      })
+
+    const
+    pm = new PackageManager({ cwd: directory, manager: Config.PACKAGE_MANAGER, debug: _process.debugMode }),
+    packages = dataset.map( ({ name, version }) => { return name +( version ? '@'+ version : '' ) } )
+    
+    await pm[ action ]( packages, '-W', ( error, message, bytes ) => {
+      // Installation progress tracking
+      error ? 
+        _process.watcher( processName, error )
+        : _process.watcher( processName,
+                            error,
+                            {
+                              percent: Math.floor( 19 + ( bytes / 40 ) ),
+                              processor: source,
+                              message
+                            })
+    } )
+
+    // Completed
+    _process.watcher( processName,
+                      false,
+                      {
+                        percent: 100,
+                        processor: source,
+                        message: `Dependency packages ${action.replace(/e$/, '')}ed`
+                      })
+  }
+  catch( error ){
+    _process.debug('Error occured: ', error )
+    _process.watcher( processName, error )
+  }
+}
 
 export default class IProcess {
 
@@ -138,15 +191,17 @@ export default class IProcess {
                         processor: 'cpm',
                         message: 'Installing project dependencies'
                       })
-        await pm.install( ( _, length, message ) => {
+        await pm.install( ( error, message, bytes ) => {
           // Installation progress tracking
-          this.watcher( 'setup',
-                        false,
-                        {
-                          percent: Math.floor( 59 + ( length / 40 ) ),
-                          processor: 'cpm',
-                          message
-                        })
+          error ?
+            this.watcher( 'setup', error )
+            : this.watcher( 'setup',
+                            error,
+                            {
+                              percent: Math.floor( 59 + ( bytes / 40 ) ),
+                              processor: 'cpm',
+                              message
+                            })
         } )
 
         /*-------------------------------------------------------------------------*/
@@ -211,7 +266,6 @@ export default class IProcess {
       this.watcher( 'emulator', error )
     }
   }
-
   async reloadEM( id, dataset ){
     // Reload emulator instance
     try {
@@ -232,7 +286,6 @@ export default class IProcess {
       this.watcher( 'emulator', error )
     }
   }
-
   async quitEM( id ){
     // Close emulator instance
     try {
@@ -248,22 +301,54 @@ export default class IProcess {
     }
   }
 
-  async addComponent( dataset, directory ){
+  async addComponents( dataset, directory ){
     // Copy a component package from store to a project's components folder
-    try {
-      const
-      store = Path.join( process.cwd(), `/store/components/${dataset.package}` ),
-      project = `${directory}/components`,
-      fs = new FileSystem({ debug: this.debugMode }),
-      
-      exist = await fs.exists( project )
+    const
+    project = `${directory}/components`,
+    fs = new FileSystem({ debug: this.debugMode }),
+    add = async payload => {
+      try {
+        const 
+        storeComponent = Path.join( process.cwd(), `/store/components/${payload.package}` ),
+        exists = await fs.exists( project )
 
-      if( !exist ) await fs.newDir( project )
-      await fs.copy( store, project )
+        if( !exists ) await fs.newDir( project )
+        await fs.copy( storeComponent, project )
+      }
+      catch( error ){
+        this.debug('Error occured: ', error )
+        this.watcher( 'add-component', error )
+      }
     }
-    catch( error ){
-      this.debug('Error occured: ', error )
-      this.watcher( 'setup', error )
-    }
+
+    // Add multiple component at once
+    if( Array.isArray( dataset ) )
+      for( const x in dataset )
+        await add( dataset[ x ] )
+    
+    // Single component to add
+    else await add( dataset )
+
+    // Completed
+    this.watcher( 'add-component',
+                  false,
+                  {
+                    percent: 100,
+                    processor: false,
+                    message: 'Components added'
+                  })
+  }
+
+  async addPackages( dataset, directory, source ){
+    // Install/Add dependency packages from MPM, CPM, ...
+    await PackageProcess( 'add', dataset, directory, source, this )
+  }
+  async removePackages( dataset, directory, source ){
+    // Remove dependency packages
+    await PackageProcess( 'remove', dataset, directory, source, this )
+  }
+  async updatePackages( dataset, directory, source ){
+    // Update dependency packages
+    await PackageProcess( 'update', dataset, directory, source, this )
   }
 }

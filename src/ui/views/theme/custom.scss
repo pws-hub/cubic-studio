@@ -102,6 +102,10 @@ html{
 /* .cursor-pointer.nav-item:hover{ background:rgb(245, 245, 255); } */
 // .cursor-pointer:not(.nav-item):hover{ transform:scale(1.05); }
 // .cursor-pointer:not(.nav-item):active{ transform:scale(1.15); }
+.cursor-pointer.scale-up, 
+.cursor-pointer.scale-down { transition: 400ms }
+.cursor-pointer.scale-up:not(.nav-item):hover{ transform:scale(1.05); }
+.cursor-pointer.scale-up:not(.nav-item):active{ transform:scale(1.10); }
 .cursor-pointer.scale-down:not(.nav-item):hover{ transform:scale(0.95); }
 .cursor-pointer.scale-down:not(.nav-item):active{ transform:scale(0.9); }
 

@@ -1,0 +1,54 @@
+
+<!-- Dependencies Block -->
+<context on-update( packages => component.emit( 'update', packages ) )
+          on-remove( packages => component.emit( 'remove', packages ) )>
+  <div.position-relative.border-top.overflow-auto
+      style=`height:${input.extended ? '40%' : '3rem'}`>
+    <div.position-sticky.zindex-2.top-0.w-100.theme-bg.d-flex.align-items-center.border-bottom.px-1 style="height:3rem">
+      <div.w-100.d-flex.align-items-center>
+        <div.w-70>
+          <Locale.px-25 text="Dependencies"/>
+        </div>
+
+        <div.px-25.text-right.d-flex.align-items-center>
+          <!-- Update all dependencies in package.json button -->
+          <Bx.font-medium-5.cursor-pointer.px-50
+              type="sync"
+              title="Refresh"
+              on-click( () => component.emit('refresh') )/>
+
+          <!-- Add new dependency button -->
+          <Bx.font-medium-5.cursor-pointer.px-50
+              type="plus"
+              title="Add dependency"
+              on-click( () => component.emit('add') )/>
+
+          <!-- Open/Close deps row button -->
+          <Bx.font-medium-5.cursor-pointer.px-50
+              type=`chevron-${!input.extended ? 'up' : 'down'}`
+              title=( !input.extended ? 'Show' : 'Close' )
+              on-click( () => component.emit( 'extends', !input.extended ) )/>
+        </div>
+      </div>
+    </div>
+
+    <if( input.extended )>
+      <if( Array.isArray( input.dependencies ) && input.dependencies.length  )>
+        <ul.list-unstyled.py-1>
+          <for|dependency| of=input.dependencies>
+            <Dependency ...dependency/>
+          </for>
+        </ul>
+      </if>
+      <else>
+        <div.h-100.d-flex.align-items-center>
+          <div.w-100.text-center.text-muted>
+            <Bx.font-large-2.text-muted type="package"/>
+            <br><br>
+            <Locale>No dependency installed</Locale>
+          </div>
+        </div>
+      </else>
+    </if>
+  </div>
+</context>

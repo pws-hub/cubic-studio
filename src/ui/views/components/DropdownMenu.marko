@@ -24,7 +24,9 @@ class {
           on-click( () => { typeof fn == 'function' && fn( id ) } )>
 
         <!-- Menu option label -->
-        <Locale.font-small-4 text=label/>
+        <Locale.font-small-4 
+                class=(input.important ? 'text-danger' : false)
+                text=label/>
         <!-- Shortcut Command -->
         <span.position-absolute.right-0.px-1.text-muted>
           <Bx.font-small-1.text-muted type="command"/> + <span.font-small-3.text-muted>B</span>

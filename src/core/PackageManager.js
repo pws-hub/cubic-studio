@@ -8,7 +8,7 @@ export default class PackageManager {
     this.manager = options.manager || 'yarn' // Yarn as default package manager: (Install in packages)
     this.cwd = options.cwd
     this.debugMode = options.debug
-    this.watcher = options.watcher || (() => {})
+    this.watcher = options.watcher || function(){}
 
     // Script runner options
     this.rsOptions = { cwd: this.cwd, stdio: 'pipe', shell: true }
@@ -34,7 +34,7 @@ export default class PackageManager {
     await fs.outputJSON( filepath, packageJson, { spaces: '\t' } )
   }
 
-  install( params = '' ){
+  install( params = '', progress ){
     return new Promise( ( resolve, reject ) => {
 
       if( typeof params == 'function' ){
@@ -123,10 +123,19 @@ export default class PackageManager {
 
       progress = progress || this.watcher
 
+      let verb
+      switch( this.manager ){
+        case 'npm': verb = 'update'; break
+        case 'cpm': break // Cubic Package Manager
+        case 'yarn': // Yarn is use by default
+        default: verb = 'upgrade'
+                  params += ' --latest'
+      }
+
       // Specified packages to uninstall
       packages = Array.isArray( packages ) ? packages.join(' ') : packages || ''
 
-      rs( `${this.manager} update ${packages} ${params}`, this.rsOptions, progress )
+      rs( `${this.manager} ${verb} ${packages} ${params}`, this.rsOptions, progress )
         .then( resolve )
         .catch( reject )
     })

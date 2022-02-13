@@ -32,7 +32,7 @@ function syntaxHighlight(){
   const model = editor.getModel()
   if( !model ) return
 
-  if( !model.file || !/\.(js|jsx|marko|ts|tsx|mjs|cjs)$/.test( model.file.path ) ) return
+  if( !model.file || !/\.(js|jsx|ts|tsx|mjs|cjs)$/.test( model.file.path ) ) return
   
   // Reset the markers
   monaco.editor.setModelMarkers( model, 'eslint', [] )

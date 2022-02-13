@@ -30,7 +30,7 @@ $ component.once('mount', () => {
           counter++
         } )
         
-        fromIndex != toIndex && component.emit( 'change', fromIndex, toIndex, parentIndex )
+        fromIndex != toIndex && component.emit( 'change', fromIndex, toIndex, parentIndex, $item )
       }
     }
 

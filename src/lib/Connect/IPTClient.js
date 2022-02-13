@@ -9,8 +9,8 @@ function ProcessHandler( client ){
     return new Promise( ( resolve, reject ) => {
       if( !client || !isConnected )
         return reject('[IPT-Client] No connection to server')
-
-      client.emit('IPROCESS::RUN', ...args, resolve )
+      
+      client.emit( 'IPROCESS::RUN', ...args, resolve )
     } )
   }
 
@@ -120,6 +120,57 @@ function ProcessHandler( client ){
         this.trackers['add-packages'] = tracker
 
       const { error, message, response } = await run( 'addPackages', dataset, directory, 'npm' )
+      if( error ) throw new Error( message )
+
+      return response || true
+    }
+    catch( error ){
+      console.log( error )
+      return false
+    }
+  }
+
+  this.removePackages = async ( dataset, directory, tracker ) => {
+    try {
+      // Register `remove-packages` tracker
+      if( typeof tracker == 'function' )
+        this.trackers['remove-packages'] = tracker
+
+      const { error, message, response } = await run( 'removePackages', dataset, directory )
+      if( error ) throw new Error( message )
+
+      return response || true
+    }
+    catch( error ){
+      console.log( error )
+      return false
+    }
+  }
+
+  this.updatePackages = async ( dataset, directory, tracker ) => {
+    try {
+      // Register `update-packages` tracker
+      if( typeof tracker == 'function' )
+        this.trackers['update-packages'] = tracker
+
+      const { error, message, response } = await run( 'updatePackages', dataset, directory, 'npm' )
+      if( error ) throw new Error( message )
+
+      return response || true
+    }
+    catch( error ){
+      console.log( error )
+      return false
+    }
+  }
+
+  this.refreshPackages = async ( directory, tracker ) => {
+    try {
+      // Register `refresh-packages` tracker
+      if( typeof tracker == 'function' )
+        this.trackers['refresh-packages'] = tracker
+
+      const { error, message, response } = await run( 'refreshPackages', directory, 'npm' )
       if( error ) throw new Error( message )
 
       return response || true

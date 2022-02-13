@@ -61,6 +61,14 @@ class {
     GState.on( 'ws', () => this.adjustEditorLayout() )
     // Adapt editor theme to workspace theme
     GState.on( 'theme', value => this.editor.updateOptions({ theme: 'vs-'+ value }) )
+
+    // TODO: Properly handle window uncaught errors
+    window.addEventListener( 'error', e => {
+      e.preventDefault()
+
+
+      debugLog('[Editor-Event]', e.message )
+    } )
   }
   onDestroy(){
     $(window).off('resize')
@@ -135,36 +143,39 @@ class {
   }
 
   async initEditor(){
-    // Load hightlighting language services
-    await GMLoader.load()
-    // New Editor
-    this.editor = monaco.editor.create( this.getEl(), this.editorOptions )
-    // Load grammars by editor instance
-    await GMLoader.registerGrammar( monaco, this.editor )
+    try {
+      // Load hightlighting language services
+      await GMLoader.load()
+      // New Editor
+      this.editor = monaco.editor.create( this.getEl(), this.editorOptions )
+      // Load grammars by editor instance
+      await GMLoader.registerGrammar( monaco, this.editor )
 
-    // Load control actions: ContextMenu, KeyControl, ...
-    controlActions( monaco, this.editor, this )
-    
-    /* Capture blur event from editor: 
-        NOTE: Works for the whole widget and switching between tabs
-    */
-    this.editor_OnDidBlurEditorText = this.editor.onDidBlurEditorWidget( () => this.onSave() )
-    this.editor_OnDidChangeCursorPosition = this.editor.onDidChangeCursorPosition( ({ position }) => this.emit('cursor-position', position ) )
-    this.editor_OnDidChangeModel = this.editor.onDidChangeModel( async ({ newModelUrl, oldModelUrl }) => {
+      // Load control actions: ContextMenu, KeyControl, ...
+      controlActions( monaco, this.editor, this )
       
-      if( oldModelUrl ){
-        // Dispose inactive models
-        if( !this.isLoadedModel( oldModelUrl.path ) ){
-          const model = await this.getModel( oldModelUrl.path )
-
-          model.dispose()
-          return
-        }
+      /* Capture blur event from editor: 
+          NOTE: Works for the whole widget and switching between tabs
+      */
+      this.editor_OnDidBlurEditorText = this.editor.onDidBlurEditorWidget( () => this.onSave() )
+      this.editor_OnDidChangeCursorPosition = this.editor.onDidChangeCursorPosition( ({ position }) => this.emit('cursor-position', position ) )
+      this.editor_OnDidChangeModel = this.editor.onDidChangeModel( async ({ newModelUrl, oldModelUrl }) => {
         
-        // Auto-save changes on the left model
-        this.options.autoSave && this.onSave( await this.getModel( oldModelUrl.path ) )
-      }
-    } )
+        if( oldModelUrl ){
+          // Dispose inactive models
+          if( !this.isLoadedModel( oldModelUrl.path ) ){
+            const model = await this.getModel( oldModelUrl.path )
+
+            model.dispose()
+            return
+          }
+          
+          // Auto-save changes on the left model
+          this.options.autoSave && this.onSave( await this.getModel( oldModelUrl.path ) )
+        }
+      } )
+    }
+    catch( error ){ console.log('[Editor-Event] Error: ', error ) }
   }
   async editorOpen( file ){
     // Initialize editor

@@ -1,0 +1,23 @@
+class {
+  onCreate(){
+    this.state = { visible: false }
+  }
+  onInput( input ){
+    input 
+    && input.message 
+    && this.setState({ ...input, visible: true })
+    
+    // Automatically hide 8 secs after process completed
+    if( this.state.status == 'COMPLETED' )
+      setTimeout( () => this.state.visible = false, 8000 )
+  }
+}
+
+<if( state.visible )>
+  <div.px-3.white-text.text-ellipsis.d-inline-flex.align-items-center style="max-width:38rem">
+    <if( state.status !== 'COMPLETED' )>
+      <Bx.bx-burst.font-medium-4 type="cloud-download"/>
+    </if>
+    <span.px-50>${state.message}</span>
+  </div>
+</if>

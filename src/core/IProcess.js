@@ -30,7 +30,7 @@ async function PackageProcess( action, dataset, directory, source, _process ){
 
     const
     pm = new PackageManager({ cwd: directory, manager: Config.PACKAGE_MANAGER, debug: _process.debugMode }),
-    packages = dataset.map( ({ name, version }) => { return name +( version ? '@'+ version : '' ) } )
+    packages = dataset.map( ({ name, version }) => { return name +( action == 'add' && version ? '@'+ version : '' ) } )
     
     await pm[ action ]( packages, '-W', ( error, message, bytes ) => {
       // Installation progress tracking
@@ -350,5 +350,49 @@ export default class IProcess {
   async updatePackages( dataset, directory, source ){
     // Update dependency packages
     await PackageProcess( 'update', dataset, directory, source, this )
+  }
+  async refreshPackages( directory, source ){
+    // Reinstall dependency packages
+    try {
+      if( !directory || !( await Fs.pathExists( directory ) ) )
+        throw new Error('Invalid project directory.')
+
+      source = source || 'cpm'
+
+      this.watcher( 'refresh-packages',
+                      false,
+                      {
+                        percent: 3,
+                        processor: source,
+                        message: 'Refreshing dependency packages'
+                      })
+
+      const pm = new PackageManager({ cwd: directory, manager: Config.PACKAGE_MANAGER, debug: this.debugMode })
+      await pm.install( ( error, message, bytes ) => {
+        // Installation progress tracking
+        error ?
+          this.watcher( 'refresh-packages', error )
+          : this.watcher( 'refresh-packages',
+                          error,
+                          {
+                            percent: Math.floor( 51 + ( bytes / 40 ) ),
+                            processor: source,
+                            message
+                          })
+      } )
+
+      // Completed
+    this.watcher( 'refresh-packages',
+                  false,
+                  {
+                    percent: 100,
+                    processor: source,
+                    message: 'Dependency packages refreshed'
+                  })
+    }
+    catch( error ){
+      this.debug('Error occured: ', error )
+      this.watcher( 'refresh-packages', error )
+    }
   }
 }

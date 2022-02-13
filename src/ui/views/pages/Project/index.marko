@@ -1,6 +1,4 @@
 
-import ADDONS from './addons.json'
-
 static const APITabs = [
   {
     type: 'GET',
@@ -56,10 +54,10 @@ class {
       emulatorError: false,
       emulatorStatus: false,
 
-      showNav: true,
+      showMenu: true,
+      showAddon: false,
       showSearch: false,
       showConsole: false,
-      showAddElement: false,
 
       tabs: [],
       ongoingSetup: false,
@@ -82,22 +80,26 @@ class {
     switch( action ){
       case 'open': this.Open( ...args ); break
       
-      case 'move':
-      case 'rename':
-      case 'remove':
       case 'new-dir': 
-      case 'new-file': this.FSOperator( action, ...args ); break
+      case 'new-file':
+      case 'move-element':
+      case 'rename-element':
+      case 'remove-element': this.FSOperator( action, ...args ); break
       case 'cursor-position': this.state.editorCursorPosition = args[0]; break
 
       case 'run-emulator': this.RunEmulator( ...args ); break
       case 'reload-emulator': this.ReloadEmulator(); break
       case 'quit-emulator': this.QuitEmulator(); break
+      
+      case 'add-dependency': this.onAddonSelect('dependency'); break
+      case 'update-packages':
+      case 'remove-packages': 
+      case 'refresh-packages': this.PackageOperator( action, ...args ); break
     }
   }
-  onMenuToggle( name ){ this.state.activeTool = name }
   onSearchToggle( args ){ this.state.showSearch = args }
-  onShowAddElementToggle( args ){ this.state.showAddElement = args }
-  onShowNavigation( status ){ this.state.showNav = status }
+  onAddonToggle( args ){ this.state.showAddon = args }
+  onMenuToggle( status ){ this.state.showMenu = status }
   onConsoleToggle( status ){
     this.state.showConsole = status
 
@@ -105,7 +107,18 @@ class {
             uiStore.set( this.getAttr('active-console'), true )
             : uiStore.clear( this.getAttr('active-console') )
   }
-  onRecordChange( element, changes ){
+  
+  onMenuSelect( name ){ this.state.activeTool = name }
+  onAddonSelect( type ){
+
+    switch( type ){
+      case 'component': this.onSearchToggle({ filters: { targets: ['component'] } }); break
+      case 'dependency': this.onSearchToggle({ filters: { targets: ['package', 'library'] } }); break
+    }
+
+    this.onAddonToggle( false )
+  }
+  onChangeOccurance( element, changes ){
     // Awarness of changes occured on this activeElement
     if( !this.state.activeElement
         || this.state.activeElement.path !== element.path ) return
@@ -125,6 +138,20 @@ class {
   }
 
   getAttr( target ){ return `${this.state.project.name}-${this.state.activeTool}-${target}` }
+  progression( stats ){
+    // Display ongoing process progression details on Footer
+    if( !stats )
+      this.state.ongoingProcess = false
+
+    else {
+      const { percent, processor, message } = stats
+
+      this.state.ongoingProcess = {
+        status: percent == 100 ? 'COMPLETED' : 'ONGOING',
+        message: `[${percent}%] ${processor ? processor +': ' : ''}${message}`
+      }
+    }
+  }
   applyTabsChange( arg ){
     // Apply and reflect changes on tabs
     if( typeof arg !== 'object' ) return
@@ -192,25 +219,6 @@ class {
 
     this.setStateDirty('tabs')
     uiStore.set( this.getAttr('tabs'), this.state.tabs )
-  }
-  async FSOperator( type, element ){
-    switch( type ){
-      case 'new-dir': if( !element.path || !this.fs ) return
-                      await this.fs.newDir( element.path )
-          break
-      case 'new-file': if( !element.path || !this.fs ) return
-                        await this.fs.newFile( element.path )
-          break
-      case 'rename': if( !element.path || !element.name || !this.fs ) return
-                      await this.fs.rename( element.path, element.name  )
-          break
-      case 'remove': if( !element.path || !this.fs ) return
-                      await this.fs.remove( element.path )
-          break
-      case 'move': if( !element.source || !element.destination || !this.fs ) return
-                    await this.fs.move( element.source, element.destination )
-          break
-    }
   }
   async Setup(){
 
@@ -283,8 +291,7 @@ class {
         }
 
         // TODO: Display progression stats on Footer
-        const { percent, processor, message } = stats
-        this.state.ongoingProcess = `[${percent}%] ${processor ? processor +':' : ''}${message}`
+        this.progression( stats )
       } )
 
       debugLog('-- Completed indeed --')
@@ -332,7 +339,7 @@ class {
     this.state.IDE.directory = await this.fs.directory( path || null, dirOptions )
     this.state.IDE = newObject( this.state.IDE )
   }
-  async getDependencies( path ){
+  async getDependencies(){
     // Get project dependencies in package.json
     if( !this.fs ) return
     
@@ -366,6 +373,7 @@ class {
     this.state.IDE.dependencies = deps
     this.state.IDE = newObject( this.state.IDE )
   }
+
   async onSave( element, changes, confirmCallback ){
     // Awarness of changes occured on this activeElement
     if( typeof element != 'object'
@@ -379,6 +387,83 @@ class {
     
     // Confirm element saved to the tool
     typeof confirmCallback == 'function' && confirmCallback()
+  }
+  async onAddElement( type, element, progress ){
+    
+    if( !this.pm ){
+      debugLog('[AddElement Event] error: Undeclared process manager')
+      return
+    }
+
+    switch( type ){
+      // Copy store component to this project directory
+      case 'component': progress( false, 'ONGOING' )
+                        const result = await this.pm.addComponents( element, this.state.project.scope.IDE.directory )
+                        result === false ?
+                                progress('Unexpected error occured')
+                                : progress( false, 'DONE' )
+          break
+      // Add dependency package to project
+      case 'package': await this.PackageOperator( 'add', element )
+                      
+                      // GlobalSearch callback to confirm process done
+                      typeof progress == 'function' && progress()
+                      // Wait for global search to clear memory
+                      setTimeout( () => this.state.showSearch = false, 500 )
+          break
+    }
+  }
+
+  async FSOperator( type, element ){
+    switch( type ){
+      case 'new-dir': if( !element.path || !this.fs ) return
+                      await this.fs.newDir( element.path )
+          break
+      case 'new-file': if( !element.path || !this.fs ) return
+                      await this.fs.newFile( element.path )
+          break
+      case 'rename-element': if( !element.path || !element.name || !this.fs ) return
+                            await this.fs.rename( element.path, element.name  )
+          break
+      case 'remove-element': if( !element.path || !this.fs ) return
+                            await this.fs.remove( element.path )
+          break
+      case 'move-element': if( !element.source || !element.destination || !this.fs ) return
+                          await this.fs.move( element.source, element.destination )
+          break
+    }
+  }
+  async PackageOperator( type, element ){
+    
+    if( !this.pm ){
+      debugLog('[AddElement Event] error: Undeclared process manager')
+      return
+    }
+
+    type = type.replace('-packages', '')
+
+    const 
+    cwd = this.state.project.scope.IDE.directory,
+    progress = ( error, stats ) => {
+
+      if( error ){
+        // TODO: Manage process exception errors
+        console.log('--Progress Error: ', error )
+        return
+      }
+
+      // TODO: Display progression stats on Footer
+      this.progression( stats )
+    }
+
+    switch( type ){
+      case 'add':
+      case 'update':
+      case 'remove': await this.pm[ type +'Packages']( element, cwd, progress ); break
+      case 'refresh': await this.pm.refreshPackages( cwd, progress ); break
+    }
+
+    await this.getDependencies()
   }
 
   async RunEmulator( force ){
@@ -458,51 +543,6 @@ class {
     // Clear cached config
     uiStore.clear( this.getAttr('emulator') )
   }
-
-  async onAddElement( type, element, progress ){
-    
-    if( !this.pm ){
-      debugLog('[AddElement Event] error: Undeclared process manager')
-      return
-    }
-
-    switch( type ){
-      // Copy store component to this project directory
-      case 'component': progress( false, 'ONGOING' )
-                        const result = await this.pm.addComponents( element, this.state.project.scope.IDE.directory )
-                        result === false ?
-                                progress('Unexpected error occured')
-                                : progress( false, 'DONE' )
-          break
-      // Add dependency package to project
-      case 'package': this.state.showSearch = false
-                      await this.pm.addPackages( element, this.state.project.scope.IDE.directory, ( error, stats ) => {
-
-                        if( error ){
-                          // TODO: Manage process exception errors
-                          console.log('--Progress Error: ', error )
-                          return
-                        }
-
-                        // TODO: Display progression stats on Footer
-                        const { percent, processor, message } = stats
-                        this.state.ongoingProcess = `[${percent}%] ${processor ? processor +' : ' : ''}${message}`
-                      } )
-                      
-                      typeof progress == 'function' && progress('DONE')
-                      setTimeout( () => this.state.ongoingProcess = false, 8000 )
-          break
-    }
-  }
-  async onAddElementToggle( type ){
-
-    switch( type ){
-      case 'component': this.onSearchToggle({ filters: { targets: ['component'] } }); break
-      case 'dependency': this.onSearchToggle({ filters: { targets: ['package', 'library'] } }); break
-    }
-
-    this.onShowAddElementToggle( false )
-  }
 }
 
 <div.vh-100>
@@ -511,14 +551,14 @@ class {
       <!-- Main Block -->
       <div.col.px-0.overflow-hidden>
         <Row.no-gutters>
-          <!-- Navigation Bar -->
-          <Navigation show=state.showNav
-                      project=state.project
-                      workspace=state.workspace
-                      activeTool=state.activeTool
-                      on-toggle('onMenuToggle')
-                      on-add('onShowAddElementToggle')
-                      on-search('onSearchToggle', true )/>
+          <!-- Menu Bar -->
+          <Menu show=state.showMenu
+                project=state.project
+                workspace=state.workspace
+                activeTool=state.activeTool
+                on-add('onAddonToggle')
+                on-select('onMenuSelect')
+                on-search('onSearchToggle', true )/>
                       
           <!-- SideBar -->
           <SideBar type=state.activeTool
@@ -528,7 +568,7 @@ class {
                       emulator: state.emulatorStatus
                     }
                     on-action('onAction')
-                    on-show-menu('onShowNavigation')/>
+                    on-show-menu('onMenuToggle')/>
 
           <!-- Main Block -->
           <main.main-block.col.px-0.overflow-hidden>
@@ -547,7 +587,7 @@ class {
                                 language=null
                                 fs=component.fs
                                 on-save('onSave')
-                                on-change('onRecordChange')
+                                on-change('onChangeOccurance')
                                 on-cursor-position('onAction', 'cursor-position')/>
                   </@case>
 
@@ -609,10 +649,7 @@ class {
         <ul.list-inline.m-0.d-flex.align-items-center>
           <!-- Display ongoing process state -->
           <if( state.ongoingProcess )>
-            <li.px-3.white-text.text-ellipsis.d-inline-flex.align-items-center style="max-width:38rem">
-              <Bx.bx-burst.font-medium-4 type="cloud-download"/>
-              <span.px-50>${state.ongoingProcess}</span>
-            </li>
+            <li><Progression ...state.ongoingProcess/></li>
           </if>
 
           <!-- Toggle console display block -->
@@ -640,24 +677,7 @@ class {
 </div>
 
 <!-- List of element to app to project -->
-<if( state.showAddElement )>
-  <Modal.p-3 width=40 noBackdrop=true on-dismiss('onShowAddElementToggle', false )>
-    <Row>
-      <for|type, { label, description, icon }| in=ADDONS>
-        <@col.col-4.py-50.cursor-pointer.scale-down key=type>
-          <div.d-flex.py-50.align-items-center on-click('onAddElementToggle', type )>
-            <Bx.font-large-1
-                type=icon.type
-                bxs=icon.bxs 
-                bxl=icon.bxl
-                class=`text-${icon.color}`/>
-            <span.font-medium-2.px-1>${label || type.toCapitalCase()}</span>
-          </div>
-          <p.w-100.text-muted.text-ellipsis-2.font-small-4>
-            <Locale>${description}</Locale>
-          </p>
-        </@col>
-      </for>
-    </Row>
-  </Modal>
+<if( state.showAddon )>
+  <Addon on-select('onAddonSelect')
+          on-dismiss('onAddonToggle', false )/>
 </if>

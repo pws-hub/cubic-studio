@@ -6,21 +6,17 @@ class {
       {
         id: 'UPDATE_DEPENDENCY',
         label: 'Update',
-        fn: (function(){ }).bind(this)
+        fn: (function(){ this.contextEmit( 'update', [{ name: this.input.name, version: this.input.version }] ) }).bind(this)
       },
       {
         id: 'REMOVE_DEPENDENCY',
         label: 'Remove',
-        fn: (function(){
-          const file = { name: this.input.name, version: this.input.version }
-
-          this.emit( 'remove', file ) // Remove this temporary from its parent folder: UI
-          this.contextEmit( 'remove', file ) // Apply change via FS
-        }).bind(this)
+        important: true,
+        fn: (function(){ this.contextEmit( 'remove', [{ name: this.input.name, version: this.input.version }] ) }).bind(this)
       }
     ]
   }
-  onInput({ name, version }){ 
+  onInput({ name, version }){
     this.storeAttr = `dep--${name}-${version}`
     this.state.open = uiStore.get( this.storeAttr )
   }
@@ -31,7 +27,7 @@ class {
   }
 }
 
-<context|{ active }, emit| from="Directory">
+<context|{}, emit| from="Dependencies">
   <!-- Attach context emitter to class component -->
   $ component.contextEmit = emit
   
@@ -70,7 +66,7 @@ class {
             <if( input.repository )>
               $ const url = typeof input.repository == 'object' ? input.repository.url.replace('git+', '') : input.repository
 
-              <li.px-75 title="github">
+              <li.px-75 title="Repository">
                 <a href=url target="_blank">
                   <Bx.font-medium-5 bxl type="github"/>
                 </a>
@@ -78,7 +74,7 @@ class {
             </if>
 
             <!-- npm package url -->
-            <li.px-75 title="npm">
+            <li.px-75 title="NPM">
               <a href=`https://npmjs.com/package/${input.name}` target="_blank">
                 <Bx.font-medium-5 type="package"/>
               </a>

@@ -3,7 +3,8 @@ class {
   onCreate(){
     this.state = {
       active: null,
-      showMenu: true
+      showMenu: true,
+      extendedBlocks: uiStore.get('extended-blocks') || []
     }
     GState.bind( this, ['ws'])
 
@@ -31,6 +32,15 @@ class {
 
     this.emit( 'show-menu', this.state.showMenu )
   }
+  onExtendExtraBlock( block, status ){
+    // Extend/Close extra blocks: Accordion effect
+    status === false ?
+              this.state.extendedBlocks = this.state.extendedBlocks.filter( each => { return each !== block } )
+              : !this.state.extendedBlocks.includes( block ) ? this.state.extendedBlocks.push( block ) : null
+   
+   this.setStateDirty('extendedBlocks')
+   uiStore.set( 'extended-blocks', this.state.extendedBlocks )
+  }
 }
 
 <div.in-block.section-block.px-0.border-right style="width:24rem">
@@ -44,14 +54,23 @@ class {
             <Directory ...dataset
                         active=input.active
                         status=input.status
+                        extended=(!state.extendedBlocks.includes('dependencies'))
                         on-run( () => component.emit( 'action', 'run-emulator', false ) )
                         on-quit( () => component.emit( 'action', 'quit-emulator' ) )
                         on-open( element => component.emit( 'action', 'open', element ) )
-                        on-move( element => component.emit( 'action', 'move', element ) )
-                        on-rename( element => component.emit( 'action', 'rename', element ) )
-                        on-remove( element => component.emit( 'action', 'remove', element ) )
                         on-new-dir( element => component.emit( 'action', 'new-dir', element ) )
-                        on-new-file( element => component.emit( 'action', 'new-file', element ) )/>
+                        on-new-file( element => component.emit( 'action', 'new-file', element ) )
+                        on-move( element => component.emit( 'action', 'move-element', element ) )
+                        on-rename( element => component.emit( 'action', 'rename-element', element ) )
+                        on-remove( element => component.emit( 'action', 'remove-element', element ) )/>
+
+            <Dependencies dependencies=dataset.dependencies
+                          extended=state.extendedBlocks.includes('dependencies')
+                          on-extends('onExtendExtraBlock', 'dependencies')
+                          on-add( () => component.emit( 'action', 'add-dependency' ) )
+                          on-refresh( () => component.emit( 'action', 'refresh-packages' ) )
+                          on-update( packages => component.emit( 'action', 'update-packages', packages ) )
+                          on-remove( packages => component.emit( 'action', 'remove-packages', packages ) )/>
           </@case>
         </Switch>
       </div>

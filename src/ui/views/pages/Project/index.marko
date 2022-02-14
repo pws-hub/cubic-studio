@@ -255,8 +255,6 @@ class {
 
     // Get project directory content
     await this.getDirectory()
-    // Get project dependencies
-    await this.getDependencies()
     
     // Project doesn't exist
     if( isEmpty( this.state.IDE.directory ) ){
@@ -311,6 +309,9 @@ class {
                       this.ReloadEmulator() // Reload backend process
                       : this.RunEmulator() // Connect frontend to process or run process if not available
     }
+
+    // Get project dependencies
+    await this.getDependencies()
 
     this.state.ongoingSetup = false
   }

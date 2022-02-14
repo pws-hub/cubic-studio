@@ -166,6 +166,7 @@ async function fetchWorkspaces(){
 	}
 	catch( error ){ 
 		console.log('Failed fetching workspaces: ', error ) 
+		GState.set('workspaces', [] )
 		return false
 	}
 }

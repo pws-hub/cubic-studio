@@ -20,7 +20,7 @@ function sendRequest( payload ){
       const options = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify( data )
+        body: JSON.stringify( payload )
       }
       
       fetch( '/api', options )

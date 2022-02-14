@@ -59,8 +59,12 @@ class {
     Form.scope.units = []
     Form.scope.roadmap = []
 
-    // After saved
-    this.emit('submit', Form, (function(){
+    this.state.submitting = true
+    
+    this.emit( 'submit', Form, (function(){
+      // After saved
+      this.state.submitting = false
+
       this.fhandler.alert('Project created')
       this.fhandler.reset()
     }).bind(this) )
@@ -300,7 +304,7 @@ class {
     <Button.mx-50 type="reset" on-click('onCancel')>Cancel</Button>
 
     <if( state.form.type && state.form.name )>
-      <Button.mx-50 
+      <Button.mx-50
               primary=true
               type="submit"
               on-click('onSubmit')>

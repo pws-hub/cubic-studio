@@ -95,7 +95,7 @@ class {
     // Send QUIT signal to extension
     this.iof.emit('signal', 'USER:QUIT')
     // Delay closing emulator to observe extension behaviour during quiting process
-    setTimeout( () => this.emit('quit'), 5000 )
+    setTimeout( () => this.emit('quit'), 1500 )
   }
 }
 

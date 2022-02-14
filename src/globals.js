@@ -74,12 +74,12 @@ global.getOrigin = hreq => {
   return ( origin || '' ).replace(/:[0-9]{4,}/,'')
 }
 
-global.toOrigin = domain => {
+global.toOrigin = ( domain, local ) => {
 
   if( /^http/.test( domain ) )
     domain = domain.replace(/^http(s?):\/\//, '')
 
-  return 'http'+( process.env.HTTP_SECURE.includes('true') ? 's' : '' )+'://'+ domain
+  return 'http'+( !local && process.env.HTTP_SECURE.includes('true') ? 's' : '' )+'://'+ domain
 }
 
 global.debugLog = ( ...args ) => {

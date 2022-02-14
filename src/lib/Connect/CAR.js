@@ -1,5 +1,5 @@
 
-import fetch from 'node-fetch'
+import request from 'request-promise'
 
 function initChannel( socket ){
   console.log('CAR New Connection: ', socket.id )
@@ -14,18 +14,20 @@ function initChannel( socket ){
         response = { error: true, message: 'Invalid Request URL' }
       
       else {
-        options.headers = {
-          'Authorization': 'Bearer '+ socket.data.AccessToken,
-          'Content-Type': 'application/json'
+        options = {
+          ...options,
+          url: toOrigin( process.env.API_SERVER ) + url,
+          headers: {
+            'Authorization': 'Bearer '+ socket.data.AccessToken,
+            'Content-Type': 'application/json'
+          },
+          json: true
         }
-
-        if( options.body )
-          options.body = JSON.stringify( options.body )
         
-        response = await ( await fetch( toOrigin( process.env.API_SERVER ) + url, options ) ).json()
+        response = await request( options )
       }
     }
-    catch( error ){ response = { error: true, message: error } }
+    catch( error ){ response = { error: true, message: error.message } }
     
     typeof callback == 'function' && callback( response )
   }

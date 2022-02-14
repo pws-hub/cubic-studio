@@ -1,7 +1,9 @@
 
 async function _initiate( provider, handler, req, res ){
 
-  const authURL = await handler( toOrigin( req.headers.host ) )
+  const 
+  origin = toOrigin( req.headers.host, !isOncloud() ),
+  authURL = await handler( origin )
   if( !authURL )
     throw new Error(`Expected a <${provider}> auth redirection URL`)
 

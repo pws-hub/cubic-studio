@@ -1,6 +1,6 @@
 
 
-import fetch from 'node-fetch'
+import request from 'request-promise'
 
 export const initiate = async origin => {
   // Tenant's authentication initiation URL
@@ -11,6 +11,7 @@ export const callback = async ({ domain, token, deviceId, role }) => {
   try {
     const 
     options = {
+      url: `${toOrigin( process.env.MULTIPPLE_API_SERVER )}/user/account`,
       method: 'GET',
       headers: {
         'Origin': decodeURIComponent( domain ),
@@ -18,9 +19,10 @@ export const callback = async ({ domain, token, deviceId, role }) => {
         'MP-Auth-Token': token,
         'MP-Auth-Device': deviceId,
         'MP-Auth-Role': role
-      }
+      },
+      json: true
     },
-    response = await ( await fetch(`${toOrigin( process.env.MULTIPPLE_API_SERVER )}/user/account`, options ) ).json()
+    response = await request( options )
 
     // Pu user data in CubicStudio User Format
     if( response.user ){

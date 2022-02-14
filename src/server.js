@@ -94,7 +94,7 @@ let sessionConfig = {
   cookie: {
     path: '/',
     httpOnly: true,
-    secure: ( process.env.HTTP_SECURE == 'true' ),
+    secure: ( isOncloud() && process.env.HTTP_SECURE ),
     maxAge: Number( process.env.SESSION_EXPIRY ) * 24 * 3600000 // session age per day
   }
 }

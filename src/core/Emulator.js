@@ -111,7 +111,7 @@ export default class Emulator {
                 const
                 { pid } = metadata[0],
                 { name, cwd, env } = this.process,
-                hostname = toOrigin(`${env.HOST}:${env.PORT}`)
+                hostname = toOrigin( `${env.HOST}:${env.PORT}`, !isOncloud() )
 
                 /** HACK: Check frequently whether the started
                  *        process (server) has finished compiling
@@ -191,7 +191,7 @@ export default class Emulator {
                 const
                 { pid } = metadata[0],
                 { name, cwd, env } = this.process,
-                hostname = toOrigin(`${env.HOST}:${env.PORT}`)
+                hostname = toOrigin( `${env.HOST}:${env.PORT}`, !isOncloud() )
 
                 /** HACK: Check frequently whether the started
                  *        process (server) has finished compiling

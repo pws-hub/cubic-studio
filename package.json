@@ -94,5 +94,5 @@
     "type": "git",
     "url": "git+https://gitlab.com/pws-hub/hypertest.git"
   },
-  "license": "MIT"
+  "license": "GNU"
 }

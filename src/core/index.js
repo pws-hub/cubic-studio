@@ -1,14 +1,16 @@
 
-import path from 'path'
+import path from 'path-inter'
 import socketServer from 'socket.io'
 import CARConnect from '../lib/Connect/CAR'
 import FSTConnect from '../lib/Connect/FST'
 import IPTConnect from '../lib/Connect/IPT'
+import Synchronizer from '../lib/Synchronizer'
 import Emulator from './Emulator'
 import FileSystem from './FileSystem'
 import GitManager from './GitManager'
 import IProcess from './IProcess'
 import PackageManager from './PackageManager'
+import DTCrypt from './../lib/DTCrypt'
 
 ;( async () => {
   try {
@@ -121,6 +123,21 @@ import PackageManager from './PackageManager'
     // await ps.addComponents({ name: 'Locale', package: 'Switch' }, '/Users/fabricemarlboro/dev-pro/Myapp-labs/multiple/Extensions' )
     // await ps.addPackages( [{ source: 'npm', name: 'express', version: '1.0.0' }], '/Users/fabricemarlboro/dev-pro/Myapp-labs/multiple/Extensions/Calendar' )
     
+    
+    // const 
+    // // input = 'Sample string to encypt'
+    // // input = 12976736092639
+    // input = { name: 'Gnimy', email: 'elem@mail.com' }
+
+    // // Encrypt
+    // const encrypted = DTCrypt.encrypt( input )
+    // console.log('Encrypted:', encrypted )
+
+    // // Decrypt
+    // const decrypted = DTCrypt.decrypt( encrypted )
+    // console.log('Decrypted:', typeof decrypted, decrypted )
+    
+
   }
   catch( error ){ 
     console.log( error )
@@ -128,7 +145,6 @@ import PackageManager from './PackageManager'
 } )()
 
 export const init = server => {
-
 
   // Use Socket.io Connection between Backend and Frontend in local environment
   const io = socketServer( server )
@@ -139,6 +155,8 @@ export const init = server => {
   FSTConnect( io )
   // Internal Process Transaction channel
   IPTConnect( io )
+  // Synchronizer channel
+  Synchronizer( io )
 
   return { io }
 }

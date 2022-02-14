@@ -1,6 +1,6 @@
 
-import Path from 'path'
-import Fs from 'fs-extra'
+import Fs from 'fs-inter'
+import Path from 'path-inter'
 import Chokidar from 'chokidar'
 
 export default class FileSystem {

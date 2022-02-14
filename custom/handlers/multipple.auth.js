@@ -2,7 +2,12 @@
 
 import fetch from 'node-fetch'
 
-export default async ({ domain, token, deviceId, role }) => {
+export const initiate = async origin => {
+  // Tenant's authentication initiation URL
+  return `${toOrigin( process.env.MULTIPPLE_TENANT_DOMAIN )}/auth?oauth=studio&v=1.a&dt=4000&curl=${encodeURIComponent( origin +'/auth/callback' )}`
+}
+
+export const callback = async ({ domain, token, deviceId, role }) => {
   try {
     const 
     options = {

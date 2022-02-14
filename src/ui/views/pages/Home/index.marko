@@ -2,10 +2,8 @@
 import BgImage from '~/images/illustrations/bg.png'
 import DefaultAvatar from '~/images/profile/default.png'
 
-static const MultippleSignin = `http://brain.multipple.com:6040/auth?oauth=studio&v=1.a&curl=${encodeURIComponent('http://localhost:12120/auth/callback')}&dt=4000`
-
 class {
-  onCreate(){ 
+  onCreate(){
     this.state = { showWSForm: false }
     GState.bind( this, ['isConnected', 'user', 'workspaces'])
   }
@@ -76,7 +74,7 @@ class {
       <else>
         <a.d-block.d-flex.align-items-center.px-0.py-1 
             class=(!state.isConnected ? 'theme-bg-transparent' : false) 
-            href=MultippleSignin>
+            href="/auth/initiate?provider=multipple">
           <Image.mx-2 src="/images/logo/multipple.png" style="width:26px;height:26px"/>
           <span.font-medium-2.px-2>Multipple</span>
         </a>

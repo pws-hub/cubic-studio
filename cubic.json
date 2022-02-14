@@ -1,16 +1,19 @@
 {
-  "PACKAGE_MANAGER": "yarn",
-
-  "GIT_ACCESS": {
-    "username": "multipple-dev",
-    "password": "XVycGhhbDIwMTJAZY29t1h"
-  },
-
+  "APPNAME": "CubicStudio",
+  "APPVERSION": "1.0",
+  
   "AUTH_HANDLERS": {
     "multipple": "multipple.auth.js"
   },
 
   "REQUEST_HANDLERS": {
     "multipple": "multipple.request.js"
+  },
+  
+  "PACKAGE_MANAGER": "yarn",
+
+  "GIT_ACCESS": {
+    "username": "multipple-dev",
+    "password": "XVycGhhbDIwMTJAZY29t1h"
   }
 }

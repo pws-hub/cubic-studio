@@ -19,9 +19,9 @@ function initChannel( socket ){
           'Content-Type': 'application/json'
         }
 
-        if( options.body ) 
+        if( options.body )
           options.body = JSON.stringify( options.body )
-          
+        
         response = await ( await fetch( toOrigin( process.env.API_SERVER ) + url, options ) ).json()
       }
     }

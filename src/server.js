@@ -1,4 +1,4 @@
-import os from 'os'
+
 import hpp from 'hpp'
 import http from 'http'
 import redis from 'redis'
@@ -10,26 +10,23 @@ import randtoken from 'rand-token'
 import session from 'express-session'
 import redisConnect from 'connect-redis'
 import cookieParser from 'cookie-parser'
-import multipart from 'express-form-data'
 import markoMiddleware from '@marko/express'
 import * as Core from './core'
-import CDNAssets from '../lib/CDNAssets'
-import Entrypoint from './ui/views/www.marko'
+import WWW from './ui/views/www.marko'
 import ErrorPage from './ui/views/pages/error.marko'
 
 const 
-getInitialScope = ( req, res ) => {
+getInitialScope = async ( req, res ) => {
   
   let initStr = JSON.stringify({
     env: process.env.NODE_ENV,
-    mode: process.env.APPMODE,
+    mode: process.env.MODE,
     namespaces: {
       CAR: process.env.CAR_NAMESPACE, // Cubic API Request namespace
       FST: process.env.FST_NAMESPACE, // File System Transaction namespace
       IPT: process.env.IPT_NAMESPACE // Internal Process Transaction namespace
     },
-    isConnected: req.session.isConnected,
-    user: req.session.user
+    ...( await Sync.getSession( 'auth', req ) )
   })
   const salt = randtoken.generate(128)
 
@@ -91,7 +88,7 @@ app = express()
 // Session management Configuration
 let sessionConfig = {
   secret: process.env.SESSION_ENCRYPT_SECRET,
-  name: process.env.APPNAME +'-CST33',
+  name: Configs.APPNAME +'-CST33',
   saveUninitialized: true,
   resave: false,
   cookie: {
@@ -145,14 +142,14 @@ app.use( express.static( process.env.RAZZLE_PUBLIC_DIR ) )
 .use( '/', require('./routers/index').default )
 
 // User Account handler
-.get( '/*', ( req, res ) => {
+.get( '/*', async ( req, res ) => {
   try {
-    res.marko( Entrypoint, {
-                            lang: 'en',
-                            title: process.env.APPNAME,
-                            init: getInitialScope( req ),
-                            Assets
-                          } )
+    res.marko( WWW, {
+                      lang: 'en',
+                      title: Configs.APPNAME,
+                      init: await getInitialScope( req ),
+                      Assets
+                    } )
   } 
   catch( error ){ console.log( error.message ) }
 })
@@ -180,7 +177,7 @@ app.use( express.static( process.env.RAZZLE_PUBLIC_DIR ) )
   
   res.marko( ErrorPage, {
                           lang: 'en',
-                          title: process.env.APPNAME,
+                          title: Configs.APPNAME,
                           status: statusCode,
                           message: error.message
                         } )
@@ -194,7 +191,6 @@ server = http.Server( app ),
 
 // Attach socket Server to app
 app.io = ioServer
-
 
 export default server
  

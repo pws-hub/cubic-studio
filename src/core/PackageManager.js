@@ -1,5 +1,5 @@
 
-import fs from 'fs-extra'
+import fs from 'fs-inter'
 import rs from '../lib/RunScript'
 
 export default class PackageManager {

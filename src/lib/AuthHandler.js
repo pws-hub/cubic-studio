@@ -1,53 +1,69 @@
 
-import fs from 'fs-extra'
-import Config from '../../cubic.json'
+async function _initiate( provider, handler, req, res ){
 
-async function saveCredentials( name, data ){
-  // Cache access credentials directory
-  if( process.env.CUBIC_ENV !== 'local' ) return
+  const authURL = await handler( toOrigin( req.headers.host ) )
+  if( !authURL )
+    throw new Error(`Expected a <${provider}> auth redirection URL`)
 
-  const creddir = './../credentials'
+  res.redirect( authURL )
+}
 
-  await fs.ensureDir( creddir )
-  await fs.writeFile( `${creddir}/${name}.json`, JSON.stringify( data ) )
+async function _callback( provider, handler, req, res ){
+  // Handle auth callback process
+  const { error, message, user } = await handler( req.query )
+  
+  if( error ){
+    // Delete existing user session data
+    delete req.session.user
+
+    req.session.authError = message
+    req.session.isConnected = false
+  }
+  else {
+    // Save credentials in session
+    req.session.credentials = {
+      ...(req.session.credentials || {}),
+      [ provider ]: req.query
+    }
+    // Save credentials in the JSON-file beside the session
+    await Sync.storeCredentials( provider, req.query )
+    
+    req.session.user = user
+    req.session.authError = false
+    req.session.isConnected = true
+    
+    // Store locally updated user session
+    await Sync.setSession({ isConnected: true, user, authError: false })
+  }
+    
+  // Back to home: Make request from there to check session status
+  res.redirect('/')
 }
 
 export default async ( req, res ) => {
   try {
-    const provider = req.query.provider
+    const 
+    phase = req.params.phase,
+    provider = req.query.provider
+
+    if( !['initiate', 'callback'].includes( phase ) || !provider )
+      throw new Error(`Invalide Auth Parameters`)
     
     // Check whether request handler is defined
-    if( !Config.AUTH_HANDLERS[ provider ] )
+    if( !Configs.AUTH_HANDLERS[ provider ] )
       throw new Error(`Undefined <${provider}> Auth Handler`)
       
     // Get auth handler module for this provider
-    const 
-    authHandler = require('handlers/'+ Config.AUTH_HANDLERS[ provider ] ).default,
-    { error, message, user } = await authHandler( req.query )
-    
-    if( error ){
-      // Delete existing user session data
-      delete req.session.user
+    const { initiate, callback } = require('handlers/'+ Configs.AUTH_HANDLERS[ provider ] )
 
-      req.session.authError = message
-      req.session.isConnected = false
+    if( typeof initiate !== 'function'
+        || typeof callback !== 'function' )
+      throw new Error(`Invalid <${provider}> Auth Handler Methods. Expected <initiate> and <callback> method functions`)
+
+    switch( phase ){
+      case 'initiate': await _initiate( provider, initiate, req, res ); break
+      case 'callback': await _callback( provider, callback, req, res ); break
     }
-    else {
-      // Save credentials in session
-      req.session.credentials = {
-        ...(req.session.credentials || {}),
-        [ provider ]: req.query
-      }
-      // Save credentials in the JSON-file beside the session
-      await saveCredentials( provider, req.query )
-      
-      req.session.user = user
-      req.session.authError = false
-      req.session.isConnected = true
-    }
-      
-    // Back to home: Make request from there to check session status
-    res.redirect('/')
   }
   catch( error ){
     console.log(`[${clc.red('ERROR')}] Unexpected Error Occured:`, error )

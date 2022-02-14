@@ -1,5 +1,5 @@
 
-import fs from 'fs-extra'
+import fs from 'fs-inter'
 import kebabCase from 'kebab-case'
 
 export const dotCubic = async ({ scope }) => {

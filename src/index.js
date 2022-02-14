@@ -14,7 +14,7 @@ if( process.env.NODE_ENV == 'development' && module.hot )
 const port = process.env.HTTP_PORT || 9000
 
 export default server
-// .use( ( req, res ) => uiServer.handle( req, res ) )
+// .use( ( req, res ) => app.handle( req, res ) )
 .listen( port, error => {
   if( error ){
     console.error( error )

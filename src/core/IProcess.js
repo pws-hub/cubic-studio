@@ -1,11 +1,10 @@
 
-import Path from 'path'
-import Fs from 'fs-extra'
+import Fs from 'fs-inter'
+import Path from 'path-inter'
 import GitManager from './GitManager'
 import FileSystem from './FileSystem'
 import * as GenericFile from './GenericFile'
 import PackageManager from './PackageManager'
-import Config from '../../cubic.json'
 import Emulator from './Emulator'
 
 async function PackageProcess( action, dataset, directory, source, _process ){
@@ -29,7 +28,7 @@ async function PackageProcess( action, dataset, directory, source, _process ){
                       })
 
     const
-    pm = new PackageManager({ cwd: directory, manager: Config.PACKAGE_MANAGER, debug: _process.debugMode }),
+    pm = new PackageManager({ cwd: directory, manager: Configs.PACKAGE_MANAGER, debug: _process.debugMode }),
     packages = dataset.map( ({ name, version }) => { return name +( action == 'add' && version ? '@'+ version : '' ) } )
     
     await pm[ action ]( packages, '-W', ( error, message, bytes ) => {
@@ -80,7 +79,7 @@ export default class IProcess {
       { type, name, description, scope } = dataset,
       { language, directory, repository } = scope.IDE,
       
-      pm = new PackageManager({ cwd: directory, manager: Config.PACKAGE_MANAGER, debug: this.debugMode }),
+      pm = new PackageManager({ cwd: directory, manager: Configs.PACKAGE_MANAGER, debug: this.debugMode }),
       git = new GitManager({ debug: this.debugMode, repository }),
       fs = new FileSystem({ cwd: false, debug: this.debugMode })
 
@@ -367,7 +366,7 @@ export default class IProcess {
                         message: 'Refreshing dependency packages'
                       })
 
-      const pm = new PackageManager({ cwd: directory, manager: Config.PACKAGE_MANAGER, debug: this.debugMode })
+      const pm = new PackageManager({ cwd: directory, manager: Configs.PACKAGE_MANAGER, debug: this.debugMode })
       await pm.install( ( error, message, bytes ) => {
         // Installation progress tracking
         error ?

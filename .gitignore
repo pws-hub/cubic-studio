@@ -5,10 +5,8 @@ npm-debug.log*
 
 coverage
 node_modules
-credentials
-projects
 build
-LSPs
 cache
 temps
+sync
 .env

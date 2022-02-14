@@ -27,9 +27,15 @@ module.exports = {
     webpackConfig.resolve.alias = {
       ...webpackConfig.resolve.alias,
       ['~']: path.resolve(__dirname, './public'),
+      // Important modules
+      'vscode': require.resolve('@codingame/monaco-languageclient/lib/vscode-compatibility'),
+      'fs-inter': require.resolve('./src/lib/Inter/fs'),
+      'path-inter': require.resolve('./src/lib/Inter/path'),
+
+      // Important project directories
       'handlers': path.resolve(__dirname, './custom/handlers'),
       'store': path.resolve(__dirname, './store'),
-      'vscode': require.resolve('@codingame/monaco-languageclient/lib/vscode-compatibility')
+      'sync': path.resolve(__dirname, './sync')
     }
     webpackConfig.resolve.fallback = { 
       ...webpackConfig.resolve.fallback,

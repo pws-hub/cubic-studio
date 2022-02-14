@@ -1,7 +1,7 @@
 
-import Path from 'path'
 import Rimraf from 'rimraf'
 import Git from 'simple-git'
+import Path from 'path-inter'
 
 export default class GitManager {
   /**

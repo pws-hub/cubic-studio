@@ -1,16 +1,14 @@
 
-import Config from '../../cubic.json'
-
 export default async ( req, res ) => {
   // Direct request to appropriete handler
   try {
     const provider = req.params.provider
 
     // Check whether request handle is defined
-    if( !Config.REQUEST_HANDLERS[ provider ] )
+    if( !Configs.REQUEST_HANDLERS[ provider ] )
       throw new Error(`Undefined <${provider}> Request Handler`)
 
-    const requestHandler = require('handlers/'+ Config.REQUEST_HANDLERS[ provider ] ).default
+    const requestHandler = require('handlers/'+ Configs.REQUEST_HANDLERS[ provider ] ).default
 
     return await requestHandler( req, res )
   }

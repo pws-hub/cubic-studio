@@ -6,16 +6,16 @@ import Project from './views/pages/Project'
 import Workspace from './views/pages/Workspace'
 import Locales from './json/languages.json'
 
-import Overwride from '../lib/Overwride'
-import RequestClient from '../lib/Connect/CARClient'
-import FileSystemClient from '../lib/Connect/FSTClient'
-import IProcessClient from '../lib/Connect/IPTClient'
+import Sync from './lib/SyncClient'
+import Overwride from './lib/Overwride'
+import RequestClient from './lib/CARClient'
+import FileSystemClient from './lib/FSTClient'
+import IProcessClient from './lib/IPTClient'
 
 
 function getInitialScope(){
 
 	function resolveScope( initStr ){
-
 		const
 		b64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/',
 		[ str, salt ] = initStr.split('$')
@@ -170,145 +170,153 @@ async function fetchWorkspaces(){
 	}
 }
 
-;( async () => {
-  try {
-    const { 
-			env, mode, 
-			namespaces,
-			isConnected,
-			user
-		} = await getInitialScope()
+async function Client(){
+	// Init client
+	const { 
+		env, mode,
+		namespaces,
+		isConnected,
+		user
+	} = await getInitialScope()
+	
+	window.env = env
+	window.mode = mode
+
+	/*----------------------------------------------------------------*/
+	// Set of overwridden process functions
+	window.___ = Overwride({ env })
+
+	/*----------------------------------------------------------------*/
+	// Default global states
+	GState.set('theme', 'dark')
+	GState.set('isConnected', isConnected )
+	GState.set('user', user )
+
+	/*----------------------------------------------------------------*/
+	/* Initial Workspace State: 
+		- Context: Use for extensions & user activities tracking by page
+								@params: 
+									- accountType(Admin, Instructor, Learner)
+									- page( route name )
+									- event( name, ID )
+		- Layout: Display or main blocks of the workspace
+					@params:
+						- mode: UI segmentation mode
+								- qs (Quater state)
+								- hs (Half section)
+								- ns (No-section)
+	*/
+	const wsStoreAttr = 'ws-studio'
+	
+	GState.set('ws', { mode: 'ns', ...(uiStore.get( wsStoreAttr ) || {}) })
+	GState
+	.define('ws')
+	// Update workspace Layout
+	.action( 'layout', newState => {
+
+		const recentState = GState.get('ws')
+		if( newState.mode == 'ns' && recentState.mode !== 'ns' )
+			newState.previousMode = recentState.mode
+
+		else if( newState.mode == 'auto' )
+			newState.mode = recentState.previousMode || 'qs'
 		
-		window.env = env
-		window.mode = mode
+		newState = Object.assign( {}, recentState, newState )
 
-    /*----------------------------------------------------------------*/
-		// Set of overwridden process functions
-		window.___ = Overwride({ env })
+		GState.dirty( 'ws', newState )
+		uiStore.set( wsStoreAttr, newState )
+	} )
+	// Set/Define workspace context
+	.action( 'context', newState => {
 
-    /*----------------------------------------------------------------*/
-		// Default global states
-		GState.set('theme', 'dark')
-		GState.set('isConnected', isConnected )
-		GState.set('user', user )
+		const wsState = GState.get('ws')
+		wsState.context = Object.assign( wsState.context || {}, newState, { accountType } )
 
-    /*----------------------------------------------------------------*/
-    /* Initial Workspace State: 
-      - Context: Use for extensions & user activities tracking by page
-                  @params: 
-                    - accountType(Admin, Instructor, Learner)
-                    - page( route name )
-                    - event( name, ID )
-      - Layout: Display or main blocks of the workspace
-            @params:
-              - mode: UI segmentation mode
-                  - qs (Quater state)
-                  - hs (Half section)
-                  - ns (No-section)
-    */
-    const wsStoreAttr = 'ws-studio'
-    
-    GState.set('ws', { mode: 'ns', ...(uiStore.get( wsStoreAttr ) || {}) })
-    GState
-    .define('ws')
-    // Update workspace Layout
-    .action( 'layout', newState => {
+		GState.dirty( 'ws', wsState )
+	} )
 
-      const recentState = GState.get('ws')
-      if( newState.mode == 'ns' && recentState.mode !== 'ns' )
-        newState.previousMode = recentState.mode
+	/*----------------------------------------------------------------*/
+	// Initial Console State
+	GState.set( 'logs', [] )
+	GState
+	.define('console')
+	.action( 'log', log => {
+		const logs = GState.get('logs')
+		logs.push( log )
+		GState.dirty( 'logs', logs )
+	} )
 
-      else if( newState.mode == 'auto' )
-        newState.mode = recentState.previousMode || 'qs'
-      
-      newState = Object.assign( {}, recentState, newState )
+	/*----------------------------------------------------------------*/
+	// Initial media window sizes
+	initScreenSet()
+	// Watch screen resize for responsiveness updates
+	$(window).on( 'resize', initScreenSet )
 
-      GState.dirty( 'ws', newState )
-      uiStore.set( wsStoreAttr, newState )
-    } )
-    // Set/Define workspace context
-    .action( 'context', newState => {
+	/*----------------------------------------------------------------*/
+	// Locale translation
+	handleLocale()
 
-      const wsState = GState.get('ws')
-      wsState.context = Object.assign( wsState.context || {}, newState, { accountType } )
+	/*----------------------------------------------------------------*/
+	// Init Fontend - Backend communication channels
+	if( isConnected ){
+		// Request Handler
+		await RequestClient( namespaces.CAR, user )
 
-      GState.dirty( 'ws', wsState )
-    } )
+		// Internal Processes Manager
+		window.IProcess = await IProcessClient( namespaces.IPT )
 
-    /*----------------------------------------------------------------*/
-    // Initial Console State
-    GState.set( 'logs', [] )
-    GState
-    .define('console')
-    .action( 'log', log => {
-			const logs = GState.get('logs')
-			logs.push( log )
-      GState.dirty( 'logs', logs )
-    } )
+		// FileSystem Manager
+		window.FileSystem = await FileSystemClient( namespaces.FST )
+		// Init Global FileSystem Explorer Interface
+		window.FSExplorer = await FileSystem.init( 'explorer', { ignore: false, debug: true } )
+	}
+	
+	/*----------------------------------------------------------------*/
+	// Initialize workspaces
+	GState.set('workspaces', null )
 
-    /*----------------------------------------------------------------*/
-    // Initial media window sizes
-    initScreenSet()
-    // Watch screen resize for responsiveness updates
-    $(window).on( 'resize', initScreenSet )
+	if( isConnected ){
+		GState
+		.define('workspaces')
+		.action( 'refresh', async () => await fetchWorkspaces() )
+		.action( 'get', id => {
+			const list = GState.get('workspaces') || []
 
-		/*----------------------------------------------------------------*/
-		// Locale translation
-		handleLocale()
+			for( let w = 0; w < list.length; w++ )
+				if( list[w].workspaceId == id )
+					return list[w]
 
-		/*----------------------------------------------------------------*/
-		// Init Fontend - Backend communication channels
-		if( isConnected ){
-			// Request Handler
-			await RequestClient( namespaces.CAR, user )
+			return false
+		} )
 
-			// Internal Processes Manager
-			window.IProcess = await IProcessClient( namespaces.IPT )
+		await fetchWorkspaces()
+	}
+	
+	/*----------------------------------------------------------------*/
+	// Define routes
+	let Routes = [
+		{ name: 'home', path: '/', component: Home } 
+	]
 
-			// FileSystem Manager
-			window.FileSystem = await FileSystemClient( namespaces.FST )
-			// Init Global FileSystem Explorer Interface
-			window.FSExplorer = await FileSystem.init( 'explorer', { ignore: false, debug: true } )
-		}
-		
-		/*----------------------------------------------------------------*/
-		// Initialize workspaces
-		GState.set('workspaces', null )
-
-		if( isConnected ){
-			GState
-			.define('workspaces')
-			.action( 'refresh', async () => await fetchWorkspaces() )
-			.action( 'get', id => {
-				const list = GState.get('workspaces') || []
-
-				for( let w = 0; w < list.length; w++ )
-					if( list[w].workspaceId == id )
-						return list[w]
-
-				return false
-			} )
-
-			await fetchWorkspaces()
-		}
-		
-		/*----------------------------------------------------------------*/
-		// Define routes
-		let Routes = [
-			{ name: 'home', path: '/', component: Home } 
+	if( isConnected )
+		Routes = [
+			...Routes,
+			{ name: 'workspace', path: '/workspace/:id', component: Workspace },
+			{ name: 'project', path: '/workspace/:id/:project', component: Project }
 		]
 
-		if( isConnected )
-			Routes = [
-				...Routes,
-				{ name: 'workspace', path: '/workspace/:id', component: Workspace },
-				{ name: 'project', path: '/workspace/:id/:project', component: Project }
-			]
+	/*----------------------------------------------------------------*/
+	// Initialize application
+	App.renderSync({ Routes })
+			.replace( document.querySelector('#root') )
+}
 
-		/*----------------------------------------------------------------*/
-		// Initialize application
-		App.renderSync({ Routes })
-				.replace( document.querySelector('#root') )
+( async () => {
+  try {
+		// Cloud-Locale Synchronization Manager
+		await Sync()
+		// Initailize Client
+		await Client()
   }
-  catch( error ){ console.error('[CLIENT-LOAD] - App Initialization Failed: ', error ) }
+  catch( error ){ console.error('[CLIENT] - App Initialization Failed: ', error ) }
 } )()

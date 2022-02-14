@@ -5,8 +5,8 @@ import APIRequestHandler from '../lib/APIRequestHandler'
 
 export default require('express').Router()
 
-// Handle offsite authentication callback
-.get( '/auth/callback', AuthHandler )
+// Handle offsite authentication phases: <initiate> and <callback>
+.get( '/auth/:phase', AuthHandler )
 
 // Relay point for API request to 3rd party servers made from the UI
 .post('/api/:provider', APIRequestHandler )

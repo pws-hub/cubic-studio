@@ -1,6 +1,6 @@
 
 import pm2 from 'pm2'
-import fs from 'fs-extra'
+import fs from 'fs-inter'
 import fetch from 'node-fetch'
 import kebabCase from 'kebab-case'
 

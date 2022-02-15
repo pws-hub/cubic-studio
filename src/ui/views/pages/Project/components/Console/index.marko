@@ -22,109 +22,64 @@ class {
   }
 }
 
-<div.in-block.h-100.position-relative>
-  <!-- Tabs -->
-  <div.header.position-relative.zindex-1.theme-bg-fade>
-    <ul.list-inline.m-0>
-      <for|type, index| of=Tabs>
-        <li.px-1.py-50.cursor-pointer.d-inline-flex.align-items-center
-            class=( state.active == type ? 'theme-bg' : false )
-            on-click( 'onToggle', type )>
-          <span>${type.toCapitalCase()}</span>
-          
-          <!-- Display number of logs -->
-          <if( state.active !== type )>
-            $ const { count, color } = component.getCountBy( type )
+<context root=input.project.scope.IDE.directory>
+  <div.in-block.h-100.position-relative>
+    <!-- Tabs -->
+    <div.header.position-relative.zindex-1.theme-bg-fade>
+      <ul.list-inline.m-0>
+        <for|type, index| of=Tabs>
+          <li.px-1.py-50.cursor-pointer.d-inline-flex.align-items-center
+              class=( state.active == type ? 'theme-bg' : false )
+              on-click( 'onToggle', type )>
+            <span>${type.toCapitalCase()}</span>
+            
+            <!-- Display number of logs -->
+            <if( state.active !== type )>
+              $ const { count, color } = component.getCountBy( type )
 
-            <if( count )>
-              <span.rounded-circle.font-small-3.px-50.mx-50 class=`bg-${color}`>${count}</span>
+              <if( count )>
+                <span.rounded-circle.font-small-3.px-50.mx-50 class=`bg-${color}`>${count}</span>
+              </if>
             </if>
-          </if>
+          </li>
+        </for>
+
+        <li.px-1.py-50.cursor-pointer.float-right>
+          <Bx.font-medium-5 type="x" on-click( () => component.emit('dismiss') )/>
         </li>
-      </for>
+      </ul>
+    </div>
 
-      <li.px-1.py-50.cursor-pointer.float-right>
-        <Bx.font-medium-5 type="x" on-click( () => component.emit('dismiss') )/>
-      </li>
-    </ul>
+    <!-- Tab contents -->
+    <div.position-absolute.top-0.w-100.h-100.overflow-auto 
+        key="scroll-up-body" 
+        style="padding: 3rem 0 1rem 0">
+      <Switch by=state.active>
+        <@case is="terminal">
+
+        </@case>
+        
+        <!-- Debuging logs -->
+        <@case is="debug">
+          <!-- Initial log -->
+          <div.px-1.py-50.text-muted>
+            <Locale>Initialized</Locale>
+          </div>
+
+          <!-- Realtime `debug` logs -->
+          <for|log| of=state.logs><Debug ...log/></for>
+        </@case>
+
+        <!-- Build time logs -->
+        <@case is="build">
+
+        </@case>
+
+        <!-- Runtime error logs -->
+        <@case is="error">
+          <for|log| of=state.logs><Error ...log/></for>
+        </@case>
+      </Switch>
+    </div>
   </div>
-
-  <!-- Tab contents -->
-  <div.position-absolute.top-0.w-100.h-100.overflow-auto 
-      key="scroll-up-body" 
-      style="padding: 3rem 0 1rem 0">
-    <Switch by=state.active>
-      <@case is="terminal">
-
-      </@case>
-      
-      <!-- Debuging logs -->
-      <@case is="debug">
-        <!-- Initial log -->
-        <div.px-1.py-50.text-muted>
-          <Locale>Initialized</Locale>
-        </div>
-
-        <!-- Realtime `debug` logs -->
-        <for|{ type, name, message, status, trace }| of=state.logs>
-          <if( type === 'debug' )>
-            <Row.nav-item.m-0.py-25>
-              <@col>
-                <!-- Source -->
-                <span>[${name}]</span>
-                <!-- Debug message -->
-                <span.px-1 class=( status && status !== 'normal' ? `text-${status}` : false )>${message}</span>
-              </@col>
-              <!-- Debug trace -->
-              <@col.col-4.text-right>
-                <if( trace )>
-                  <u.cursor-pointer.text-muted.w-100.text-ellipsis 
-                    title=`${input.project.scope.IDE.directory}/${trace}`>${trace}</u>
-                </if>
-              </@col>
-            </Row>
-          </if>
-        </for>
-      </@case>
-
-      <!-- Build time logs -->
-      <@case is="build">
-
-      </@case>
-
-      <!-- Runtime errors -->
-      <@case is="error">
-        <!-- Realtime `error` logs -->
-        <for|{ type, name, error, status }| of=state.logs>
-          <if( type === 'error' )>
-            <div.px-1.py-25>
-              <ul.list-inline.d-inline-flex.align-items-start>
-                <!-- Source -->
-                <li>[${name}]</li>
-                <li.px-1>
-                  <!-- Error name -->
-                  <span>${error.name}: </span>
-                  <!-- Error message -->
-                  <span.px-50 class=( status && status !== 'normal' ? `text-${status}` : false )>${error.message}</span>
-                  <!-- Error stack trace -->
-                  <if( Array.isArray( error.stack ) && error.stack.length )>
-                    <ul.list-unstyled.m-0>
-                      <for|{ func, line, column, path }, index| of=error.stack>
-                        <li key=index>
-                          <span.text-muted>${func}</span>
-                          <u.text-info.cursor-pointer
-                              style="padding-left:4rem"
-                              title=`${input.project.scope.IDE.directory}/${path}`>${path} [${line}:${column}]</u>
-                        </li>
-                      </for>
-                    </ul>
-                  </if>
-                </li>
-              </ul>
-            </div>
-          </if>
-        </for>
-      </@case>
-    </Switch>
-  </div>
-</div>
+</context>

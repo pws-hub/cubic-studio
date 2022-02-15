@@ -1,0 +1,9 @@
+
+<if( input.value )>
+  <Switch by=( typeof input.value )>
+    <@case is="object">
+      <Object value=input.value expand=input.expand/>
+    </@case>
+    <@default><span.text-nowrap>${input.value}</span></@default>
+  </Switch>
+</if>

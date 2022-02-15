@@ -1,0 +1,54 @@
+
+class {
+  onCreate({ expand }){ this.state = { expanded: expand || false } }
+  onExpand(){ this.state.expanded = !this.state.expanded }
+}
+
+<span>
+  <!-- Display Array -->
+  <if( Array.isArray( input.value ) )>
+    <strong>[</strong>
+    <if( input.value.length )>
+      <!-- Expand/Close -->
+      <if( !input.expand )>
+        <Bx.font-small-1.px-25.cursor-pointer.text-muted bxs 
+            type=`${state.expanded ? 'up' : 'down'}-arrow` 
+            on-click('onExpand')/>
+      </if>
+
+      <if( state.expanded )>
+        <div.pl-2>
+          <for|item, index| of=input.value>
+            <span.text-nowrap>
+              <span.text-info>${index}</span>: <DataByType value=item/>
+            </span><br>
+          </for>
+        </div>
+      </if>
+    </if>
+    <strong>]</strong>
+  </if>
+  <!-- Display Object -->
+  <else>
+    <strong>{</strong>
+    <if( Object.keys( input.value ).length )>
+      <!-- Expand/Close -->
+      <if( !input.expand )>
+        <Bx.font-small-1.px-25.cursor-pointer.text-muted bxs 
+            type=`${state.expanded ? 'up' : 'down'}-arrow` 
+            on-click('onExpand')/>
+      </if>
+
+      <if( state.expanded )>
+        <div.pl-2>
+          <for|key, value| in=input.value>
+            <span.text-nowrap>
+              <span.text-info>${key}</span>: <DataByType value=value/>
+            </span><br>
+          </for>
+        </div>
+      </if>
+    </if>
+    <strong>}</strong>
+  </else>
+</span>

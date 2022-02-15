@@ -93,7 +93,9 @@ class {
     GState.on( 'screen', data => this.iof.emit( 'screen:change', data ) )
   }
   onReload(){
+    this.state.canLoad = false
     this.state.reloading = true
+
     this.emit('reload')
   }
   onOpenTest( status ){ this.state.testMode = status }

@@ -246,6 +246,7 @@ async function Client(){
 		logs.push( log )
 		GState.dirty( 'logs', logs )
 	} )
+	.action( 'clear', () => GState.dirty( 'logs', [] ) )
 
 	/*----------------------------------------------------------------*/
 	// Initial media window sizes

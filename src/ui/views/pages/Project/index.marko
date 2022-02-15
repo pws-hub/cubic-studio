@@ -600,7 +600,8 @@ class {
 
               <if( state.showConsole )>
                 <div.h-25.border-top>
-                  <Console on-dismiss('onConsoleToggle', false )/>
+                  <Console project=state.project
+                          on-dismiss('onConsoleToggle', false )/>
                 </div>
               </if>
             </div>

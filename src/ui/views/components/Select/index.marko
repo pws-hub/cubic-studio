@@ -132,8 +132,8 @@ class {
     </div>
 
     <if( component.isActive() )>
-      <AutoScroll class="options position-relative animated faster slideInDown"
-                    style=`max-height:${input.maxHeight || '220px'}`>
+      <div class="options position-relative animated faster slideInDown"
+            style=`max-height:${input.maxHeight || '220px'};overflow-y: auto`>
         <ul class="list-unstyled m-0">
           <for|{ value, label, sublabel, disabled }, index| of=( state.xOptions.length ? state.xOptions : state.options )>
             <if( ( label || value ) !== state.value )>
@@ -150,7 +150,7 @@ class {
             </if>
           </for>
         </ul>
-      </AutoScroll>
+      </div>
     </if>
   </div>
 </div>

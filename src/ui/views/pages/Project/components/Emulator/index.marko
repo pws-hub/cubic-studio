@@ -62,6 +62,9 @@ class {
   }
   onAction( _event, data, fn ){ this.iof.emit( _event, data, fn ) }
   onLoaded( e ){
+    // Remove all previous listeners when iframe reloaded
+    this.iof && this.iof.removeListeners()
+    
     this.iof = new IOF({ type: 'window', debug: true })
     this.iof.initiate( e.target.contentWindow, this.input.meta.hostname )
 
@@ -78,9 +81,12 @@ class {
         if( error ) return
         this.state.tests = manifest
       } )
-
     } )
-    .on( 'console:log', dataset => GState.console.log( dataset ) )
+    .on( 'start', () => {
+      // Clear console of sandbox start
+      GState.console.clear()
+    } )
+    .on( 'console:log', GState.console.log )
 
     // Communicate workspace and screen change to iframe
     GState.on( 'ws', data => this.iof.emit( 'ws:change', data ) )

@@ -15,7 +15,7 @@ class {
     
     if( !dataset ) return
     switch( type ){
-      case 'IDE': if( isEmpty( dataset ) ) return
+      case 'Code': if( isEmpty( dataset ) ) return
                   this.Actives[ type ] = { 
                     directory: [ dataset.directory ],
                     dependencies: dataset.dependencies
@@ -50,7 +50,7 @@ class {
           key=type
           class=( state.active == type ? 'zindex-2' : 'zindex-1')>
         <Switch by=type>
-          <@case is="IDE">
+          <@case is="Code">
             <Directory ...dataset
                         active=input.active
                         status=input.status

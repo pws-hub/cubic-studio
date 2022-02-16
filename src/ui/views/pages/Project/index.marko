@@ -43,11 +43,13 @@ class {
     this.state = {
       workspace: GState.workspaces.get( params.id ),
       project: false,
-
-      IDE: {},
+      
+      // Tools dataset
+      Code: {},
       API: {},
 
-      activeTool: 'IDE',
+      // Active elements
+      activeTool: 'Code',
       activeElement: null,
       
       emulator: false,
@@ -227,7 +229,7 @@ class {
     this.state.ongoingSetup = true
     
     // Declare filesystem I/O handler at the project's current working directory
-    const cwd = this.state.project.scope.IDE.directory
+    const cwd = this.state.project.specs.code.directory
     this.fs = await window.FileSystem.init( 'project', { cwd, debug: true } )
     // Declare Project's background Process Manager
     this.pm = await window.IProcess.create({ debug: true })
@@ -257,14 +259,14 @@ class {
     await this.getDirectory()
     
     // Project doesn't exist
-    if( isEmpty( this.state.IDE.directory ) ){
+    if( isEmpty( this.state.Code.directory ) ){
       /* Minimum project payload requirements
         {
           type: 'application',
           name: 'TestApp',
           description: 'Test multipple micro-application',
-          scope: {
-            IDE: {
+          specs: {
+            code: {
               language: 'marko~5+',
               platforms: [ 'multipple~2.0' ],
               directory: '/Users/fabricemarlboro/dev-pro/Myapp-labs/Extensions/TestApp',
@@ -319,7 +321,7 @@ class {
     try {
       const { error, message, project } = await RGet(`/workspaces/${workspaceId}/projects/${projectId}`)
       if( error ) throw new Error( message )
-
+      
       this.state.project = project
       await this.Setup()
     }
@@ -337,8 +339,8 @@ class {
       subdir: true
     }
 
-    this.state.IDE.directory = await this.fs.directory( path || null, dirOptions )
-    this.state.IDE = newObject( this.state.IDE )
+    this.state.Code.directory = await this.fs.directory( path || null, dirOptions )
+    this.state.Code = newObject( this.state.Code )
   }
   async getDependencies(){
     // Get project dependencies in package.json
@@ -371,8 +373,8 @@ class {
     for( const name in devDependencies )
       await collector( name, devDependencies[ name ], true )
     
-    this.state.IDE.dependencies = deps
-    this.state.IDE = newObject( this.state.IDE )
+    this.state.Code.dependencies = deps
+    this.state.Code = newObject( this.state.Code )
   }
 
   async onSave( element, changes, confirmCallback ){
@@ -399,7 +401,7 @@ class {
     switch( type ){
       // Copy store component to this project directory
       case 'component': progress( false, 'ONGOING' )
-                        const result = await this.pm.addComponents( element, this.state.project.scope.IDE.directory )
+                        const result = await this.pm.addComponents( element, this.state.project.specs.code.directory )
                         result === false ?
                                 progress('Unexpected error occured')
                                 : progress( false, 'DONE' )
@@ -444,7 +446,7 @@ class {
     type = type.replace('-packages', '')
 
     const 
-    cwd = this.state.project.scope.IDE.directory,
+    cwd = this.state.project.specs.code.directory,
     progress = ( error, stats ) => {
 
       if( error ){
@@ -582,7 +584,7 @@ class {
             <div style="height:calc(100% - 3rem)">
               <div.overflow-hidden class=(state.showConsole ? 'h-75' : 'h-100')>
                 <Switch by=state.activeTool>
-                  <@case is="IDE">
+                  <@case is="Code">
                     <CodeEditor file=state.activeElement
                                 paths=state.tabs.map( ({ path }) => { return path } )
                                 language=null
@@ -661,7 +663,7 @@ class {
 
           <!-- Display main programming language -->
           <if( state.project )>
-            <li.px-1.white-text>${state.project.scope.IDE.language.replace('~', ' ').toCapitalCase()}</li>
+            <li.px-1.white-text>${state.project.specs.code.language.replace('~', ' ').toCapitalCase()}</li>
           </if>
 
           <!-- Display editor's cusor current position -->

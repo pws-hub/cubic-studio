@@ -2,13 +2,18 @@
 import fs from 'fs-inter'
 import kebabCase from 'kebab-case'
 
-export const dotCubic = async ({ scope }) => {
+export const dotCubic = async ({ specs }) => {
 
-  const language = scope.IDE.language.split('~')[0]
+  const language = specs.code.language.split('~')[0]
+  let cubic = {}
+
+  try { cubic = await fs.readJson( specs.code.directory +'/.cubic' ) }
+  catch( error ){}
   
   return {
-    language: scope.IDE.language,
-    platforms: scope.IDE.platforms,
+    // Default fields
+    language: specs.code.language,
+    platforms: specs.code.platforms,
     setup: {
       sample: `@git/lib:${language}:multipple.micro~1.0.0`,
       sandbox: `@git/lib:${language}:multipple.sandbox~1.0.0`,
@@ -21,14 +26,15 @@ export const dotCubic = async ({ scope }) => {
         HOST: 'localhost',
         PORT: 33000
       }
-    }
+    },
+    ...cubic
   }
 }
 
-export const configJson = async ({ name, description, scope }) => {
+export const configJson = async ({ name, description, specs }) => {
 
   let config
-  try { config = JSON.parse( await fs.readFile( scope.IDE.directory +'/config.json', 'utf8' ) ) }
+  try { config = await fs.readJson( specs.code.directory +'/config.json' ) }
   catch( error ){ throw error }
   
   return {

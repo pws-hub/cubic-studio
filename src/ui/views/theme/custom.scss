@@ -31,6 +31,7 @@ html{
 .bottom-0{ bottom:0; }
 .max-height-60{ max-height:60%!important; }
 
+.text-ellipsis.left { direction: rtl }
 .text-ellipsis-2 {
   text-overflow:ellipsis;
   overflow:hidden;

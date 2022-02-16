@@ -8,8 +8,8 @@ class {
     this.fhandler = new FormHandler({ key: 'create-project', autosave: true, crosscheck: true })
     this.fhandler.bind( this, {
       type: 'application', // Default
-      scope: {
-        IDE: {
+      specs: {
+        code: {
           platforms: [ 'multipple~2.0' ],
           language: 'marko~5+',
           directory: '',
@@ -36,7 +36,7 @@ class {
     
     // Automatically add project as directory
     path += '/'+ this.state.form.name
-    this.fhandler.set('scope.IDE.directory', path )
+    this.fhandler.set('specs.code.directory', path )
   }
   onSubmit(){
     if( !isEmpty( this.state.formError )
@@ -54,10 +54,10 @@ class {
     ]
     Form.icon = false
 
-    Form.scope.APIs = []
-    Form.scope.sockets = []
-    Form.scope.units = []
-    Form.scope.roadmap = []
+    Form.specs.API = []
+    Form.specs.sockets = []
+    Form.specs.units = []
+    Form.specs.roadmap = []
 
     this.state.submitting = true
     
@@ -127,9 +127,9 @@ class {
               on-change('__onChange')></textarea>
   </div>
   
-  <!-- Project scope details -->
+  <!-- Project specs -->
   <if( state.form.type )>
-    <h5.pb-1><Locale.font-small-3.text-muted text="Project Scope"/></h5>
+    <h5.pb-1><Locale.font-small-3.text-muted text="Project specs"/></h5>
     
     <if( ['application', 'plugin', 'library'].includes( state.form.type ) )>
       <div.form-row>
@@ -138,8 +138,8 @@ class {
           <label><Locale text="Platforms"/></label>
           <div class="form-group">
             <Select.round-xs
-                    value=state.form.scope.IDE.platforms[0]
-                    name="scope.IDE.platforms"
+                    value=state.form.specs.code.platforms[0]
+                    name="specs.code.platforms"
                     disabled
                     validate="required"
                     placeholder=( Locale('Platforms*') )
@@ -155,8 +155,8 @@ class {
           <label><Locale text="Language"/></label>
           <div class="form-group">
             <Select.round-xs
-                    value=state.form.scope.IDE.language
-                    name="scope.IDE.language"
+                    value=state.form.specs.code.language
+                    name="specs.code.language"
                     validate="required"
                     placeholder=( Locale('Language*') )
                     options=[
@@ -176,9 +176,9 @@ class {
           <div class="input-group">
             <input.round-xs
                     type="text"
-                    value=state.form.scope.IDE.directory
-                    name="scope.IDE.directory"
-                    class=( 'form-control form-control-lg px-2'+( state.formError['scope.IDE.directory'] != undefined ? ( state.formError['scope.IDE.directory'] ? ' is-invalid' : ' is-valid' ) : '' ) )
+                    value=state.form.specs.code.directory
+                    name="specs.code.directory"
+                    class=( 'form-control form-control-lg px-2'+( state.formError['specs.code.directory'] != undefined ? ( state.formError['specs.code.directory'] ? ' is-invalid' : ' is-valid' ) : '' ) )
                     validate="required"
                     placeholder=( Locale('Directory*') )
                     on-change('__onChange')/>
@@ -191,7 +191,7 @@ class {
               </button>
             </div>
           </div>
-          <if( state.formError['scope.IDE.directory'] )>
+          <if( state.formError['specs.code.directory'] )>
             <p.small.mt-50.mb-2>
               <Locale.text-warning text="Directory of the project"/>
             </p>
@@ -210,9 +210,9 @@ class {
         <div class="form-group">
           <input.round-xs
                   type="text"
-                  value=state.form.scope.IDE.repository
-                  name="scope.IDE.repository"
-                  class=( 'form-control form-control-lg px-2'+( state.formError['scope.IDE.repository'] != undefined ? ( state.formError['scope.IDE.repository'] ? ' is-invalid' : ' is-valid' ) : '' ) )
+                  value=state.form.specs.code.repository
+                  name="specs.code.repository"
+                  class=( 'form-control form-control-lg px-2'+( state.formError['specs.code.repository'] != undefined ? ( state.formError['specs.code.repository'] ? ' is-invalid' : ' is-valid' ) : '' ) )
                   placeholder=( Locale('Git Repository') )
                   on-change('__onChange')/>
           <p.small.mt-50.mb-2.text-muted>
@@ -235,12 +235,12 @@ class {
           <input.disabled type="checkbox"
                   no-update
                   disabled
-                  id="scope.APIs"
-                  name="scope.APIs"
-                  checked=state.form.scope.APIs
+                  id="specs.API"
+                  name="specs.API"
+                  checked=state.form.specs.API
                   on-change('__onChecked')/>
-          <label for="scope.APIs" class="font-medium-1">
-            <Locale>APIs Test</Locale>
+          <label for="specs.API" class="font-medium-1">
+            <Locale>API Test</Locale>
             <br>
             <p.font-small-3.text-muted>
               <Locale>
@@ -257,11 +257,11 @@ class {
           <input type="checkbox"
                   no-update
                   disabled
-                  id="scope.sockets"
-                  name="scope.sockets"
-                  checked=state.form.scope.sockets
+                  id="specs.sockets"
+                  name="specs.sockets"
+                  checked=state.form.specs.sockets
                   on-change('__onChecked')/>
-          <label for="scope.sockets" class="font-medium-1">
+          <label for="specs.sockets" class="font-medium-1">
             <Locale>Sockets Test</Locale>
             <br>
             <p.font-small-3.text-muted>
@@ -279,11 +279,11 @@ class {
           <input type="checkbox"
                   no-update
                   disabled
-                  id="scope.units"
-                  name="scope.units"
-                  checked=state.form.scope.units
+                  id="specs.units"
+                  name="specs.units"
+                  checked=state.form.specs.units
                   on-change('__onChecked')/>
-          <label for="scope.units" class="font-medium-1">
+          <label for="specs.units" class="font-medium-1">
             <Locale>Units Test</Locale>
             <br>
             <p.font-small-3.text-muted>

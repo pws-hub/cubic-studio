@@ -107,12 +107,12 @@ import DTCrypt from './../lib/DTCrypt'
     // },
     // ps = new IProcess( options )
     
-    // await ps.setup({
+    // await ps.setupProject({
     //   type: 'application',
     //   name: 'TestApp',
     //   description: 'Test multipple micro-application',
-    //   scope: {
-    //     IDE: {
+    //   specs: {
+    //     code: {
     //       language: 'marko~5+',
     //       platforms: [ 'multipple~2.0' ],
     //       directory: '/Users/fabricemarlboro/dev-pro/Myapp-labs/Extensions/TestApp',
@@ -120,8 +120,23 @@ import DTCrypt from './../lib/DTCrypt'
     //     }
     //   }
     // })
+    // await ps.importProject({
+    //   type: 'application',
+    //   name: 'Calendar',
+    //   description: 'Calendar multipple micro-application',
+    //   specs: {
+    //     code: {
+    //       language: 'marko~5+',
+    //       platforms: [ 'multipple~2.0' ],
+    //       directory: '/Users/fabricemarlboro/dev-pro/Myapp-labs/multiple/Extensions/Calendar',
+    //       repository: 'https://gitlab.com/multipple/applications/Calendar'
+    //     }
+    //   }
+    // })
     // await ps.addComponents({ name: 'Locale', package: 'Switch' }, '/Users/fabricemarlboro/dev-pro/Myapp-labs/multiple/Extensions' )
     // await ps.addPackages( [{ source: 'npm', name: 'express', version: '1.0.0' }], '/Users/fabricemarlboro/dev-pro/Myapp-labs/multiple/Extensions/Calendar' )
+    // await ps.updatePackages( [{ source: 'npm', name: 'express', version: '1.0.0' }], '/Users/fabricemarlboro/dev-pro/Myapp-labs/multiple/Extensions/Calendar' )
+    // await ps.removePackages( [{ source: 'npm', name: 'express', version: '1.0.0' }], '/Users/fabricemarlboro/dev-pro/Myapp-labs/multiple/Extensions/Calendar' )
     
     
     // const 

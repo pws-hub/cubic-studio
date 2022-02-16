@@ -25,7 +25,7 @@ function ProcessHandler( client ){
     && this.trackers[ process ]( error, stats )
   })
   
-  // Process Methods
+  // Process 
 
   this.setup = async ( dataset, tracker ) => {
     try {
@@ -33,7 +33,23 @@ function ProcessHandler( client ){
       if( typeof tracker == 'function' )
         this.trackers.setup = tracker
 
-      const { error, message, response } = await run( 'setup', dataset )
+      const { error, message, response } = await run( 'setupProject', dataset )
+      if( error ) throw new Error( message )
+
+      return response || {}
+    }
+    catch( error ){
+      console.log( error )
+      return {}
+    }
+  }
+  this.import = async ( dataset, tracker ) => {
+    try {
+      // Register import tracker
+      if( typeof tracker == 'function' )
+        this.trackers.import = tracker
+
+      const { error, message, response } = await run( 'importProject', dataset )
       if( error ) throw new Error( message )
 
       return response || {}
@@ -129,7 +145,6 @@ function ProcessHandler( client ){
       return false
     }
   }
-
   this.removePackages = async ( dataset, directory, tracker ) => {
     try {
       // Register `remove-packages` tracker
@@ -146,7 +161,6 @@ function ProcessHandler( client ){
       return false
     }
   }
-
   this.updatePackages = async ( dataset, directory, tracker ) => {
     try {
       // Register `update-packages` tracker
@@ -163,7 +177,6 @@ function ProcessHandler( client ){
       return false
     }
   }
-
   this.refreshPackages = async ( directory, tracker ) => {
     try {
       // Register `refresh-packages` tracker

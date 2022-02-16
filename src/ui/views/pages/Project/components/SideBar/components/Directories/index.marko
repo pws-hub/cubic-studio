@@ -7,15 +7,20 @@
           on-remove( element => component.emit( 'remove', element ) )
           on-new-dir( element => component.emit( 'new-dir', element ) )
           on-new-file( element => component.emit( 'new-file', element ) )>
-  <div.directory.position-relative.overflow-auto
+  <div.directories.position-relative.overflow-auto
       style=`height:${!input.extended ? '60%' : 'calc(100% - 3rem)'}`>
     <div.position-sticky.zindex-2.top-0.w-100.theme-bg.d-flex.align-items-center.border-bottom style="height:3rem">
       <div.w-100>
         <ul.list-inline.m-0.px-25>
           <li>
-            <Bx.font-medium-5.px-1.cursor-pointer
+            <Bx.font-medium-5.px-75.cursor-pointer
                 type="sidebar"
-                on-click('onShowMenu')/>
+                on-click( () => component.emit('show-menu') )/>
+          </li>
+          <li>
+            <Bx.font-medium-5.px-75.cursor-pointer
+                type="cog"
+                on-click( () => component.emit('show-settings') )/>
           </li>
           
           <li.float-right>
@@ -43,7 +48,7 @@
     </div>
 
     <ul.list-unstyled.py-1.my-0>
-      <for|folder| of=input.directory>
+      <for|folder| of=input.directories>
         <Folder ...folder/>
       </for>
       

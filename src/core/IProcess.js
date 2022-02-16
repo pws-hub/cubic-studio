@@ -415,7 +415,7 @@ export default class IProcess {
       // Reconnect to process in case development server was reloaded
       if( !this.emulators[ id ] ){
         const
-        { type, name, specs } = dataset,
+        { name, specs } = dataset,
         { directory } = specs.code
       
         this.emulators[ id ] = new Emulator({ cwd: directory, name, debug: this.debugMode })
@@ -429,11 +429,17 @@ export default class IProcess {
       this.watcher( 'emulator', error )
     }
   }
-  async quitEM( id ){
+  async quitEM( id, dataset ){
     // Close emulator instance
     try {
-      if( !this.emulators[ id ] )
-        throw new Error('Emulator instance not found')
+      // Reconnect to process in case development server was reloaded
+      if( !this.emulators[ id ] ){
+        const
+        { name, specs } = dataset,
+        { directory } = specs.code
+      
+        this.emulators[ id ] = new Emulator({ cwd: directory, name, debug: this.debugMode })
+      }
         
       // Destory process
       return await this.emulators[ id ].exit()

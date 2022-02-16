@@ -51,6 +51,8 @@ class {
 
   isActive(){ return this.state.active || $( this.getEl('in-input') ).is(':focus') }
   onToggle( status ){
+    if( this.input.disabled ) return
+    
     this.state.active = status
     this.state.xOptions = []
   }
@@ -121,7 +123,7 @@ class {
         <button class=`btn btn-icon ${input.size == 'xl' ? ' mt-1 mr-1' : 'm-0'}`
                 type="button"
                 on-click( 'onToggle', !state.active )>
-          <i class=`bx bx-chevron-down font-large-1 grey-text ${component.isActive() ? 'up' : ''}`></i>
+          <i class=`bx bx-chevron-down font-large-1 ${input.disabled ? 'text-muted' : ''} ${component.isActive() ? 'up' : ''}`></i>
         </button>
       </if>
 

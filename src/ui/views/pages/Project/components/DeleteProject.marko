@@ -1,0 +1,55 @@
+
+class {
+  onCreate({ type }){ this.state = { pname: '' } }
+  onConfirmInput( e ){ this.state.pname = e.target.value }
+  onConfirm(){
+    this.emit('confirm')
+    this.emit('dismiss')
+  }
+}
+
+<Modal.px-3.py-1 width=30 on-dismiss( () => component.emit('dismiss') )>
+  <div.in-block.position-relative>
+    <h5><Locale.text-danger text="Delete project"/></h5>
+    <br>
+    <p>
+      <Locale>
+        This action deletes <b>${input.project.name}</b> project and 
+        everything it contains. There is no going back.
+      </Locale>
+    </p>
+
+    <ul.list-unstyled.theme-bg-fade.p-2.round-xs>
+      <li.py-25> — <Locale>Delete project specs</Locale></li>
+      <li.py-25> — <Locale>Drop emulator instance</Locale></li>
+      <li.py-25> — <Locale>Clear project directory</Locale></li>
+    </ul>
+
+    <p.m-0>
+      <Locale>Enter the following to confirm if your are absolutely sure:</Locale>
+    </p>
+    <div.font-medium-2.text-info>${input.project.name}</div>
+
+    <br>
+    <div.form-froup>
+      <div class="form-group">
+        <input.form-control.form-control-lg.px-2.round-xs
+                type="text"
+                value=state.pname
+                on-input('onConfirmInput')/>
+      </div>
+    </div>
+    
+    <br>
+    <div.text-right>
+      <Button.mx-50 type="md" on-click( () => component.emit('dismiss') )>Cancel</Button>
+      
+      <if( input.project.name == state.pname )>
+        <Button.mx-50.btn-danger type="md" on-click('onConfirm')>
+          <Locale text="Delete"/>
+          <Preloader.pl-4.font-medium-4.float-right active=state.submitting/>
+        </Button>
+      </if>
+    </div>
+  </div>
+</Modal>

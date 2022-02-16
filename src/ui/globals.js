@@ -4,7 +4,7 @@ import moment from 'moment'
 import numeral from 'numeral'
 import SS from 'markojs-shared-state'
 import { navigate } from 'marko-router5'
-import UIStore from '@fabrice8/ui-store'
+import UIStore from 'all-localstorage'
 
 String.prototype.toCapitalCase = function(){
   // Fonction de capitalisation du premier caractère d'un mot

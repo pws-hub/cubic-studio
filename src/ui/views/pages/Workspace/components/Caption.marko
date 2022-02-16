@@ -1,6 +1,16 @@
 
 import DefaultLogo from '~/images/logo/cubic-default.png'
 
+<div>
+  <route-link href="/">
+    <h4.font-large-1.mt-0>
+      <Bx.font-large-1.py-50.cursor-pointer type="arrow-back"/>
+      <Locale.px-1 text="Home"/>
+    </h4>
+  </route-link>
+</div>
+<br>
+
 <div.workspace-info.d-flex.align-items-center>
   <Image.mr-2.round-sm.border 
         src=( input.logo || DefaultLogo ) 
@@ -47,7 +57,7 @@ import DefaultLogo from '~/images/logo/cubic-default.png'
         
     <br>
     <div.px-2>
-      <Button on-click( () => component.emit('add-member') )>Add</Button>
+      <Button type="md" on-click( () => component.emit('add-member') )>Add</Button>
     </div>
   </div>
 </if>

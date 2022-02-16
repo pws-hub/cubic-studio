@@ -1,0 +1,132 @@
+
+import FormHandler from 'markojs-form'
+
+static function hasChanges( original, newset ){
+  return typeof original == 'object'
+          && typeof newset == 'object'
+          && ( original.type !== newset.type
+              || original.name !== newset.name
+              || original.description !== newset.description )
+}
+
+class {
+  onCreate({ project }){
+    this.state = {
+      canUpdate: false,
+      submitting: false,
+      deleting: false
+    }
+
+    this.fhandler = new FormHandler({ key: 'update-project', autosave: true, crosscheck: true })
+    this.fhandler.bind( this, {
+      type: project.type,
+      name: project.name,
+      description: project.description
+    })
+
+    this.fhandler.on( 'input', () => this.state.canUpdate = hasChanges( project, this.state.form ) )
+    this.state.canUpdate = hasChanges( project, this.state.form )
+  }
+  onCancel(){
+    this.fhandler.reset()
+    this.emit('dismiss')
+  }
+  async onSubmit(){
+    if( !isEmpty( this.state.formError )
+        && Object.values( this.state.formError ).includes( true ) ) return
+
+    this.state.submitting = true
+    try {
+      const
+      { error, message, project } = await RPatch(`/workspaces/${this.input.workspace.workspaceId}/projects/${this.input.project.projectId}`, this.state.form )
+      if( error ) throw new Error( message )
+      
+      this.state.submitting = false
+      this.state.canUpdate = false
+
+      this.fhandler.alert('Project information updated')
+    }
+    catch( error ){
+      console.log('Failed updating project information: ', error )
+      this.fhandler.alert('Failed! Check your internet connection and try again', 'warning')
+    }
+  }
+}
+
+<form key="update-project">
+  <div.form-row>
+    <!-- Project type -->
+    <div.col-4>
+      <label><Locale text="Type"/></label>
+      <div class="form-group">
+        <Select.round-xs
+                value=state.form.type
+                name="type"
+                disabled
+                validate="required"
+                placeholder=( Locale('Type*') )
+                options=[
+                  { label: 'Application', value: 'application' },
+                  { label: 'Plugin', value: 'plugin' },
+                  { label: 'Library', value: 'library' },
+                  { label: 'Testing Only', value: 'tests' }
+                ]
+                on-select('__onChange')/>
+      </div>
+    </div>
+
+    <!-- Project name -->
+    <div.col>
+      <label><Locale text="Name"/></label>
+      <div class="form-group">
+        <input.round-xs
+                type="text"
+                value=state.form.name
+                name="name"
+                class=( 'form-control form-control-lg px-2'+( state.formError.name != undefined ? ( state.formError.name ? ' is-invalid' : ' is-valid' ) : '' ) )
+                validate="required"
+                placeholder=( Locale('Name*') )
+                on-change('__onChange')/>
+        <p class=( 'small mt-50 mb-2'+( !state.formError.name ? ' d-none' : '' ) )>
+          <Locale.text-warning text="Name of the project"/>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Description -->
+  <div class="form-group">
+    <label><Locale text="Description"/></label>
+    <textarea.round-xs
+              type="text"
+              value=state.form.description
+              name="description"
+              class=`form-control form-control-lg px-2 ${state.formError.description != null ? ( state.formError.description ? ' is-invalid' : ' is-valid' ) : ''}`
+              placeholder=Locale('Description')
+              style={ height: '100px', resize: 'none' }
+              on-change('__onChange')></textarea>
+  </div>
+  
+  <FormAlert alert=state.alert/>
+  <Row.py-1>
+    <@col>
+      <Button.mx-50.btn-danger
+              type="reset"
+              on-click( () => component.emit('delete-toggle') )>Delete Project</Button>
+    </@col>
+
+    <@col.col.text-right>
+      <Button.mx-50 type="reset" on-click('onCancel')>Cancel</Button>
+
+      <if( state.form.type && state.form.name && state.canUpdate )>
+        <Button.mx-50
+                primary=true
+                type="submit"
+                on-click('onSubmit')>
+          <Locale text="Update"/>
+          <Preloader.pl-2.font-medium-4.float-right active=state.submitting/>
+        </Button>
+      </if>
+    </@col>
+  </Row>
+</form>

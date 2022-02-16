@@ -1,4 +1,9 @@
 
+import PStore from 'all-localstorage'
+
+static function delay( time ){
+  return new Promise( resolve => setTimeout( resolve, ( time || 1 ) * 1000 ) )
+}
 static const APITabs = [
   {
     type: 'GET',
@@ -48,9 +53,10 @@ class {
       Code: {},
       API: {},
 
-      // Active elements
+      // Active indications
       activeTool: 'Code',
       activeElement: null,
+      flag: uiStore.get('action-flag'),
       
       emulator: false,
       emulatorError: false,
@@ -60,6 +66,8 @@ class {
       showAddon: false,
       showSearch: false,
       showConsole: false,
+      showSettings: false,
+      showDeleteProject: false,
 
       tabs: [],
       ongoingSetup: false,
@@ -70,13 +78,15 @@ class {
 
     this.fs = false
     this.pm = false
+    this.pstore = false
+    this.packager = false
     this.emulator = false
   }
   async onInput({ params }){
     // Fetch project metadata
     await this.getProject( params.id, params.project )
-    
-    this.state.showConsole = uiStore.get( this.getAttr('active-console') )
+    // Console to previous show/hide state
+    this.state.showConsole = this.pstore.get('active-console')
   }
   onAction( action, ...args ){
     switch( action ){
@@ -97,17 +107,20 @@ class {
       case 'update-packages':
       case 'remove-packages': 
       case 'refresh-packages': this.PackageOperator( action, ...args ); break
+      case 'delete-project': this.DeleteProject(); break
     }
   }
   onSearchToggle( args ){ this.state.showSearch = args }
   onAddonToggle( args ){ this.state.showAddon = args }
   onMenuToggle( status ){ this.state.showMenu = status }
+  onSettingsToggle( type ){ this.state.showSettings = type }
+  onShowDeleteProjectToggle( type ){ this.state.showDeleteProject = type }
   onConsoleToggle( status ){
     this.state.showConsole = status
 
     status !== false ? 
-            uiStore.set( this.getAttr('active-console'), true )
-            : uiStore.clear( this.getAttr('active-console') )
+            this.pstore.set('active-console', true )
+            : this.pstore.clear('active-console')
   }
   
   onMenuSelect( name ){ this.state.activeTool = name }
@@ -116,6 +129,7 @@ class {
     switch( type ){
       case 'component': this.onSearchToggle({ filters: { targets: ['component'] } }); break
       case 'dependency': this.onSearchToggle({ filters: { targets: ['package', 'library'] } }); break
+      case 'share': this.onSettingsToggle('share'); break
     }
 
     this.onAddonToggle( false )
@@ -139,7 +153,16 @@ class {
 
   }
 
-  getAttr( target ){ return `${this.state.project.name}-${this.state.activeTool}-${target}` }
+  ongoing( labels ){
+
+    if( labels === false ){
+      this.state.ongoingSetup = false
+      return
+    }
+    
+    this.state.ongoingSetup = { ...(this.state.ongoingSetup || {}), ...labels }
+    // this.setStateDirty('ongoingSetup')
+  }
   progression( stats ){
     // Display ongoing process progression details on Footer
     if( !stats )
@@ -170,20 +193,20 @@ class {
             } )
     
     this.setStateDirty('tabs')
-    uiStore.set( this.getAttr('tabs'), this.state.tabs )
+    this.pstore.set('tabs', this.state.tabs )
   }
 
   Open( element ){
     // Open file, request, ...
     if( !element ){
       this.state.activeElement = null
-      uiStore.clear( this.getAttr('active-element') )
+      this.pstore.clear('active-element')
 
       return
     }
 
     this.state.activeElement = { ...element, active: true }
-    uiStore.set( this.getAttr('active-element'), this.state.activeElement )
+    this.pstore.set('active-element', this.state.activeElement )
 
     let 
     isActive = false,
@@ -220,102 +243,7 @@ class {
                 : this.state.tabs.splice( focusIndex + 1, 0, this.state.activeElement )
 
     this.setStateDirty('tabs')
-    uiStore.set( this.getAttr('tabs'), this.state.tabs )
-  }
-  async Setup(){
-
-    let AUTORUN = true
-
-    this.state.ongoingSetup = true
-    
-    // Declare filesystem I/O handler at the project's current working directory
-    const cwd = this.state.project.specs.code.directory
-    this.fs = await window.FileSystem.init( 'project', { cwd, debug: true } )
-    // Declare Project's background Process Manager
-    this.pm = await window.IProcess.create({ debug: true })
-
-    // Watch external/background operations on this directory
-    let wait = 0
-    this.fs.watch( async ( event, path, stats ) => {
-      debugLog(`[DIRECTORY Event] ${event}: ${path}`, stats )
-
-      switch( event ){
-        // New file/dir added: Refresh directory tree
-        case 'add':
-        case 'addDir': wait && clearTimeout( wait )
-                        await this.getDirectory()
-            break
-        /** Wait for `add` event to conclude file/dir moved: 
-            In that case `add event` will refresh the directory.
-            otherwise, conclude `delete`
-        */
-        case 'unlink': wait = setTimeout( async () => await this.getDirectory(), 2000 ); break
-                        
-      }
-
-    } )
-
-    // Get project directory content
-    await this.getDirectory()
-    
-    // Project doesn't exist
-    if( isEmpty( this.state.Code.directory ) ){
-      /* Minimum project payload requirements
-        {
-          type: 'application',
-          name: 'TestApp',
-          description: 'Test multipple micro-application',
-          specs: {
-            code: {
-              language: 'marko~5+',
-              platforms: [ 'multipple~2.0' ],
-              directory: '/Users/fabricemarlboro/dev-pro/Myapp-labs/Extensions/TestApp',
-              repository: 'https://gitlab.com/multipple/applications/Test-App'
-            }
-          }
-        }
-      */
-      
-      // TODO: Try importing project from specified repository
-      
-
-      
-
-      // Setup a completely new project
-      await this.pm.setup( this.state.project, ( error, stats ) => {
-
-        if( error ){
-          // TODO: Manage process exception errors
-          console.log('--Progress Error: ', error )
-          return
-        }
-
-        // TODO: Display progression stats on Footer
-        this.progression( stats )
-      } )
-
-      debugLog('-- Completed indeed --')
-
-      // Automatically run project
-      AUTORUN && this.RunEmulator( true )
-    }
-    else {
-      // Mount project's last states
-      this.state.tabs = uiStore.get( this.getAttr('tabs') ) || []
-      this.state.activeElement = uiStore.get( this.getAttr('active-element') ) || null
-      
-      // Reload cached emulator state of this project
-      const cachedEMImage = uiStore.get( this.getAttr('emulator') )
-      if( AUTORUN && cachedEMImage )
-        window.env == 'production' ? 
-                      this.ReloadEmulator() // Reload backend process
-                      : this.RunEmulator() // Connect frontend to process or run process if not available
-    }
-
-    // Get project dependencies
-    await this.getDependencies()
-
-    this.state.ongoingSetup = false
+    this.pstore.set('tabs', this.state.tabs )
   }
   async getProject( workspaceId, projectId ){
     try {
@@ -323,7 +251,9 @@ class {
       if( error ) throw new Error( message )
       
       this.state.project = project
-      await this.Setup()
+      // locale store for only this project
+      this.pstore = new PStore({ prefix: `cs-${project.name}`, encrypt: true })
+      await this.SetupProject()
     }
     catch( error ){
       console.log('Failed retreiving project: ', error )
@@ -339,7 +269,7 @@ class {
       subdir: true
     }
 
-    this.state.Code.directory = await this.fs.directory( path || null, dirOptions )
+    this.state.Code.directories = await this.fs.directory( path || null, dirOptions )
     this.state.Code = newObject( this.state.Code )
   }
   async getDependencies(){
@@ -375,6 +305,136 @@ class {
     
     this.state.Code.dependencies = deps
     this.state.Code = newObject( this.state.Code )
+  }
+  async SetupProject(){
+
+    let AUTORUN = true
+    
+    // Declare filesystem I/O handler at the project's current working directory
+    const cwd = this.state.project.specs.code.directory
+    this.fs = await window.FileSystem.init( 'project', { cwd, debug: true } )
+    // Declare Project's background Process Manager
+    this.pm = await window.IProcess.create({ debug: true })
+
+    // Watch external/background operations on this directory
+    let wait = 0
+    this.fs.watch( async ( event, path, stats ) => {
+      debugLog(`[DIRECTORY Event] ${event}: ${path}`, stats )
+
+      switch( event ){
+        // New file/dir added: Refresh directory tree
+        case 'add':
+        case 'addDir': wait && clearTimeout( wait )
+                        await this.getDirectory()
+            break
+        /** Wait for `add` event to conclude file/dir moved: 
+            In that case `add event` will refresh the directory.
+            otherwise, conclude `delete`
+        */
+        case 'unlink': wait = setTimeout( async () => await this.getDirectory(), 2000 ); break
+                        
+      }
+
+    } )
+
+    // Get project directory content
+    await this.getDirectory()
+    
+    // Project doesn't exist
+    if( isEmpty( this.state.Code.directories ) ){
+      // Importing project from specified repo (import) or setup new (default)
+      const action = this.state.flag === 'import' && this.state.project.specs.code.repository ? 'import' : 'setup'
+
+      // Setup a completely new project
+      this.ongoing({ headline: 'Setting up the project' })
+      await delay(3)
+      await this.pm[ action ]( this.state.project, ( error, stats ) => {
+        
+        
+          
+        if( error ){
+          // TODO: Manage process exception errors
+          console.log('--Progress Error: ', error )
+          this.ongoing({ error: typeof error == 'object' ? error.message : error })
+          return
+        }
+        
+        // TODO: Display progression stats
+        this.ongoing({ headline: `[${stats.percent}%] ${stats.message}` })
+        this.progression( stats )
+      } )
+
+      debugLog('-- Completed indeed --')
+      
+
+      // Automatically run project in 3 second
+      await delay(3)
+      this.ongoing( false )
+      AUTORUN && this.RunEmulator( true )
+    }
+    else {
+      // Mount project's last states
+      this.state.tabs = this.pstore.get('tabs') || []
+      this.state.activeElement = this.pstore.get('active-element') || null
+      
+      // Reload cached emulator state of this project
+      const cachedEMImage = this.pstore.get('emulator')
+      if( AUTORUN && cachedEMImage )
+        window.env == 'production' ? 
+                      this.ReloadEmulator() // Reload backend process
+                      : this.RunEmulator() // Connect frontend to process or run process if not available
+    }
+
+    // Get project dependencies
+    await this.getDependencies()
+  }
+  async DeleteProject(){
+    // Close running emulator
+    this.ongoing({ headline: 'Dropping all running emulator instances' })
+    await this.QuitEmulator()
+    await delay(2)
+
+    // Clear store
+    this.ongoing({ headline: 'Flushing project cache' })
+    this.pstore.flush(`cs-${this.state.project.name}`)
+    await delay(3)
+
+    // Clear directory
+    this.ongoing({ headline: 'Clearing project directory' })
+    await this.fs.remove('')
+    this.setState({
+      tabs: [],
+      Code: {},
+      API: {}
+    })
+    await delay(5)
+
+    // Delete project specs from cubic server
+    this.ongoing({ headline: 'Deleting project specifications from cubic servers' })
+    try {
+      const 
+      url = `/workspaces/${this.state.workspace.workspaceId}/projects/${this.state.project.projectId}`,
+      { error, message } = await await RDelete( url )
+
+      if( error ) throw new Error( message )
+    }
+    catch( error ){}
+    await delay(3)
+    
+    // Clear open tabs
+    this.ongoing({ headline: 'Clearing project workspace' })
+    this.state.project = false
+    
+    // Reset operators
+    this.fs = false
+    this.pm = false
+    this.packager = false
+    this.emulator = false
+    await delay(2)
+    
+    // Move back to workspace
+    this.ongoing( false )
+    navigate(`/workspace/${this.state.workspace.workspaceId}`)
   }
 
   async onSave( element, changes, confirmCallback ){
@@ -459,13 +519,9 @@ class {
       this.progression( stats )
     }
 
-    switch( type ){
-      case 'add':
-      case 'update':
-      case 'remove': await this.pm[ type +'Packages']( element, cwd, progress ); break
-      case 'refresh': await this.pm.refreshPackages( cwd, progress ); break
-    }
+    this.packager = this.pm.Packager( element, cwd )
 
+    await this.packager[ type ]( progress )
     await this.getDependencies()
   }
 
@@ -478,7 +534,7 @@ class {
     
     // Create emulator instance
     if( !this.emulator )
-      this.emulator = this.pm.emulator( this.state.project )
+      this.emulator = this.pm.Emulator( this.state.project )
 
     // Run
     this.state.emulatorStatus = 'loading'
@@ -488,7 +544,7 @@ class {
       restarting it. Usefull when page got refreshed
       and servers are up
     */
-    const cachedEMImage = !force ? uiStore.get( this.getAttr('emulator') ) : false
+    const cachedEMImage = !force ? this.pstore.get('emulator') : false
     if( cachedEMImage )
       this.state.emulator = cachedEMImage
       
@@ -504,7 +560,7 @@ class {
     }
 
     this.state.emulatorStatus = 'running'
-    uiStore.set( this.getAttr('emulator'), this.state.emulator )
+    this.pstore.set('emulator', this.state.emulator )
   }
   async ReloadEmulator(){
     // Reload emulator
@@ -515,7 +571,7 @@ class {
     
     // Create emulator instance
     if( !this.emulator )
-      this.emulator = this.pm.emulator( this.state.project )
+      this.emulator = this.pm.Emulator( this.state.project )
     
     this.state.emulatorStatus = 'reloading'
 
@@ -544,7 +600,7 @@ class {
     GState.ws.layout({ mode: 'ns' })
 
     // Clear cached config
-    uiStore.clear( this.getAttr('emulator') )
+    this.pstore.clear('emulator')
   }
 }
 
@@ -571,7 +627,8 @@ class {
                       emulator: state.emulatorStatus
                     }
                     on-action('onAction')
-                    on-show-menu('onMenuToggle')/>
+                    on-show-menu('onMenuToggle')
+                    on-show-settings('onSettingsToggle')/>
 
           <!-- Main Block -->
           <main.main-block.col.px-0.overflow-hidden>
@@ -684,4 +741,25 @@ class {
 <if( state.showAddon )>
   <Addon on-select('onAddonSelect')
           on-dismiss('onAddonToggle', false )/>
+</if>
+
+<!-- Project settings -->
+<if( state.showSettings )>
+  <Settings type=state.showSettings
+            workspace=state.workspace
+            project=state.project
+            on-dismiss('onSettingsToggle', false )
+            on-delete-toggle('onShowDeleteProjectToggle', true )/>
+</if>
+
+<!-- Delete project -->
+<if( state.showDeleteProject )>
+  <DeleteProject workspace=state.workspace
+                  project=state.project
+                  on-confirm('onAction', 'delete-project')
+                  on-dismiss('onShowDeleteProjectToggle', false )/>
+</if>
+
+<if( state.ongoingSetup )>
+  <GLoading ...state.ongoingSetup/>
 </if>

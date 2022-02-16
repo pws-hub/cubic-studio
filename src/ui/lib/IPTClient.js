@@ -60,7 +60,7 @@ function ProcessHandler( client ){
     }
   }
 
-  this.emulator = ( dataset, tracker ) => {
+  this.Emulator = ( dataset, tracker ) => {
     // Unique ID of emulator control instance
     const emulatorId = `${dataset.type}:${dataset.name}`
     
@@ -95,7 +95,7 @@ function ProcessHandler( client ){
       },
       quit: async () => {
         try {
-          const { error, message, response } = await run( 'quitEM', emulatorId )
+          const { error, message, response } = await run( 'quitEM', emulatorId, dataset )
           if( error ) throw new Error( message )
 
           // Unregister emulator process tracker
@@ -112,6 +112,75 @@ function ProcessHandler( client ){
     }
   }
 
+  this.Packager = ( dataset, directory ) => {
+    return {
+      add: async tracker => {
+        try {
+          // Register `add-packages` tracker
+          if( typeof tracker == 'function' )
+            this.trackers['add-packages'] = tracker
+
+          const { error, message, response } = await run( 'addPackages', dataset, directory, 'npm' )
+          if( error ) throw new Error( message )
+
+          return response || true
+        }
+        catch( error ){
+          console.log( error )
+          return false
+        }
+      },
+      remove: async tracker => {
+        try {
+          // Register `remove-packages` tracker
+          if( typeof tracker == 'function' )
+            this.trackers['remove-packages'] = tracker
+
+          const { error, message, response } = await run( 'removePackages', dataset, directory )
+          if( error ) throw new Error( message )
+
+          return response || true
+        }
+        catch( error ){
+          console.log( error )
+          return false
+        }
+      },
+      update: async tracker => {
+        try {
+          // Register `update-packages` tracker
+          if( typeof tracker == 'function' )
+            this.trackers['update-packages'] = tracker
+
+          const { error, message, response } = await run( 'updatePackages', dataset, directory, 'npm' )
+          if( error ) throw new Error( message )
+
+          return response || true
+        }
+        catch( error ){
+          console.log( error )
+          return false
+        }
+      },
+      refresh: async tracker => {
+        try {
+          // Register `refresh-packages` tracker
+          if( typeof tracker == 'function' )
+            this.trackers['refresh-packages'] = tracker
+
+          const { error, message, response } = await run( 'refreshPackages', directory, 'npm' )
+          if( error ) throw new Error( message )
+
+          return response || true
+        }
+        catch( error ){
+          console.log( error )
+          return false
+        }
+      }
+    }
+  }
+
   this.addComponents = async ( dataset, directory, tracker ) => {
     try {
       // Register `add-component` tracker
@@ -119,71 +188,6 @@ function ProcessHandler( client ){
         this.trackers['add-components'] = tracker
 
       const { error, message, response } = await run( 'addComponent', dataset, directory )
-      if( error ) throw new Error( message )
-
-      return response || true
-    }
-    catch( error ){
-      console.log( error )
-      return false
-    }
-  }
-
-  this.addPackages = async ( dataset, directory, tracker ) => {
-    try {
-      // Register `add-packages` tracker
-      if( typeof tracker == 'function' )
-        this.trackers['add-packages'] = tracker
-
-      const { error, message, response } = await run( 'addPackages', dataset, directory, 'npm' )
-      if( error ) throw new Error( message )
-
-      return response || true
-    }
-    catch( error ){
-      console.log( error )
-      return false
-    }
-  }
-  this.removePackages = async ( dataset, directory, tracker ) => {
-    try {
-      // Register `remove-packages` tracker
-      if( typeof tracker == 'function' )
-        this.trackers['remove-packages'] = tracker
-
-      const { error, message, response } = await run( 'removePackages', dataset, directory )
-      if( error ) throw new Error( message )
-
-      return response || true
-    }
-    catch( error ){
-      console.log( error )
-      return false
-    }
-  }
-  this.updatePackages = async ( dataset, directory, tracker ) => {
-    try {
-      // Register `update-packages` tracker
-      if( typeof tracker == 'function' )
-        this.trackers['update-packages'] = tracker
-
-      const { error, message, response } = await run( 'updatePackages', dataset, directory, 'npm' )
-      if( error ) throw new Error( message )
-
-      return response || true
-    }
-    catch( error ){
-      console.log( error )
-      return false
-    }
-  }
-  this.refreshPackages = async ( directory, tracker ) => {
-    try {
-      // Register `refresh-packages` tracker
-      if( typeof tracker == 'function' )
-        this.trackers['refresh-packages'] = tracker
-
-      const { error, message, response } = await run( 'refreshPackages', directory, 'npm' )
       if( error ) throw new Error( message )
 
       return response || true

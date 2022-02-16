@@ -1,0 +1,49 @@
+
+static const Tabs = [ 'information', 'tool', 'team', 'export', 'share' ]
+
+class {
+  onCreate({ type }){
+    this.state = { active: typeof type == 'string' ? type : Tabs[0] }
+  }
+  onToggle( type ){ this.state.active = type }
+  onDeleteToggle(){
+    this.emit('delete-toggle')
+    this.emit('dismiss')
+  }
+}
+
+<Modal.px-3.py-1 width=40 noBackdrop=true on-dismiss( () => component.emit('dismiss') )>
+  <div.in-block.position-relative>
+    <h5><Locale text="Settings"/></h5>
+    <br>
+
+    <!-- Tabs -->
+    <div.header.position-relative.zindex-1>
+      <ul.list-inline.m-0>
+        <for|type, index| of=Tabs>
+          <li.px-1.py-50.cursor-pointer.d-inline-flex.align-items-center.round.mx-25
+              class=( state.active == type ? 'theme-bg-primary' : 'theme-bg-fade' )
+              on-click( 'onToggle', type )>
+            <span>${type.toCapitalCase()}</span>
+          </li>
+        </for>
+      </ul>
+    </div>
+
+    <!-- Tab contents -->
+    <div.w-100>
+      <br><br>
+      <Switch by=state.active>
+        <@case is="information">
+          <Information workspace=input.workspace
+                        project=input.project
+                        on-delete-toggle('onDeleteToggle')/>
+        </@case>
+        <@case is="share">
+          <Share workspace=input.workspace
+                  project=input.project/>
+        </@case>
+      </Switch>
+    </div>
+  </div>
+</Modal>

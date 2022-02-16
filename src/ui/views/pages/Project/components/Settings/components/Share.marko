@@ -1,0 +1,55 @@
+
+class {
+  onCreate({ project }){ 
+    this.state = {
+      shareLink: uiStore.get(`${project.name}-share-link`),
+      generating: false,
+      error: false
+    }
+  }
+  async generateLink(){
+    try {
+      this.state.generating = true
+      
+      const 
+      { workspaces, projectId } = this.input.project,
+      { error, message, shareLink } = await RGet(`/workspaces/${workspaces[0]}/projects/${projectId}/link`)
+      if( error ) throw new Error( message )
+
+      this.state.generating = false
+      this.state.shareLink = shareLink
+
+      uiStore.set(`${this.input.project.name}-share-link`, shareLink )
+    }
+    catch( error ){
+      console.log('Failed generating link: ', error )
+      this.state.error = 'Check your internet connection and try again'
+    }
+  }
+  onCopy(){}
+}
+
+<div>
+  <p.text-muted>
+    <Locale>
+      Share your project specifications with others via link.
+    </Locale>
+  </p>
+  <if( state.shareLink )>
+    <div><u.font-medium-3.text-info>${state.shareLink}</u></div>
+    <br>
+    <CopyButton type="md" value=state.shareLink/>
+  </if>
+  <else-if( state.error )>
+    <p.text-warning>${state.error}</p>
+  </else-if>
+  <else-if( state.generating )>
+    <div.py-3>
+      <Preloader.font-medium-5.text-muted active/>
+    </div>
+  </else-if>
+  <else>
+    <br><Button type="md" on-click('generateLink')>Generate Link</Button>
+  </else>
+</div>
+<br>

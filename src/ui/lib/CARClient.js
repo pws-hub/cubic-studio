@@ -38,7 +38,7 @@ export default ( namespace, user ) => {
     window.RPost = async ( url, body ) => { return await sendRequest({ url, method: 'POST', body }) }
     window.RPut = async ( url, body ) => { return await sendRequest({ url, method: 'PUT', body }) }
     window.RPatch = async ( url, body ) => { return await sendRequest({ url, method: 'PATCH', body }) }
-    window.RDelete = async ( url, body ) => { return await sendRequest({ url, method: 'DELETE', body }) }
+    window.RDelete = async ( url, body ) => { return await sendRequest({ url, method: 'DELETE', body: body || {} }) }
 
     if( window.mode !== 'local' ){
       

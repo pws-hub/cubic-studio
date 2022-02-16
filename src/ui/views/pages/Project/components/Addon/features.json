@@ -18,5 +18,9 @@
   "test": {
     "description": "Create & run integration tests on your application/plugin.",
     "icon": { "type": "wrench", "color": "warning" }
+  },
+  "share": {
+    "description": "Share your project specification with others.",
+    "icon": { "type": "share-alt", "color": "secondary" }
   }
 }

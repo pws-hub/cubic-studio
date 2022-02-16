@@ -4,6 +4,7 @@ class {
     this.state = {
       active: null,
       showMenu: true,
+      showSettings: false,
       extendedBlocks: uiStore.get('extended-blocks') || []
     }
     GState.bind( this, ['ws'])
@@ -17,7 +18,7 @@ class {
     switch( type ){
       case 'Code': if( isEmpty( dataset ) ) return
                   this.Actives[ type ] = { 
-                    directory: [ dataset.directory ],
+                    directories: [ dataset.directories ],
                     dependencies: dataset.dependencies
                   }
           break
@@ -31,6 +32,10 @@ class {
     setTimeout( () => this.noChange = false, 100 )
 
     this.emit( 'show-menu', this.state.showMenu )
+  }
+  onShowSettings(){
+    this.state.showSettings = !this.state.showSettings
+    this.emit( 'show-settings', this.state.showSettings )
   }
   onExtendExtraBlock( block, status ){
     // Extend/Close extra blocks: Accordion effect
@@ -51,18 +56,20 @@ class {
           class=( state.active == type ? 'zindex-2' : 'zindex-1')>
         <Switch by=type>
           <@case is="Code">
-            <Directory ...dataset
-                        active=input.active
-                        status=input.status
-                        extended=(!state.extendedBlocks.includes('dependencies'))
-                        on-run( () => component.emit( 'action', 'run-emulator', false ) )
-                        on-quit( () => component.emit( 'action', 'quit-emulator' ) )
-                        on-open( element => component.emit( 'action', 'open', element ) )
-                        on-new-dir( element => component.emit( 'action', 'new-dir', element ) )
-                        on-new-file( element => component.emit( 'action', 'new-file', element ) )
-                        on-move( element => component.emit( 'action', 'move-element', element ) )
-                        on-rename( element => component.emit( 'action', 'rename-element', element ) )
-                        on-remove( element => component.emit( 'action', 'remove-element', element ) )/>
+            <Directories ...dataset
+                          active=input.active
+                          status=input.status
+                          extended=(!state.extendedBlocks.includes('dependencies'))
+                          on-show-menu('onShowMenu')
+                          on-show-settings('onShowSettings')
+                          on-run( () => component.emit( 'action', 'run-emulator', false ) )
+                          on-quit( () => component.emit( 'action', 'quit-emulator' ) )
+                          on-open( element => component.emit( 'action', 'open', element ) )
+                          on-new-dir( element => component.emit( 'action', 'new-dir', element ) )
+                          on-new-file( element => component.emit( 'action', 'new-file', element ) )
+                          on-move( element => component.emit( 'action', 'move-element', element ) )
+                          on-rename( element => component.emit( 'action', 'rename-element', element ) )
+                          on-remove( element => component.emit( 'action', 'remove-element', element ) )/>
 
             <Dependencies dependencies=dataset.dependencies
                           extended=state.extendedBlocks.includes('dependencies')

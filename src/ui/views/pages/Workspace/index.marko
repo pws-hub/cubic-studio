@@ -19,9 +19,13 @@ class {
     this.state = {
       workspace: GState.workspaces.get( params.id ),
       projects: [],
+
       showExplorer: false,
       showInviteForm: false,
-      showSetupProject: false
+      showSetupProject: false,
+      showImportProject: false,
+
+      fetching: false
     }
 
     this.menu = [
@@ -41,13 +45,17 @@ class {
   onHandleMenu( id ){ console.log( id ) }
   onAddMemberToggle( status ){ this.state.showInviteForm = status }
   onCreateProjectToggle( type ){ this.state.showSetupProject = type }
+  onImportProjectToggle( type ){ this.state.showImportProject = type }
   onExplorerToggle( status, fn ){ this.state.showExplorer = status ? { fn } : false }
 
   async fetchProjects(){
     try {
+      this.state.fetching = true
+
       const { error, message, projects } = await RGet(`/workspaces/${this.input.params.id}/projects`)
       if( error ) throw new Error( message )
       
+      this.state.fetching = false
       this.state.projects = projects
     }
     catch( error ){
@@ -64,7 +72,38 @@ class {
       typeof callback == 'function' && callback()
       setTimeout( () => {
         this.onCreateProjectToggle( false )
-        // Refresh the list of projects
+        // Open the project
+        uiStore.temp('action-flag', 'setup')
+        navigate(`/workspace/${this.input.params.id}/${projectId}`)
+      }, 8000 )
+    }
+    catch( error ){
+      console.log('Failed creating project: ', error )
+      this.fhandler.alert('Failed! Check your connection and try again', 'warning')
+    }
+  }
+  async onImportProject( payload, callback ){
+    try {
+      // Save project in database
+      const { error, message, projectId } = await RPost(`/workspaces/${this.input.params.id}/projects/create`, payload )
+      if( error ) throw new Error( message )
+
+      // Reset ImportProject form
+      typeof callback == 'function' && callback()
+      setTimeout( () => {
+        // Close modal
+        this.onImportProjectToggle( false )
+
+        /* Open the project:
+          the `action-flag` indicate to project page to
+          import the project instead of setting up a new
+          in case no existing project directory found.
+
+          NOTE: Though, for code project, new setup will be
+                made if no repository specified in the 
+                specs and no local directory found.
+        */
+        uiStore.flash('action-flag', 'import')
         navigate(`/workspace/${this.input.params.id}/${projectId}`)
       }, 8000 )
     }
@@ -138,7 +177,13 @@ class {
             </if>
 
             <!-- List of projects in the workspace -->
-              <br>
+            <br>
+            <if( state.fetching )>
+              <div.h-40.d-flex.align-items-center.justify-content-center>
+                <Preloader.font-large-2.text-muted active/>
+              </div>
+            </if>
+            <else>
               <div.all-projects>
                 <if( state.projects.length )>
                   <!-- Seperator label -->
@@ -161,10 +206,11 @@ class {
 
                 <br>
                 <div.px-2>
-                  <Button.mx-50 on-click('onCreateProjectToggle', 'new' )>Create new project</Button>
-                  <Button.mx-50.disabled>Import project</Button>
+                  <Button.mx-50 on-click('onCreateProjectToggle', true )>Create new project</Button>
+                  <Button.mx-50 on-click('onImportProjectToggle', true )>Import project</Button>
                 </div>
               </div>
+            </else>
           </@col>
 
           <!-- Support and helps informations -->
@@ -234,12 +280,21 @@ class {
   </Footer>
 </div>
 
-<!-- Create/Import project -->
+<!-- Create/Setup project -->
 <if( state.showSetupProject )>
   <Modal.px-4.py-2 width=40 noBackdrop=true on-dismiss('onCreateProjectToggle', false )>
     <SetupProject on-explorer('onExplorerToggle', true )
                   on-dismiss('onCreateProjectToggle', false )
                   on-submit('onCreateProject')/>
+  </Modal>
+</if>
+
+<!-- Import project -->
+<if( state.showImportProject )>
+  <Modal.px-4.py-2 width=40 noBackdrop=true on-dismiss('onImportProjectToggle', false )>
+    <ImportProject on-explorer('onExplorerToggle', true )
+                    on-dismiss('onImportProjectToggle', false )
+                    on-submit('onImportProject')/>
   </Modal>
 </if>
 

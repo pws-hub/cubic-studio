@@ -1,0 +1,14 @@
+
+class {
+  onCreate(){ this.state = { copied: false } }
+  async onCopy(){
+    await window.navigator.clipboard.writeText( this.input.value )
+    this.state.copied = true
+  }
+}
+
+<if( navigator.clipboard )>
+  <Button.btn type=input.type class=`${input.class} ${state.copied ? state.copiedClass || 'btn-success' : '' }` on-click('onCopy')>
+    <Locale text=( state.copied ? 'Copied' : 'Copy')/>
+  </Button>
+</if>

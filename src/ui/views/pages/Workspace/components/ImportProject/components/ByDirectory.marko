@@ -1,0 +1,374 @@
+
+import FormHandler from 'markojs-form'
+
+class {
+  onCreate(){
+    this.state = { 
+      imported: false,
+      importing: false,
+      submitting: false
+    }
+
+    this.fhandler = new FormHandler({ key: 'import-directory', autosave: true, crosscheck: true })
+    this.fhandler.bind( this, {
+      specs: {
+        code: {
+          platforms: [ 'multipple~2.0' ],
+          language: 'marko~5+',
+          directory: '',
+          repository: ''
+        }
+      }
+    })
+    this.fhandler.on( 'input', ( name, value ) => {
+      if( name !== 'specs.code.directory' ) return
+
+      // Check directory
+      this.checkGenericFiles( value )
+    } )
+
+    // Check available auto-filled directory value
+    if( this.state.form.specs.code.directory )
+      this.checkGenericFiles( this.state.form.specs.code.directory )
+  }
+  onCancel(){
+    this.fhandler.reset()
+    this.emit('dismiss')
+  }
+  onAddDirectory({ path }){
+    if( !path ) return
+    this.fhandler.set('specs.code.directory', path )
+  }
+  async checkGenericFiles( path ){
+    try {
+      this.state.importing = true
+
+      const configJson = await window.FSExplorer.readFile(`${path}/config.json`, { encoding: 'json' } )
+      if( !configJson )
+        throw new Error('No `config.json` file found in the project directory')
+
+      const 
+      packageJson = await window.FSExplorer.readFile(`${path}/package.json`, { encoding: 'json' } ),
+      dotCubic = await window.FSExplorer.readFile(`${path}/.cubic`, { encoding: 'json' } ),
+      dataset = this.state.form
+      
+      // Project & package information
+      if( packageJson ){
+        dataset.name = packageJson.name
+        dataset.description = packageJson.description
+        dataset.version = packageJson.version
+        dataset.specs.code.repository = typeof packageJson.repository === 'object' ? packageJson.repository.url : packageJson.repository
+      }
+
+      // Project information
+      if( configJson ){
+        dataset.type = configJson.type
+        dataset.name = configJson.name
+        dataset.description = configJson.description
+        dataset.version = configJson.version
+        dataset.favicon = configJson.favicon
+      }
+      
+      // .cubic workspace setup requirements
+      if( dotCubic ){
+        if( !dataset.specs )
+          dataset.specs = {}
+        
+        dataset.specs.code = {
+          ...(this.state.form.specs.code),
+          language : dotCubic.language,
+          platforms : dotCubic.platforms
+        }
+      }
+
+      this.state.imported = true
+      this.state.importing = false
+    }
+    catch( error ){
+      this.state.importing = false
+      this.fhandler.alert( error.message, 'warning')
+    }
+  }
+  onSubmit(){
+    if( !isEmpty( this.state.formError )
+        && Object.values( this.state.formError ).includes( true ) ) return
+
+    const Form = this.state.form
+
+    // First member is owner of the project
+    Form.members = [
+      {
+        ...GState.get('user'),
+        role: 'OWNER',
+        active: true
+      }
+    ]
+    Form.icon = false
+
+    Form.specs.API = []
+    Form.specs.sockets = []
+    Form.specs.units = []
+    Form.specs.roadmap = []
+
+    this.state.submitting = true
+    
+    this.contextEmit( 'submit', Form, (function(){
+      // After saved
+      this.state.submitting = false
+
+      this.fhandler.alert('Project imported')
+      this.fhandler.reset()
+
+      this.contextEmit('dismiss')
+    }).bind(this) )
+  }
+}
+
+
+<context|{}, emit| from="ImportProject">
+  $ component.contextEmit = emit
+
+  <form key="import-directory">
+    <if( state.form.type || state.imported )>
+      <div.form-row>
+        <!-- Project type -->
+        <div.col-4>
+          <label><Locale text="Type"/></label>
+          <div class="form-group">
+            <Select.round-xs
+                    value=state.form.type
+                    name="type"
+                    validate="required"
+                    placeholder=( Locale('Type*') )
+                    options=[
+                      { label: 'Application', value: 'application' },
+                      { label: 'Plugin', value: 'plugin' },
+                      { label: 'Library', value: 'library' },
+                      { label: 'Testing Only', value: 'tests' }
+                    ]
+                    on-select('__onChange')/>
+          </div>
+        </div>
+
+        <!-- Project name -->
+        <div.col>
+          <label><Locale text="Name"/></label>
+          <div class="form-group">
+            <input.round-xs
+                    type="text"
+                    value=state.form.name
+                    name="name"
+                    class=( 'form-control form-control-lg px-2'+( state.formError.name != undefined ? ( state.formError.name ? ' is-invalid' : ' is-valid' ) : '' ) )
+                    validate="required"
+                    placeholder=( Locale('Name*') )
+                    on-change('__onChange')/>
+            <p class=( 'small mt-50 mb-2'+( !state.formError.name ? ' d-none' : '' ) )>
+              <Locale.text-warning text="Name of the project"/>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="form-group">
+        <label><Locale text="Description"/></label>
+        <textarea.round-xs
+                  type="text"
+                  value=state.form.description
+                  name="description"
+                  class=`form-control form-control-lg px-2 ${state.formError.description != null ? ( state.formError.description ? ' is-invalid' : ' is-valid' ) : ''}`
+                  placeholder=Locale('Description')
+                  style={ height: '100px', resize: 'none' }
+                  on-change('__onChange')></textarea>
+      </div>
+    
+      <!-- Project specs -->
+      <h5.pb-1><Locale.font-small-3.text-muted text="Project specs"/></h5>
+      
+      <if( ['application', 'plugin', 'library'].includes( state.form.type ) )>
+        <div.form-row>
+          <!-- Targeted platforms -->
+          <div.col-4>
+            <label><Locale text="Platforms"/></label>
+            <div class="form-group">
+              <Select.round-xs
+                      value=(state.form.specs.code && state.form.specs.code.platforms && state.form.specs.code.platforms[0])
+                      name="specs.code.platforms"
+                      disabled
+                      validate="required"
+                      placeholder=( Locale('Platforms*') )
+                      options=[
+                        { label: 'Multipple 2.0', value: 'multipple~2.0' }
+                      ]
+                      on-select('__onChange')/>
+            </div>
+          </div>
+
+          <!-- Programming language -->
+          <div.col-4>
+            <label><Locale text="Language"/></label>
+            <div class="form-group">
+              <Select.round-xs
+                      value=state.form.specs.code.language
+                      name="specs.code.language"
+                      validate="required"
+                      placeholder=( Locale('Language*') )
+                      options=[
+                        { label: 'Marko 5', value: 'marko~5+' },
+                        { label: 'Marko 4', value: 'marko~4' },
+                        { label: 'React JSX', value: 'react', disabled: true }
+                      ]
+                      on-select('__onChange')/>
+            </div>
+          </div>
+        </div>
+      </if>
+    </if>
+
+    <!-- Source code locations -->
+    <div.form-group>
+      <label><Locale text="Directory"/></label>
+      <div class="form-group">
+        <div class="input-group">
+          <input.round-xs
+                  type="text"
+                  value=state.form.specs.code.directory
+                  name="specs.code.directory"
+                  class=( 'form-control form-control-lg px-2'+( state.formError['specs.code.directory'] != undefined ? ( state.formError['specs.code.directory'] ? ' is-invalid' : ' is-valid' ) : '' ) )
+                  validate="required"
+                  placeholder=( Locale('Directory*') )
+                  on-change('__onChange')/>
+
+          <!-- Show FileSyste Explorer Modal -->
+          <div class="input-group-append">
+            <button class="btn btn-primary btn-lg" 
+                    on-click( emit, 'explorer', component.onAddDirectory.bind( component ) )>
+              <Bx.font-medium-5 type="folder"/>
+            </button>
+          </div>
+        </div>
+        <if( state.formError['specs.code.directory'] )>
+          <p.small.mt-50.mb-2>
+            <Locale.text-warning text="Directory of the project"/>
+          </p>
+        </if>
+        <else>
+          <p.small.mt-50.mb-2.text-muted>
+            <Locale>Location of the project on your local disk</Locale>
+          </p>
+        </else>
+      </div>
+    </div>
+
+    <if( ['application', 'plugin', 'library'].includes( state.form.type ) )>
+      <!-- Source code git repository -->
+      <div.form-group>
+        <label><Locale text="Repository"/></label>
+        <div class="form-group">
+          <input.round-xs
+                  type="text"
+                  value=state.form.specs.code.repository
+                  name="specs.code.repository"
+                  class=( 'form-control form-control-lg px-2'+( state.formError['specs.code.repository'] != undefined ? ( state.formError['specs.code.repository'] ? ' is-invalid' : ' is-valid' ) : '' ) )
+                  placeholder=( Locale('Git Repository') )
+                  on-change('__onChange')/>
+          <p.small.mt-50.mb-2.text-muted>
+            <Locale>
+              We recommand to initialize a new project with a Git repository 
+              to keep your code safe and on good progression track.
+            </Locale>
+          </p>
+        </div>
+      </div>
+    </if>
+
+    <if( state.form.type || state.imported )>
+      <!-- Testing tools -->
+      <label><Locale text="Testing"/></label>
+      <br><br>
+      <div.form-row>
+        <!-- API test -->
+        <div.col-4.mb-1>
+          <div class="checkbox checkbox-primary">
+            <input.disabled type="checkbox"
+                    no-update
+                    disabled
+                    id="specs.API"
+                    name="specs.API"
+                    checked=state.form.specs.API
+                    on-change('__onChecked')/>
+            <label for="specs.API" class="font-medium-1">
+              <Locale>API Test</Locale>
+              <br>
+              <p.font-small-3.text-muted>
+                <Locale>
+                  Create and test your API endpoints
+                </Locale>
+              </p>
+            </label>
+          </div>
+        </div>
+
+        <!-- Socket test -->
+        <div.col-4.mb-1>
+          <div class="checkbox checkbox-primary">
+            <input type="checkbox"
+                    no-update
+                    disabled
+                    id="specs.sockets"
+                    name="specs.sockets"
+                    checked=state.form.specs.sockets
+                    on-change('__onChecked')/>
+            <label for="specs.sockets" class="font-medium-1">
+              <Locale>Sockets Test</Locale>
+              <br>
+              <p.font-small-3.text-muted>
+                <Locale>
+                  Websocket & Socket.io connection tests
+                </Locale>
+              </p>
+            </label>
+          </div>
+        </div>
+
+        <!-- Unit test -->
+        <div.col-4.mb-1>
+          <div class="checkbox checkbox-primary">
+            <input type="checkbox"
+                    no-update
+                    disabled
+                    id="specs.units"
+                    name="specs.units"
+                    checked=state.form.specs.units
+                    on-change('__onChecked')/>
+            <label for="specs.units" class="font-medium-1">
+              <Locale>Units Test</Locale>
+              <br>
+              <p.font-small-3.text-muted>
+                <Locale>
+                  Create and maintain units tests of your code
+                </Locale>
+              </p>
+            </label>
+          </div>
+        </div>
+      </div>
+    </if>
+      
+    <FormAlert alert=state.alert/>
+    <br>
+    <div.text-right>
+      <Button.mx-50 type="reset" on-click('onCancel')>Cancel</Button>
+
+      <if( !state.alert && state.form.specs.code.directory )>
+        <Button.mx-50
+                primary=true
+                type="submit"
+                on-click( state.form.type && state.form.name ? 'onSubmit' : 'onImport' )>
+          <Locale text=( state.form.type && state.form.name ? 'Save' : 'Import' )/>
+          <Preloader.pl-4.font-medium-4.float-right active=(state.importing || state.submitting)/>
+        </Button>
+      </if>
+    </div>
+  </form>
+</context>

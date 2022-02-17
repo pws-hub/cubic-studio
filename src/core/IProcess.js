@@ -108,11 +108,11 @@ export default class IProcess {
                         message: 'Adding initial project source files' 
                       })
         const 
-        sampleType = type == 'application' ? 'app' : type,
+        templateType = type == 'application' ? 'app' : type,
         plang = language.split('~')[0] // Specified programming language or Framework
 
         // Append template project to the directory
-        await git.cloneProject( `https://github.com/multipple/create-${sampleType}-${plang}.git`, directory, true )
+        await git.cloneProject( `https://github.com/multipple/create-${templateType}-${plang}.git`, directory, true )
 
         /** IMPORTANT: Define git's current working directory 
          *              for all next commands cause project
@@ -242,6 +242,7 @@ export default class IProcess {
       { language, directory, repository } = specs.code,
       
       pm = new PackageManager({ cwd: directory, manager: Configs.PACKAGE_MANAGER, debug: this.debugMode }),
+      git = new GitManager({ debug: this.debugMode, repository }),
       fs = new FileSystem({ cwd: false, debug: this.debugMode })
 
       // Project will run in a sandbox
@@ -249,26 +250,45 @@ export default class IProcess {
       
       // Import code project
       if( specs.code ){
-        // 
-        if( !repository )
-          throw new Error('Undefined project repository')
+        // Specified programming language or Framework
+        const plang = language.split('~')[0]
+
+        /** No directory found: 
+         * Create new project directory either by
+         * fetching from its git repository when defined
+         * or by initial project setup source files.
+         * 
+         * Otherwise, directory will be only synchronized
+         */
+        if( !( await fs.exists( directory ) ) ){
+          // Clone project from its own repository
+          if( repository ){
+            this.watcher( 'import',
+                          false,
+                          {
+                            percent: 5,
+                            processor: 'git',
+                            message: 'Cloning project repository' 
+                          })
+
+            await git.cloneProject( repository, directory, true )
+          }
+          
+          // Append template project to the directory
+          else {
+            this.watcher( 'import',
+                          false,
+                          {
+                            percent: 5,
+                            processor: 'git',
+                            message: 'Adding initial project source files' 
+                          })
+
+            const templateType = type == 'application' ? 'app' : type
+            await git.cloneProject( `https://github.com/multipple/create-${templateType}-${plang}.git`, directory, true )
+          }
+        }
         
-        if( await fs.exists( directory ) )
-          throw new Error('Project directory already exists')
-
-        /*-------------------------------------------------------------------------*/
-        // Clone project from its repository
-        this.watcher( 'import',
-                      false,
-                      {
-                        percent: 5,
-                        processor: 'git',
-                        message: 'Cloning project repository' 
-                      })
-
-        const git = new GitManager({ debug: this.debugMode, repository })
-        await git.cloneProject( repository, directory, true )
-
         /** IMPORTANT: Define git's current working directory 
          *              for all next commands cause project
          *              directory is now created
@@ -292,18 +312,19 @@ export default class IProcess {
         await fs.newFile( directory +'/config.json', JSON.stringify( configJson, null, '\t' ) )
 
         /*-------------------------------------------------------------------------*/
-        // Clone sandbox by language from Git
-        this.watcher( 'import',
-                      false,
-                      {
-                        percent: 20,
-                        processor: 'git',
-                        message: 'Setup development sandbox'
-                      })
-        const plang = language.split('~')[0] // Specified programming language or Framework
-
-        await git.cloneProject( `https://github.com/multipple/${plang}-sandbox.git`, directory +'/sandbox' )
-        inSandbox = true
+        // Clone and add new sandbox by language from Git
+        if( !( await fs.exists(`${directory}/sandbox`) ) ){
+          this.watcher( 'import',
+                        false,
+                        {
+                          percent: 20,
+                          processor: 'git',
+                          message: 'Setup development sandbox'
+                        })
+                        
+          await git.cloneProject( `https://github.com/multipple/${plang}-sandbox.git`, directory +'/sandbox' )
+          inSandbox = true
+        }
 
         /*-------------------------------------------------------------------------*/
         // Update yarn & package.json + sandbox workspace

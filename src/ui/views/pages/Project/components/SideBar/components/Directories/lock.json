@@ -1,0 +1,4 @@
+{
+  "folders": [ "src", "test" ],
+  "files": [ ".cubic", "config.json", "package.json" ]
+}

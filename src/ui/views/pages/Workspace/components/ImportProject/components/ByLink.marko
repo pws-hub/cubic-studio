@@ -15,7 +15,7 @@ class {
       submitting: false 
     }
 
-    this.fhandler = new FormHandler({ key: 'import-project', autosave: true, crosscheck: true })
+    this.fhandler = new FormHandler({ key: 'import-link', autosave: true, crosscheck: true })
     this.fhandler.bind(this)
     this.fhandler.on( 'input', ( name, value ) => {
       if( name !== 'link' ) return
@@ -96,7 +96,7 @@ class {
 <context|{}, emit| from="ImportProject">
   $ component.contextEmit = emit
 
-  <form key="import-project">
+  <form key="import-link">
     <section.form-froup>
       <!-- Project type -->
       <label><Locale text="Link"/></label>

@@ -1,5 +1,6 @@
 
 import path from 'path-browserify'
+import Lock from './../lock.json'
 
 static function sortContent( content ){
   // Sort folder content alphabetically: Folders up, files downs
@@ -26,36 +27,9 @@ class {
     }
 
     this.initialName = null
-    this.menu = [
-      {
-        id: 'ADD_FILE',
-        label: 'Add new file',
-        fn: this.onAddNewFile.bind(this)
-      },
-      {
-        id: 'ADD_FOLDER',
-        label: 'Add new folder',
-        fn: this.onAddNewFolder.bind(this)
-      },
-      {
-        id: 'RENAME_FOLDER',
-        label: 'Rename',
-        fn: (function(){ this.onRenameToggle( true ) }).bind(this)
-      },
-      {
-        id: 'DELETE_FOLDER',
-        label: 'Delete',
-        divider: true,
-        fn: (function(){
-          const folder = { name: this.state.name, path: this.state.path }
-
-          this.emit( 'remove', folder ) // Remove this temporary from its parent folder: UI
-          this.contextEmit( 'remove', folder ) // Apply change via FS
-        }).bind(this)
-      }
-    ]
+    
   }
-  onInput({ _new, name, path, content }){
+  onInput({ _new, name, path, content, lock }){
     this.initialName = name
     this.storeAttr = 'folder--'+ path
     
@@ -66,6 +40,44 @@ class {
       rename: _new || false,
       ...sortContent( content )
     })
+
+    this.setMenu( lock )
+  }
+  setMenu( lock ){
+
+    this.menu = [
+      {
+        id: 'ADD_FILE',
+        label: 'Add new file',
+        fn: this.onAddNewFile.bind(this)
+      },
+      {
+        id: 'ADD_FOLDER',
+        label: 'Add new folder',
+        fn: this.onAddNewFolder.bind(this)
+      }
+    ]
+
+    if( !lock && !Lock.folders.includes( this.state.name ) )
+      this.menu = [
+        ...(this.menu),
+        {
+          id: 'RENAME_FOLDER',
+          label: 'Rename',
+          fn: (function(){ this.onRenameToggle( true ) }).bind(this)
+        },
+        {
+          id: 'DELETE_FOLDER',
+          label: 'Delete',
+          divider: true,
+          fn: (function(){
+            const folder = { name: this.state.name, path: this.state.path }
+
+            this.emit( 'remove', folder ) // Remove this temporary from its parent folder: UI
+            this.contextEmit( 'remove', folder ) // Apply change via FS
+          }).bind(this)
+        }
+      ]
   }
   
   onAddNewFile(){

@@ -167,12 +167,12 @@ class {
             <div>
               <!-- Select all to run -->
               <if( state.runningList.length < Object.keys( state.registry ).length )>
-                <Button.btn-sm.mx-25 on-click('onSelectAll')>Select All</Button>
+                <Button.mx-25 type="md" on-click('onSelectAll')>Select All</Button>
               </if>
 
               <!-- Toggle run one/list of tests -->
               <if( state.runningList.length && !state.running )>
-                <Button.btn-warning.btn-sm.mx-25 on-click('onRun')>Run</Button>
+                <Button.btn-warning.mx-25 type="md" on-click('onRun')>Run</Button>
               </if>
             </div>
           </if>

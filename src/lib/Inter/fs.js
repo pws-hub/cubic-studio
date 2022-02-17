@@ -1,7 +1,7 @@
 
 import * as fs from 'fs-extra'
 
-// Cloud Filesystem Interface
+// Cloud based Filesystem Interface
 export class CloudFS {
 
   constructor(){

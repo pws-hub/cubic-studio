@@ -18,6 +18,6 @@ class {
     <if( state.status !== 'COMPLETED' )>
       <Bx.bx-burst.font-medium-4 type="cloud-download"/>
     </if>
-    <span.px-50>${state.message}</span>
+    <span.px-50>${cleanLog( state.message )}</span>
   </div>
 </if>

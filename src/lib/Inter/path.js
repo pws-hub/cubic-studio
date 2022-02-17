@@ -1,7 +1,7 @@
 
 import * as path from 'path'
 
-// Cloud Path Interface
+// Cloud based Filesystem Path Interface
 export class CloudPath {
 
   constructor(){

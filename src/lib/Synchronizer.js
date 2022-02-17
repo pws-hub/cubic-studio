@@ -101,6 +101,10 @@ async function getSession( type, req ){
   }
 }
 
+async function setCache( attributes, data ){
+
+}
+
 export default ioServer => {
 
   ioServer.on( 'connection', initChannel )

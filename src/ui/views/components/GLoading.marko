@@ -1,19 +1,22 @@
 
-static function clean( str ){
-  return str.replace( new RegExp('\[[1-9]+[KGm]', 'g'), '')
-}
-
 <if( input && input.headline )>
   <div.position-fixed.left-0.top-0.right-0.bottom-0.theme-bg-transparent.d-flex.align-items-center.justify-content-center style="z-index:1000">
     <div.w-30.text-center>
-      <Preloader.font-large-3.text-muted active/>
+      <if( !input.noLoading )>
+        <Preloader.font-large-3.text-muted active/>
+      </if>
+      <else>
+        <Bx.font-large-3.text-muted type="cube-alt"/>
+      </else>
+
       <br><br><br>
-      <p.font-medium-4>
-        <Locale>${input.headline}</Locale>
-      </p>
-      
+      <if( input.headline )>
+        <p.font-medium-4>
+          <Locale>${cleanLog( input.headline )}</Locale>
+        </p>
+      </if>
       <if( input.error )>
-        <p.text-muted>${clean( input.error )}</p>
+        <p.text-muted>${cleanLog( input.error )}</p>
       </if>
     </div>
   </div>

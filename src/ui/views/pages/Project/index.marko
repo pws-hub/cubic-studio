@@ -56,7 +56,6 @@ class {
       // Active indications
       activeTool: 'Code',
       activeElement: null,
-      flag: uiStore.get('action-flag'),
       
       emulator: false,
       emulatorError: false,
@@ -81,12 +80,13 @@ class {
     this.pstore = false
     this.packager = false
     this.emulator = false
+
+    // Inherit flag from precedent page
+    this.flag = uiStore.get('action-flag')
   }
   async onInput({ params }){
     // Fetch project metadata
     await this.getProject( params.id, params.project )
-    // Console to previous show/hide state
-    this.state.showConsole = this.pstore.get('active-console')
   }
   onAction( action, ...args ){
     switch( action ){
@@ -161,7 +161,6 @@ class {
     }
     
     this.state.ongoingSetup = { ...(this.state.ongoingSetup || {}), ...labels }
-    // this.setStateDirty('ongoingSetup')
   }
   progression( stats ){
     // Display ongoing process progression details on Footer
@@ -258,6 +257,8 @@ class {
     catch( error ){
       console.log('Failed retreiving project: ', error )
       this.state.project = null
+
+      this.ongoing({ headline: 'Project Not Found', noLoading: true })
     }
   }
   async getDirectory( path ){
@@ -307,86 +308,106 @@ class {
     this.state.Code = newObject( this.state.Code )
   }
   async SetupProject(){
+    try {
+      let AUTORUN = true
+      
+      // Declare filesystem I/O handler at the project's current working directory
+      const cwd = this.state.project.specs.code.directory
+      this.fs = await window.FileSystem.init( 'project', { cwd, debug: true } )
+      // Declare Project's background Process Manager
+      this.pm = await window.IProcess.create({ debug: true })
 
-    let AUTORUN = true
-    
-    // Declare filesystem I/O handler at the project's current working directory
-    const cwd = this.state.project.specs.code.directory
-    this.fs = await window.FileSystem.init( 'project', { cwd, debug: true } )
-    // Declare Project's background Process Manager
-    this.pm = await window.IProcess.create({ debug: true })
+      // Watch external/background operations on this directory
+      let wait = 0
+      this.fs.watch( async ( event, path, stats ) => {
+        debugLog(`[DIRECTORY Event] ${event}: ${path}`, stats )
 
-    // Watch external/background operations on this directory
-    let wait = 0
-    this.fs.watch( async ( event, path, stats ) => {
-      debugLog(`[DIRECTORY Event] ${event}: ${path}`, stats )
-
-      switch( event ){
-        // New file/dir added: Refresh directory tree
-        case 'add':
-        case 'addDir': wait && clearTimeout( wait )
-                        await this.getDirectory()
-            break
-        /** Wait for `add` event to conclude file/dir moved: 
-            In that case `add event` will refresh the directory.
-            otherwise, conclude `delete`
-        */
-        case 'unlink': wait = setTimeout( async () => await this.getDirectory(), 2000 ); break
-                        
-      }
-
-    } )
-
-    // Get project directory content
-    await this.getDirectory()
-    
-    // Project doesn't exist
-    if( isEmpty( this.state.Code.directories ) ){
-      // Importing project from specified repo (import) or setup new (default)
-      const action = this.state.flag === 'import' && this.state.project.specs.code.repository ? 'import' : 'setup'
-
-      // Setup a completely new project
-      this.ongoing({ headline: 'Setting up the project' })
-      await delay(3)
-      await this.pm[ action ]( this.state.project, ( error, stats ) => {
-        
-        
-          
-        if( error ){
-          // TODO: Manage process exception errors
-          console.log('--Progress Error: ', error )
-          this.ongoing({ error: typeof error == 'object' ? error.message : error })
-          return
+        switch( event ){
+          // New file/dir added: Refresh directory tree
+          case 'add':
+          case 'addDir': wait && clearTimeout( wait )
+                          await this.getDirectory()
+              break
+          /** Wait for `add` event to conclude file/dir moved: 
+              In that case `add event` will refresh the directory.
+              otherwise, conclude `delete`
+          */
+          case 'unlink': wait = setTimeout( async () => await this.getDirectory(), 2000 ); break
+                          
         }
-        
-        // TODO: Display progression stats
-        this.ongoing({ headline: `[${stats.percent}%] ${stats.message}` })
-        this.progression( stats )
+
       } )
 
-      debugLog('-- Completed indeed --')
+      // Get project directory content
+      await this.getDirectory()
       
+      // Project has no directory: Setup or Import (Depending of flag value)
+      if( isEmpty( this.state.Code.directories ) )
+        this.flag = this.flag || 'setup'
 
-      // Automatically run project in 3 second
-      await delay(3)
-      this.ongoing( false )
-      AUTORUN && this.RunEmulator( true )
-    }
-    else {
-      // Mount project's last states
-      this.state.tabs = this.pstore.get('tabs') || []
-      this.state.activeElement = this.pstore.get('active-element') || null
-      
-      // Reload cached emulator state of this project
-      const cachedEMImage = this.pstore.get('emulator')
-      if( AUTORUN && cachedEMImage )
-        window.env == 'production' ? 
-                      this.ReloadEmulator() // Reload backend process
-                      : this.RunEmulator() // Connect frontend to process or run process if not available
-    }
+      // Import if project have no package.json file at the directory root
+      else if( !( await this.fs.readFile( 'package.json', { encoding: 'json' } ) ) )
+        this.flag = 'import'
 
-    // Get project dependencies
-    await this.getDependencies()
+
+      // Flag when something fishing about the setup
+      if( this.flag ){
+        // Importing project from specified repo (import) or setup new (default)
+        const action = this.flag || 'setup'
+
+        // Setup a completely new project
+        this.ongoing({ headline: 'Setting up the project' })
+        await delay(3)
+        await this.pm[ action ]( this.state.project, ( error, stats ) => {
+          
+          
+            
+          if( error ){
+            // TODO: Manage process exception errors
+            console.log('--Progress Error: ', error )
+            this.ongoing({ error: typeof error == 'object' ? error.message : error })
+            return
+          }
+          
+          // TODO: Display progression stats
+          this.ongoing({ headline: `[${stats.percent}%] ${stats.message}` })
+          this.progression( stats )
+        } )
+
+        debugLog('-- Completed indeed --')
+        
+        // Automatically run project in 3 second
+        await delay(3)
+        this.ongoing( false )
+        AUTORUN && this.RunEmulator( true )
+      }
+      else {
+        // Mount project's last states
+        this.state.tabs = this.pstore.get('tabs') || []
+        this.state.activeElement = this.pstore.get('active-element') || null
+        
+        // Reload cached emulator state of this project
+        const cachedEMImage = this.pstore.get('emulator')
+        if( AUTORUN && cachedEMImage )
+          window.env == 'production' ? 
+                        this.ReloadEmulator() // Reload backend process
+                        : this.RunEmulator() // Connect frontend to process or run process if not available
+      }
+
+      // Get project dependencies
+      await this.getDependencies()
+
+      // Console to previous show/hide state
+      this.state.showConsole = this.pstore.get('active-console')
+    }
+    catch( error ){
+      console.log('Failed setting up project: ', error )
+      this.ongoing({ 
+        noLoading: true,
+        headline: 'Project setup failed', 
+        error: error.message
+      })
+    }
   }
   async DeleteProject(){
     // Close running emulator

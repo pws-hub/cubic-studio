@@ -1,4 +1,6 @@
 
+import Lock from './../lock.json'
+
 class {
   onCreate(){
     this.state = {
@@ -10,39 +12,49 @@ class {
     }
 
     this.initialName = null
-    this.menu = [
-      {
-        id: 'DOWNLOAD_FILE',
-        label: 'Download',
-        fn: (function(){ }).bind(this)
-      },
-      {
-        id: 'RENAME_FILE',
-        label: 'Rename',
-        divider: true,
-        fn: (function(){ this.onRenameToggle( true ) }).bind(this)
-      },
-      {
-        id: 'DELETE_FILE',
-        label: 'Delete',
-        fn: (function(){
-          const file = { name: this.state.name, path: this.state.path }
-
-          this.emit( 'remove', file ) // Remove this temporary from its parent folder: UI
-          this.contextEmit( 'remove', file ) // Apply change via FS
-        }).bind(this)
-      }
-    ]
   }
-  onInput({ _new, name, path }){
+  onInput({ _new, name, path, lock }){
     this.initialName = name
     this.setState({
       name,
       path,
       label: name.split('.').pop(),
       rename: _new || false
-    }) 
+    })
+
+    this.setMenu( lock )
   }
+  setMenu( lock ){
+    this.menu = [
+      {
+        id: 'DOWNLOAD_FILE',
+        label: 'Download',
+        fn: (function(){ }).bind(this)
+      }
+    ]
+
+    if( !lock && !Lock.files.includes( this.state.name ) )
+      this.menu = [
+        ...(this.menu),
+        {
+          id: 'RENAME_FILE',
+          label: 'Rename',
+          divider: true,
+          fn: (function(){ this.onRenameToggle( true ) }).bind(this)
+        },
+        {
+          id: 'DELETE_FILE',
+          label: 'Delete',
+          fn: (function(){
+            const file = { name: this.state.name, path: this.state.path }
+
+            this.emit( 'remove', file ) // Remove this temporary from its parent folder: UI
+            this.contextEmit( 'remove', file ) // Apply change via FS
+          }).bind(this)
+        }
+      ]
+  }
+
   onRenameToggle( status ){ 
     this.initialName = this.state.name
     this.state.rename = status

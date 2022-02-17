@@ -17,7 +17,7 @@ $ const { type, name, error, status } = input
           <if( Array.isArray( error.stack ) && error.stack.length )>
             <ul.list-unstyled.m-0>
               <for|{ func, line, column, path }, index| of=error.stack>
-                <li key=index>
+                <li.d-block key=index>
                   <span.text-muted>${func}</span>
                   <u.text-info.cursor-pointer
                       style="padding-left:4rem"

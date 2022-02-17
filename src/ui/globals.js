@@ -78,6 +78,9 @@ window.debugLog = ( ...args ) => {
   if( window.env == 'production' ) return
   console.log( ...args )
 }
+window.cleanLog = str => {
+  return (str || '').replace( new RegExp('\s?\[[1-9]+[KGm]', 'g'), '')
+}
 window.newObject = obj => { return typeof obj == 'object' && JSON.parse( JSON.stringify( obj ) ) }
 window.deepAssign = ( obj1, obj2 ) => { return Object.assign( newObject( obj1 ), obj2 || {} ) }
 

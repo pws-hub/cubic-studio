@@ -33,6 +33,7 @@
     "install": "^0.13.0",
     "jquery": "^3.6.0",
     "jquery-ui": "^1.13.0",
+    "jsonwebtoken": "^8.5.1",
     "kebab-case": "^1.0.1",
     "marko-router5": "^1.1.0",
     "markojs-form": "^1.0.0",

@@ -46,5 +46,41 @@
     "version": "1.0.0",
     "description": "Component to handle responsiveness base on multipple's workspace dynanism",
     "package": "WSAdapt.marko"
+  },
+  {
+    "name": "Preloader",
+    "version": "1.0.0",
+    "description": "Display loading icon during an ongoing process",
+    "package": "Preloader.marko"
+  },
+  {
+    "name": "RouterWrapper",
+    "version": "1.0.0",
+    "description": "Handle routing component as navigation pages",
+    "package": "RouterWrapper.marko"
+  },
+  {
+    "name": "DialogModal",
+    "version": "1.0.0",
+    "description": "Nice popup dialog to alert or for confirmation process. Depend on `WSAdapt` component to work.",
+    "package": "DialogModal.marko"
+  },
+  {
+    "name": "PosterPlus",
+    "version": "1.0.0",
+    "description": "Select and upload file from your computer to the cloud/application",
+    "package": "PosterPlus"
+  },
+  {
+    "name": "Button",
+    "version": "1.0.0",
+    "description": "Nice shape bootstrap button with active, sort, ... functions",
+    "package": "Button.marko"
+  },
+  {
+    "name": "FormAlert",
+    "version": "1.0.0",
+    "description": "Nice form alert display base on bootstrap alert style and variations",
+    "package": "FormAlert.marko"
   }
 ]

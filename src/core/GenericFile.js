@@ -15,9 +15,9 @@ export const dotCubic = async ({ specs }) => {
     language: specs.code.language,
     platforms: specs.code.platforms,
     setup: {
-      sample: `@git/lib:${language}:multipple.micro~1.0.0`,
-      sandbox: `@git/lib:${language}:multipple.sandbox~1.0.0`,
-      test: `@npm/lib:multipple:${language}.unit-test~1.0.0`
+      sample: `@git/lib:${language}:${Configs.INSTANCE_PROVIDER}.micro~1.0.0`,
+      sandbox: `@git/lib:${language}:${Configs.INSTANCE_PROVIDER}.sandbox~1.0.0`,
+      test: `@npm/lib:${Configs.INSTANCE_PROVIDER}:${language}.unit-test~1.0.0`
     },
     emulator: {
       version: '1.0.0',

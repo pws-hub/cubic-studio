@@ -1,0 +1,24 @@
+
+class {
+  onCreate(){ this.state = { activeState: false } }
+  onInput( input ){
+    if( input.active !== undefined )
+      this.state.activeState = input.active == true
+  }
+  onClick(){
+    this.state.activeState = !this.state.activeState
+    this.emit('click')
+    this.emit( 'change', this.state.activeState )
+  }
+}
+
+<span.display-inline-block
+      class=( ( !input.icon ? 'btn ' : 'cursor-pointer ' )+( !input.activeClass || !state.activeState ? input.class : input.activeClass ) )
+      title=input.title
+      style=input.style
+    on-click('onClick')>
+  <if( input.icon )>
+    <i class=('bx '+( !input.activeIcon || !state.activeState ? input.icon : input.activeIcon ) ) style="font:inherit;color:inherit"></i>
+  </if>
+  <${input.renderBody}/>
+</span>

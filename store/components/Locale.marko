@@ -1,18 +1,19 @@
-
 class { 
 	onCreate(){ this.state = { locale: {}, text: '' } } 
 	onMount(){
 		// Pipe to context component in <Extension/>
 		const 
 		context = this.___context[1],
-		originalText = this.input.text || ( typeof this.input.renderBody == 'function' ? input.renderBody( this.out ) : '' )
-
-		context.on( 'update', () => {
+		translate = () => {
+			const originalText = this.input.text || ( typeof this.input.renderBody == 'function' ? input.renderBody( this.out ) : '' )
 			this.setState({
 				locale: context.data.locale,
 				text: context.data.RenderLocale( originalText )
 			})
-		} )
+		}
+
+		context.on( 'mount', translate )
+		context.on( 'update', translate )
 	}
 }
 

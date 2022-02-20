@@ -21,6 +21,7 @@ getInitialScope = async ( req, res ) => {
   let initStr = JSON.stringify({
     env: process.env.NODE_ENV,
     mode: process.env.MODE,
+    provider: Configs.INSTANCE_PROVIDER,
     namespaces: {
       CAR: process.env.CAR_NAMESPACE, // Cubic API Request namespace
       FST: process.env.FST_NAMESPACE, // File System Transaction namespace

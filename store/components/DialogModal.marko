@@ -1,0 +1,120 @@
+
+static const TypeIcons = {
+  info: 'info-circle',
+  warning: 'error',
+  danger: 'error-alt',
+  success: 'check-circle'
+}
+
+class {
+  onInput( input ){
+
+    if( input.actions ) return
+
+    // Auto-dismiss alert after 10seconds
+    setTimeout( () => this.emit('dismiss'), 15000 )
+  }
+  onYes(){
+    // Yes Confirmation or validation action
+    this.input.actions.yes
+    && typeof this.input.actions.yes == 'function'
+    && this.input.actions.yes()
+    
+    this.input.actions.yes
+    && typeof this.input.actions.yes.fn == 'function'
+    && this.input.actions.yes.fn()
+
+    // In case "on-yes" event is use instead of callback
+    this.emit('yes')
+    // Then dismiss
+    this.emit('dismiss')
+  }
+  onNo(){
+    // No Confirmation or validation action
+    this.input.actions.no
+    && this.input.actions.no.fn
+    && this.input.actions.no.fn()
+
+    // In case "on-no" event is use instead of callback
+    this.emit('no')
+    // Then dismiss
+    this.emit('dismiss')
+  }
+  onPassive({ gstate, navigate }){
+    try {
+      // Call global/shared state API method
+      gstate && GState[ gstate.target ][ gstate.call ]( ...(gstate.arguments || []) )
+      // Navigate to another page
+      navigate && window.navigate( navigate.pathname )
+    }
+    catch( error ){ console.log('Invalid Passive Dialog Action Parameters: ', error ) }
+  }
+  onDismiss(){ this.emit('dismiss') }
+}
+
+<div class="dialog-modal position-absolute zindex-4 h-100 top-0 left-0 right-0 d-flex align-items-center center">
+  <Row.m-0 class="w-100 d-flex justify-content-center">
+    <!-- Overlay background only in case user action is required -->
+    <if( input.actions )>
+      <div class="position-absolute top-0 w-100 h-100 theme-bg-transparent animated fadeIn faster"
+            on-click('onDismiss')></div>
+    </if>
+
+    <!-- Dialog container -->
+    <WSAdapt ns=`col-${input.ns || '3'}`
+              qs=`col-${input.qs || '4'}`
+              hs=`col-${input.hs || '6'}`
+              fs=`col-${input.fs || '3'}`
+              class="animated bounceIn fast">
+      <div class="card shadow-lg">
+        <div class="card-content">
+          <div class="px-2 py-1">
+            <!-- Manually Dismiss button -->
+            <div class="position-absolute zindex-1 right-0 top-0 m-1 cursor-pointer" on-click('onDismiss')>
+              <Bx type="x" class="font-large-1"/>
+            </div>
+            
+            <Row.mt-2>
+              <!-- Dialog type/status illustration icon -->
+              <@col class="col-3 text-center">
+                <Bx type=( input.type && TypeIcons[ input.type ] || 'info-circle' ) class="text-muted font-large-3"/>
+              </@col>
+
+              <@col>
+                <!-- Dialog content message -->
+                <if( input.status )><h6.text-primary.mt-0><Locale>${input.status}</Locale></h6></if>
+                <p><Locale>$!{input.message || 'Dialog message is required'}</Locale></p>
+                
+                <!-- Todo actions buttons -->
+                <if( input.actions )>
+                  <!-- Passive action like: Link, Navigation or Function call -->
+                  <if( input.actions.passive )>
+                    <strong.d-inline-block.mb-2.text-primary.cursor-pointer 
+                            on-click('onPassive', input.actions.passive )>
+                      ${input.actions.passive.label}
+                    </strong>
+                  </if>
+                  <else>
+                    <div class="buttons mt-1 text-right">
+                      <!-- No Confirmation action button -->
+                      <button class=`btn btn-${input.actions.no && input.actions.no.active ? 'primary' : 'light' } m-25` 
+                              on-click('onNo')>
+                        <Locale text=( ( input.actions.no && input.actions.no.label ) || 'No' )/>
+                      </button>
+
+                      <!-- Yes Confirmation action button -->
+                      <button class=`btn btn-${!input.actions.no || !input.actions.no.active ? 'primary' : 'light' } m-25` 
+                              on-click('onYes')>
+                        <Locale text=( ( input.actions.yes && input.actions.yes.label ) || 'Yes' )/>
+                      </button>
+                    </div>
+                  </else>
+                </if>
+              </@col>
+            </Row>
+          </div>
+        </div>
+      </div>
+    </WSAdapt>
+  </Row>
+</div>

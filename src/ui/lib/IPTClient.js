@@ -187,10 +187,43 @@ function ProcessHandler( client ){
       if( typeof tracker == 'function' )
         this.trackers['add-components'] = tracker
 
-      const { error, message, response } = await run( 'addComponent', dataset, directory )
+      const { error, message, response } = await run( 'addComponents', dataset, directory )
       if( error ) throw new Error( message )
 
       return response || true
+    }
+    catch( error ){
+      console.log( error )
+      return false
+    }
+  }
+
+  this.installApp = async ( dataset, tracker ) => {
+    try {
+      // Register `install-app` tracker
+      if( typeof tracker == 'function' )
+        this.trackers['install-app'] = tracker
+
+      const { error, message, response } = await run( 'installApp', dataset )
+      if( error ) throw new Error( message )
+
+      return response
+    }
+    catch( error ){
+      console.log( error )
+      return false
+    }
+  }
+  this.uninstallApp = async ( appid, tracker ) => {
+    try {
+      // Register `uninstall-app` tracker
+      if( typeof tracker == 'function' )
+        this.trackers['uninstall-app'] = tracker
+
+      const { error, message, response } = await run( 'uninstallApp', appid )
+      if( error ) throw new Error( message )
+
+      return response
     }
     catch( error ){
       console.log( error )

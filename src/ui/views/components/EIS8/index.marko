@@ -1,34 +1,11 @@
 
-import IOF from 'iframe.io'
-
-static const REQUIRED_FEATURES = ['geolocation']
-static const SANDBOX_RULES = ['allow-scripts', 'allow-same-origin']
-static const ACCOUNT_TYPES = {
-  'admin': {
-    label: 'ADMIN',
-    description: 'Wrap all SUPER-ADMIN, ADMIN & SUPERVISOR accounts'
-  },
-  'instructor': {
-    label: 'INSTRUCTOR',
-    description: 'Standard instructor account'
-  },
-  'learner': {
-    label: 'LEARNER',
-    description: 'Standard learner/student account'
-  }
-}
-static const ACTIVITY_CONTEXTS = {
-  'Explore Courses': { 
-    page: 'course',
-    event: { id: 'course-id' },
-    keywords: [ 'course', 'program', 'activity' ]
-  },
-  'Classroom': {
-    page: 'classroom',
-    event: { id: 'enrollment-id' },
-    keywords: [ 'course', 'program', 'activity', 'note', 'library' ]
-  }
-}
+import Channel from './lib/channel'
+import {
+  SANDBOX_RULES,
+  ACCOUNT_TYPES,
+  REQUIRED_FEATURES,
+  ACTIVITY_CONTEXTS
+} from './lib/specs'
 
 class {
   onCreate(){
@@ -61,37 +38,7 @@ class {
           .catch( error => this.emit('run') ) // Run emulator & process
   }
   onAction( _event, data, fn ){ this.iof.emit( _event, data, fn ) }
-  onLoaded( e ){
-    // Remove all previous listeners when iframe reloaded
-    this.iof && this.iof.removeListeners()
-    
-    this.iof = new IOF({ type: 'window', debug: true })
-    this.iof.initiate( e.target.contentWindow, this.input.meta.hostname )
-
-    this.iof
-    .once( 'connect', () => {
-      // Get supported languages manifest of app/plugin
-      this.iof.emit( 'get:languages', ( error, manifest ) => {
-        if( error ) return
-        this.state.languages = manifest
-      } )
-
-      // Get created test manifest of app/plugin
-      this.iof.emit( 'get:tests', ( error, manifest ) => {
-        if( error ) return
-        this.state.tests = manifest
-      } )
-    } )
-    .on( 'start', () => {
-      // Clear console of sandbox start
-      GState.console.clear()
-    } )
-    .on( 'console:log', GState.console.log )
-
-    // Communicate workspace and screen change to iframe
-    GState.on( 'ws', data => this.iof.emit( 'ws:change', data ) )
-    GState.on( 'screen', data => this.iof.emit( 'screen:change', data ) )
-  }
+  onLoaded( e ){ Channel.bind( this )( e ) }
   onReload(){
     this.state.canLoad = false
     this.state.reloading = true

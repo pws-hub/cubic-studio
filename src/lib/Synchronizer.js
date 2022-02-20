@@ -37,7 +37,8 @@ async function getPath( type ){
                         await Fs.ensureDir( path )
                         return path
 
-    case 'session': path = Path.resolve('sync')
+    case 'session':
+    case 'install': path = Path.resolve('sync')
                     await Fs.ensureDir( path )
                     return path
   }
@@ -58,7 +59,6 @@ async function setSession( data ){
   const sessdir = await getPath('session')
   await Fs.writeFile( `${sessdir}/session.dtf`, encrypt( data ), 'UTF-8' )
 }
-
 async function getSession( type, req ){
   
   switch( type ){
@@ -101,8 +101,23 @@ async function getSession( type, req ){
   }
 }
 
-async function setCache( attributes, data ){
-
+async function setApp( appId, dataset ){
+  // TODO: Add app to a database on `cloud` base mode
+  if( isOncloud() ){}
+  // Add app to `temp` folder on `local` base mode
+  else await Fs.writeFile(`${ await getPath('install') }/${appId}.app`, encrypt( dataset ), 'UTF-8' )
+}
+async function getApp( appId ){
+  // TODO: Get app information from a database on `cloud` base mode
+  if( isOncloud() ){}
+  // Get app information from `temp` folder on `local` base mode
+  else decrypt( await Fs.readFile(`${ await getPath('install') }/${appId}.app`, 'UTF-8') )
+}
+async function clearApp( appId ){
+  // TODO: Remove app from a database on `cloud` base mode
+  if( isOncloud() ){}
+  // Remove app from `temp` folder on `local` base mode
+  else await Fs.remove(`${ await getPath('install') }/${appId}.app`)
 }
 
 export default ioServer => {
@@ -111,7 +126,12 @@ export default ioServer => {
 
   global.Sync = {
     storeCredentials,
+
     setSession,
-    getSession
+    getSession,
+
+    setApp,
+    getApp,
+    clearApp
   }
 }

@@ -1,0 +1,10 @@
+
+.pp-files .btn-add{ background: #f5f5f5 !important; }
+.theme-bg .pp-files .btn-add{ background: rgb(40, 40, 45)!important; }
+
+.file-item .btn-remove-file{ display:none; }
+.file-item:hover .btn-remove-file{ display:inline-block; }
+
+.cropper-line,
+.cropper-point { background: white!important; }
+.cropper-view-box { outline:1px solid rgba(255, 255, 255, .6)!important; }

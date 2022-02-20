@@ -1,36 +1,315 @@
 
-import fetch from 'node-fetch'
+import request from 'request'
+import jwt from 'jsonwebtoken'
+
+async function getAuthConfig( req, type, extensionId ){
+  // Get an auth configuration type of the app: OAuth, JWT, BAT, BAC, ...
+  const app = await Sync.getApp( extensionId )
+  if( typeof app !== 'object' ) 
+    throw new Error('Invalid Installed App Config')
+  
+  return app.configs && app.configs[ type ]
+}
+
+async function ProcessOAuth2( req, extensionId ){
+  return new Promise( ( resolve, reject ) => {
+
+    const headers = {
+      // Current site host
+      'Origin': toOrigin( req.headers.host ),
+      // Connected User credentials
+      'MP-User-Agent': req.app.config.userAgent,
+      'MP-Auth-Token': req.session.ctoken,
+      'MP-Auth-Device': req.session.deviceId,
+      'MP-Auth-Role': req.session.role
+    }
+
+    function getToken( baseURL, id, secret, scope ){
+      return new Promise( ( resolve, reject ) => {
+        const
+        headers = {
+          Authorization: 'Basic '+ ( id +':'+ secret ).toString('base64')
+        },
+        form = {
+          grant_type: 'authorization_code',
+          // code: $code,
+          redirect_uri: `${toOrigin(req.headers.host )}/extension/oauth2/callback`
+        }
+
+        // Retreive OAuth2.0 configuration of this extension
+        request(`${baseURL}/oauth/token`,
+                  { headers, method: 'POST', form, json: true },
+                  ( error, response, body ) => {
+                    if( error ) return reject( error )
+                    
+                    // console.log('Get Token: ', body )
+                    resolve({
+                      accessToken: body,
+                      // authorize_url: `https://zoom.us/oauth/authorize?response_type=code&client_id=${id}&redirect_uri=${encodeURIComponent( form.redirect_uri )}`
+                    })
+                  } )
+      } )
+    }
+
+    function refreshToken( baseURL, id, secret, token ){
+      return new Promise( ( resolve, reject ) => {
+        const
+        headers = {
+          Authorization: 'Basic '+ ( id +':'+ secret ).toString('base64')
+        },
+        form = {
+          grant_type: 'refresh_token',
+          refresh_token: token
+        }
+
+        // Retreive OAuth2.0 configuration of this extension
+        request(`${baseURL}/oauth/token`,
+                  { headers, method: 'POST', form, json: true },
+                  ( error, response, body ) => {
+                    if( error ) return reject( error )
+                    
+                    // console.log( body )
+                    resolve( body )
+                  } )
+      } )
+    }
+    
+    // Retreive OAuth2.0 configuration of this extension
+    request(`${toOrigin( process.env.MULTIPPLE_API_SERVER )}/extension/${extensionId}/oauth2`,
+              { headers, method: 'GET', json: true },
+              async ( error, response, body ) => {
+
+                if( error || body.error ) return reject( error || body.message )
+
+                console.log('Process OAuth: ', body )
+
+                const { provider, client, scope } = body.config
+                const { accessToken } = await getToken( provider.baseURL, client.id, client.secret, scope.join() )
+                
+                resolve({ baseURL: provider.baseURL, accessToken })
+              } )
+  } )
+}
+
+async function ProcessJWT( req, extensionId ){
+  try {
+    const 
+    { baseURL, APIKey, APISecret } = await getAuthConfig( req, 'jwt', extensionId ),
+    // console.log('Process OAuth: ', body )
+    payload = {
+      iss: APIKey,
+      exp: ( ( new Date() ).getTime() + 5000 )
+    },
+    accessToken = jwt.sign( payload, APISecret )
+
+    return { baseURL, accessToken }
+  }
+  catch( error ){ throw new Error( error ) }
+}
+
+async function ProcessBAC( req, extensionId ){
+  try { return await getAuthConfig( req, 'bac', extensionId ) }
+  catch( error ){ throw new Error( error ) }
+}
+
+async function ProcessBAT( req, extensionId ){
+  try {
+    const config = await getAuthConfig( req, 'bat', extensionId )
+    return { 
+      baseURL: config.baseURL, 
+      accessToken: config.token 
+    }
+  }
+  catch( error ){ throw new Error( error ) }
+}
 
 export default async ( req, res ) => {
-  try {
-    if( !req.session.credentials
-        || !req.session.credentials.multipple )
-      throw new Error('Undefined API Request Credentials')
+  let 
+  { extensionId, url, method, body, headers, responseType, authType } = req.body,
+  base_URL, access_token
+  
+  const options = {
+    method, 
+    headers: headers || {},
+    url: decodeURIComponent( url )
+  }
 
-    const 
-    { domain, token, deviceId, role } = req.session.credentials.multipple,
-    { url, method, body } = req.body,
-    options = {
-      method,
-      headers: {
+  if( authType ){
+    // Caching session of Auth Request Options
+    if( !req.session[ extensionId ] )
+      req.session[ extensionId ] = {}
+
+    // Use previous generated info stored in session
+    base_URL = req.session[ extensionId ].base_URL
+    access_token = req.session[ extensionId ].access_token
+
+    // Authentication Request Authorizations
+    switch( authType ){
+      // Use OAuth2.0
+      case 'oauth2':  if( !access_token )
+                        try {
+                          // Process oauth2.0 authentication
+                          const { baseURL, accessToken } = await ProcessOAuth2( req, extensionId )
+                          if( !accessToken ) throw new Error('Unexpected Error Occured')
+
+                          // Keep baseURL & accessToken in session for next requests
+                          base_URL =
+                          req.session[ extensionId ].base_URL = baseURL
+                          access_token =
+                          req.session[ extensionId ].access_token = accessToken
+                        }
+                        catch( error ){ console.log('OAuth2.0 Error: ', error ) }
+
+                      // Add accessToken to Authorization bearer headers
+                      options.auth = { bearer: access_token }
+        break
+      // Use JWT Auth
+      case 'jwt': if( !access_token )
+                    try {
+                      // Process JWT authentication
+                      const { baseURL, accessToken } = await ProcessJWT( req, extensionId )
+                      if( !accessToken ) throw new Error('Unexpected Error Occured')
+
+                      // Keep baseURL & accessToken in session for next requests
+                      base_URL =
+                      req.session[ extensionId ].base_URL = baseURL
+                      access_token =
+                      req.session[ extensionId ].access_token = accessToken
+                    }
+                    catch( error ){ console.log('JWT Error: ', error ) }
+
+                  // Add accessToken to Authorization bearer headers
+                  options.auth = { bearer: access_token }
+        break
+      // Use Basic Auth Credentials
+      case 'bac': // Re-use token store in session
+                  if( !access_token ){
+                    try {
+                      const [ user, password ] = Buffer.from( access_token, 'base64' ).toString('ascii').split(':')
+                      // user & password Authorization
+                      options.auth = { user, password, setImmediately: true }
+                    }
+                    catch( error ){ console.log('Invalid BAC Token Error: ', error ) }
+                  }
+                  
+                  // Get credentials
+                  else try {
+                    // Process BAC authentication
+                    const { baseURL, user, password } = await ProcessBAC( req, extensionId )
+                    if( !accessToken ) throw new Error('Unexpected Error Occured')
+
+                    // Keep baseURL & accessToken in session for next requests
+                    base_URL =
+                    req.session[ extensionId ].base_URL = baseURL
+                    // Store user and password as base64 token in 
+                    access_token =
+                    req.session[ extensionId ].access_token = Buffer.from( user +':'+ password ).toString('base64')
+                    
+                    // user & password Authorization
+                    options.auth = { user, password, setImmediately: true }
+                  }
+                  catch( error ){ console.log('BAC Error: ', error ) }
+        break
+      // Use Bearer Auth Token
+      case 'bat': if( !access_token )   
+                    try {
+                      // Process BAT authentication
+                      const { baseURL, accessToken } = await ProcessBAT( req, extensionId )
+                      if( !accessToken ) throw new Error('Unexpected Error Occured')
+
+                      // Keep baseURL & accessToken in session for next requests
+                      base_URL =
+                      req.session[ extensionId ].base_URL = baseURL
+                      access_token =
+                      req.session[ extensionId ].access_token = accessToken
+                    }
+                    catch( error ){ console.log('BAT Error: ', error ) }
+
+                  // Add accessToken to Authorization bearer headers
+                  options.auth = { bearer: access_token }
+        break
+    }
+  }
+  
+  /** Assign request body by specified `Content-Type` in headers
+   * 
+   * MITIGATION:
+   * Add empty JSON body to the request to prevent error like,
+   * `Expected request body for application/json content-type`
+   * 
+   * NOTE:
+   * `multipart/form-data` body is mandatory
+   * */
+  const contentType = options.headers && ( options.headers['content-type'] || options.headers['Content-Type'] )
+  switch( contentType ){
+    case 'multipart/form-data': options.formData = body || {}; break
+    case 'application/json': options.body = body || {}; break
+
+    // With or without body
+    default: if( body ) options.form = body
+  }
+
+  /* Attach provider's Base URL when it's a 3rd 
+    party API with required authorization or 
+    assign LXP API Server by default.
+  */
+  if( !/http(s?):\/\/(.+)/.test( options.url ) ){
+    if( base_URL )
+      options.url = base_URL + options.url
+    
+    else {
+      if( !req.session.credentials
+          || !req.session.credentials.multipple )
+        return res.status(400)
+                  .json({ 
+                    error: true,
+                    status: 'MULTIPPLE',
+                    message: 'Undefined API Request Credentials'
+                  })
+
+      const { domain, token, deviceId, role } = req.session.credentials.multipple
+    
+      options.url = toOrigin( process.env.MULTIPPLE_API_SERVER ) + options.url
+      options.headers = {
         'Origin': domain,
         'MP-User-Agent': 'MP.studio/1.0',
         'MP-Auth-Token': token,
         'MP-Auth-Device': deviceId,
         'MP-Auth-Role': role
-      },
-      body: JSON.stringify( body )
-    },
-    response = await fetch( toOrigin( process.env.MULTIPPLE_API_SERVER ) + url, options )
-    res.json( await response.json() )
+      }
+    }
   }
-  catch( error ){
-    console.log('Authentication Checking failed: ', error )
-    return res.status(400)
-              .json({ 
-                error: true,
-                status: 'MULTIPPLE',
-                message: error.message 
-              })
+
+  function onError( error ){
+    
+    if( !error.statusCode )
+      switch( error.code ){
+        case 'ENOTFOUND': error.statusCode = 404; break
+      }
+    
+    res.status( error.statusCode || 400 ).send( error.message ) 
+  }
+
+  console.log('options: ', options )
+
+  switch( responseType ){
+    // Blob content
+    case 'blob': req.pipe( request( url ).on( 'error', onError ) )
+                    .pipe( res )
+        break
+    // Binary content
+    case 'binary': options.encoding = 'binary'
+                    request( options, ( error, response, body ) => {
+                      if( error ) return onError( error )
+                      res.send(`data:${response.headers['content-type']};base64,${Buffer.from( body, 'binary' ).toString('base64')}`)
+                    })
+                    
+    default: options.json = true
+              request( options, ( error, response, body ) => {
+                if( error ) return onError( error )
+                
+                res.headers = response.headers
+                res.send( body || { code: response.statusCode, message: response.message } )
+              } )
   }
 }

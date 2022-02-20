@@ -1,0 +1,57 @@
+
+static function getHistory( sequence ){
+  return typeof sequence == 'object' ? sequence : { path: sequence, params: {} }
+}
+
+class {
+  onCreate({ namespace, defaultRoute }){
+    // Initialise navigation history or load stored histories
+    this.histories = uiStore.get(`${namespace}-history`) || []
+    
+    // State the last history page or default
+    let { path, params } = getHistory( this.histories.slice(-1)[0] || defaultRoute )
+    this.state = {
+      current: path,
+      params
+    }
+  }
+  navigate( path, params = {} ){
+    // Navigate through pages
+    if( this.state.current == path
+        && JSON.stringify( this.state.params ) == JSON.stringify( params ) ) return
+    
+    // Escape DOM Element or Marko Component added as params
+    if( typeof params == 'object' && ( params.target || params.$e ) )
+      params = {}
+    
+    if( path == 'back' ){
+      // navigate back history
+      this.histories.pop()
+
+      const 
+      historyLen = this.histories.length,
+      history = getHistory( historyLen ? this.histories[ historyLen - 1 ] : this.input.defaultRoute )
+
+      path = history.path
+      params = history.params
+    }
+    // New path
+    else {
+      // Clear history when back to initial route
+      if( path == this.input.defaultRoute )
+        this.histories = []
+
+      this.histories.push({ path, params })
+    }
+
+    // New page to go & its params
+    this.setState({ current: path, params })
+    uiStore.set( `${this.input.namespace}-history`, this.histories )
+  }
+}
+
+<!-- Wrapper so Router component get required
+    inputs and events via context -->
+<context Routes=input.routes ...state on-navigate('navigate')>
+  <${input.renderBody} current=state.current navigate=component.navigate.bind(component)/>
+</context>

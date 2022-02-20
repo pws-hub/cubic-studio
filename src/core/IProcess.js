@@ -1,11 +1,12 @@
 
 import Fs from 'fs-inter'
 import Path from 'path-inter'
+import randtoken from 'rand-token'
+import Emulator from './Emulator'
 import GitManager from './GitManager'
 import FileSystem from './FileSystem'
 import * as GenericFile from './GenericFile'
 import PackageManager from './PackageManager'
-import Emulator from './Emulator'
 
 async function PackageProcess( action, dataset, directory, source, _process ){
   
@@ -112,7 +113,7 @@ export default class IProcess {
         plang = language.split('~')[0] // Specified programming language or Framework
 
         // Append template project to the directory
-        await git.cloneProject( `https://github.com/multipple/create-${templateType}-${plang}.git`, directory, true )
+        await git.cloneProject( `https://github.com/${Configs.INSTANCE_PROVIDER}/create-${templateType}-${plang}.git`, directory, true )
 
         /** IMPORTANT: Define git's current working directory 
          *              for all next commands cause project
@@ -145,7 +146,7 @@ export default class IProcess {
                         processor: 'git',
                         message: 'Setup development sandbox'
                       })
-        await git.cloneProject( `https://github.com/multipple/${plang}-sandbox.git`, directory +'/sandbox' )
+        await git.cloneProject( `https://github.com/${Configs.INSTANCE_PROVIDER}/${plang}-sandbox.git`, directory +'/sandbox' )
         inSandbox = true
 
         /*-------------------------------------------------------------------------*/
@@ -285,7 +286,7 @@ export default class IProcess {
                           })
 
             const templateType = type == 'application' ? 'app' : type
-            await git.cloneProject( `https://github.com/multipple/create-${templateType}-${plang}.git`, directory, true )
+            await git.cloneProject( `https://github.com/${Configs.INSTANCE_PROVIDER}/create-${templateType}-${plang}.git`, directory, true )
           }
         }
         
@@ -322,7 +323,7 @@ export default class IProcess {
                           message: 'Setup development sandbox'
                         })
                         
-          await git.cloneProject( `https://github.com/multipple/${plang}-sandbox.git`, directory +'/sandbox' )
+          await git.cloneProject( `https://github.com/${Configs.INSTANCE_PROVIDER}/${plang}-sandbox.git`, directory +'/sandbox' )
           inSandbox = true
         }
 
@@ -563,6 +564,74 @@ export default class IProcess {
     catch( error ){
       this.debug('Error occured: ', error )
       this.watcher( 'refresh-packages', error )
+    }
+  }
+  
+  async installApp( dataset ){
+    try {
+      if( !isApp( dataset ) )
+        throw new Error('Invalid application dataset')
+
+      this.watcher( 'install-app',
+                    false,
+                    {
+                      percent: 1,
+                      processor: false,
+                      message: 'Installation started'
+                    })
+                    
+      const appId =
+      dataset.extensionId = 'EXT-'+ random( 10, 99999 )
+                                  +'-'+ randtoken.generate(4).toUpperCase()
+                                  +'-'+ randtoken.generate(8).toUpperCase()
+
+      await Sync.setApp( appId, dataset )
+      
+      // Completed
+      this.watcher( 'install-app',
+                    false,
+                    {
+                      percent: 100,
+                      processor: false,
+                      message: 'Installation completed'
+                    })
+
+      return appId
+    }
+    catch( error ){
+      this.debug('Failed to install app: ', error )
+      this.watcher( 'install-app', error )
+    }
+  }
+  async uninstallApp( appId ){
+    try {
+      if( !appId )
+        throw new Error('Undefined application id')
+
+      this.watcher( 'uninstall-app',
+                    false,
+                    {
+                      percent: 1,
+                      processor: false,
+                      message: 'Removing application'
+                    })
+
+      await Sync.clearApp( appId )
+      
+      // Completed
+      this.watcher( 'uninstall-app',
+                    false,
+                    {
+                      percent: 100,
+                      processor: false,
+                      message: 'Application uninstalled'
+                    })
+
+      return true
+    }
+    catch( error ){
+      this.debug('Failed to uninstall app: ', error )
+      this.watcher( 'uninstall-app', error )
     }
   }
 }

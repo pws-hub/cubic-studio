@@ -63,14 +63,14 @@ class {
     GState.on( 'theme', value => this.editor.updateOptions({ theme: 'vs-'+ value }) )
 
     // TODO: Properly handle window uncaught errors
-    // /*
+    /*
     window.addEventListener( 'error', e => {
       e.preventDefault()
 
 
       debugLog('[Editor-Event]', e.message )
     } )
-    // */
+    */
   }
   onDestroy(){
     $(window).off('resize')

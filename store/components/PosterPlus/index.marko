@@ -1,0 +1,834 @@
+
+import Cropper from 'cropperjs'
+import 'cropperjs/dist/cropper.css'
+import './jquery.cropper'
+
+class {
+  onCreate(){
+    this.state = {
+                  theme: { bg: 'white', color: 'text-darken-2 grey', btn: 'light' },
+
+                  wsElement: null,
+                  
+                  multipleFiles: false,
+                  activeFileIndex: 0,
+
+                  alert: false,
+                  assets: false,
+                  editTool: false,
+                  editImage: false,
+                  showDoneBtn: false,
+                  showAssets: false,
+                  uploading: false
+                }
+    GState.bind( this, ['screen', 'vts'] )
+
+    this.allDone = this.allDone.bind(this)
+    this.cancelAll = this.cancelAll.bind(this)
+  }
+  onInput( input ){
+
+    // Possibility to set multiple files
+    if( input.multiset )
+      this.state.multipleFiles = []
+
+    // Define display Theme
+    switch( input.theme ){
+      case 'dark': this.state.theme = { bg: 'theme-bg', color: 'white', btn: 'light' }; break
+      default: this.state.theme = { bg: 'theme-bg', color: 'text-darken-2 grey', btn: 'light' }
+    }
+  }
+
+  toWorkspace( asset, index, update ){
+
+    this.state.wsElement = asset
+    this.state.showDoneBtn = true
+
+    if( typeof index == 'number' ){
+
+      this.state.activeFileIndex = index
+      if( update )
+        this.state.multipleFiles[ index ] = asset
+
+      return
+    }
+
+    if( this.input.multiset ){
+      // Update mounted asset that got edited
+      if( update ){
+        this.state.multipleFiles[ this.state.activeFileIndex ] = asset
+        return
+      }
+
+      // Mount new file asset
+      this.state.multipleFiles.push( asset )
+      this.state.activeFileIndex = ( index == 'first' ? 0 : this.state.multipleFiles.length - 1 )
+    }
+  }
+  showAlert( message ){
+    // Display any error of alert triggered
+    this.state.alert = message
+    console.log('[PosterPlus] Error: '+ message )
+
+    setTimeout( () => this.state.alert = false, 15000 )
+  }
+
+  fromCloud(){
+
+    this.state.showAssets = true
+    if( !this.state.assets )
+      this.displayCDNAssets( this.input.cdn )
+  }
+  displayCDNAssets( type ){
+    // Fetch Existing assets from CDN Storage
+    $.get( '/assets?type='+( type || '' ) )
+      .done( ({ error, message, results }) => {
+
+        if( error )
+          throw new Error('[PosterPlus] Failed to Fetch CDN Assets: ', message )
+
+        this.state.assets = results.length ? results : null
+      } )
+      .fail( error => {
+        console.log('[PosterPlus] Failed to Fetch CDN Assets: ', error )
+        this.state.assets = null
+      } )
+  }
+  closeCDNAssets(){ this.state.showAssets = false }
+
+  fromComputer(){ $('#pp-from-computer').click() }
+  prevenAutoSubmit( e ){ e.preventDefault() }
+
+  mountSelectedFiles( e ){
+
+    const files = $(e.target)[0].files
+
+    if( !files || !files.length )
+      return this.cancelAll()
+
+    const mount = ( file, callback ) => {
+      
+        this.toWorkspace({
+                          raw: file,
+                          src: URL.createObjectURL( file ),
+                          size: file.size,
+                          mime: file.type,
+                          lastModified: file.lastModified
+                        }, 'first' )
+
+        typeof callback == 'function' && callback()
+    }
+
+    // Read add files selected
+    this.input.multiset ?
+                Array.from( files ).map( each => mount( each ) )
+                // Read only single file
+                : mount( files[0], () => {
+                  
+                    if( !/\.(png|jp(e?)g|webp|gif)/.test( files[0].name ) )
+                      return
+
+                    // Auto-mount image for edit when size ratio is defined
+                    const
+                    { width, height } = this.input,
+                    ratio = width / height
+
+                    !!ratio && this.mountEditImage({ ratio })
+                  } )
+  }
+  mountEditImage({ ratio }){
+
+    const { width, height } = this.input
+    if( !ratio )
+      ratio = width / height
+
+    /*------------------------------------------------------*/
+    // Image edition initial configurations
+    this.state.editImage = { // Edition State
+                            zoom: 0,
+                            rotate: 0,
+
+                            // Dimensions
+                            dimensions: { width, height },
+
+                            // initialize cropping by default
+                            ratio,
+                            autoCrop: !!ratio || false
+                          }
+    this.state.editTool = 'image'
+
+    /*------------------------------------------------------*/
+    // Initialize Cropper Module
+    this.toCrop = false
+    const cParams = {
+                      autoCrop: this.state.editImage.autoCrop, // autoCrop with
+                      // viewMode: 1,
+                      // background: false,
+                      ready: () => {
+                        // Declare Image Edition Object
+                        this.toCrop = this.image.data('cropper')
+                        // Assign original data of the Image to edition record
+                        this.toWorkspace({ ...( this.state.wsElement ), original: this.toCrop.getImageData() },
+                                          this.state.activeFileIndex, true )
+                      }
+                    }
+
+    if( this.state.editImage.ratio )
+      cParams.aspectRatio = this.state.editImage.ratio
+
+    this.state.wElement = '...' // Get work space ready to display the file
+    setTimeout( () => {
+      this.image = $('.workspace-element')
+      this.image.attr( 'src', this.state.wsElement.src )
+                .cropper( cParams )
+    }, 100 )
+  }
+  unmountEditImage(){
+
+    this.state.editImage = false
+    this.state.editTool = false
+
+    if( this.toCrop !== false ){
+      this.toCrop.destroy()
+      this.toCrop = null
+
+      this.image.data( 'cropper', this.toCrop )
+    }
+  }
+  applyImageChanges(){
+    // Get edited image
+    if( !this.toCrop ) return
+
+    const
+    mime = 'image/jpeg',
+    cropOption = Object.assign( this.state.editImage.dimensions, {
+                                                                  fillColor: 'white', // fill transparent space with white color
+                                                                  // imageSmoothingQuality: 'high'
+                                                                } ),
+    base64Encode = this.toCrop.getCroppedCanvas( cropOption )
+                              .toDataURL( mime )
+
+    this.toWorkspace({
+                      src: base64Encode,
+                      size: this.base64Size( base64Encode ), // Calculate the size
+                      mime,
+                      lastModified: Date.now(),
+
+                      /* Keep record of the original and edited
+                        data for final submission checks
+                      */
+                      original: this.state.wsElement.original,
+                      edited: this.toCrop.getData()
+                    }, false, true )
+    // console.log('Image dimensions: ', this.state.editImage.dimensions )
+    // console.log('Image data: ', this.toCrop.getImageData() )
+    // console.log('Cropped data: ', this.toCrop.getData() )
+
+    this.unmountEditImage()
+  }
+
+  onEditCrop(){
+    if( !this.toCrop ) return
+    this.toCrop.crop()
+  }
+  onEditZoom( type ){
+    if( !this.toCrop ) return
+
+    if( this.state.editImage.zoom
+        && this.state.editImage.zoom >= 2 ) return
+
+    // Zoom by 0.1 step
+    const value = ( type == 'in' ? 0.1 : -0.1 )
+
+    this.state.editImage.zoom += value
+    this.toCrop.zoom( value )
+  }
+  onEditRotate( direction ){
+    // Rotate by 22.5 step
+    if( !this.toCrop ) return
+
+    const value = ( direction == 'right' ? 11.25 : -11.25 )
+
+    this.state.editImage.rotate += value
+    this.toCrop.rotate( value )
+  }
+  onAddFile(){ this.state.wsElement = null }
+  onRemoveFile( index ){
+    this.state.multipleFiles.splice( index, 1 )
+    this.setStateDirty('multipleFiles')
+
+    if( this.state.activeFileIndex == index )
+      this.state.wsElement = null
+  }
+
+  isLink( str ){ return /^http(s?):\/\/(.+)$/.test( str ) }
+  base64ToBlob( str ){
+    /**
+     * Convert BASE64 to BLOB
+     * @param base64Image Pass Base64 image data to convert into the BLOB
+     */
+    const
+    parts = str.split(';base64,'), // Split into two parts
+    imageType = parts[0].split(':')[1], // Hold the content type
+    decodedData = window.atob( parts[1] ), // Decode Base64 string
+
+    // Create UNIT8ARRAY of size same as row data length
+    uInt8Array = new Uint8Array( decodedData.length )
+
+    // Insert all character code into uInt8Array
+    for( let i = 0; i < decodedData.length; ++i )
+      uInt8Array[ i ] = decodedData.charCodeAt( i )
+
+    // Return BLOB image after conversion
+    return new Blob( [ uInt8Array ], { type: imageType, name: 'auto' } )
+  }
+  base64Size( str ){
+    // Calculate Base64 encoded file size
+    const
+    strLen = str.replace( /^data:(.+);base64,/, '').length,
+    sizeInBytes = 4 * Math.ceil( ( strLen / 3 ) ) * 0.5624896334383812
+
+    return sizeInBytes / 1024
+  }
+  formatOutput( dataset ){
+
+    if( !dataset.raw && /^data:(.+);base64,/.test( dataset.src ) ){
+      dataset.base64 = dataset.src
+      dataset.blob = this.base64ToBlob( dataset.base64 )
+      dataset.src = window.URL.createObjectURL( dataset.blob )
+    }
+
+    return dataset
+  }
+  checkOutput( { src, size, lastModified, original, edited }, index ){
+
+    // Create blob source of base64_encode file
+    const asset = this.formatOutput({ src, size, lastModified })
+
+    // CDN Asset or raw file
+    if( !asset.base64 ) return asset
+
+    // Check whether required dimensions are met
+    if( this.input.width && this.input.height ){
+      // Bounce raw image that require resizing
+      if( !original || !edited ){
+        this.showAlert(`The image ${index !== undefined ? 'No.'+ index : ''} is required to be resized first.`)
+        return
+      }
+
+      // Check ratio if both width and height are specified
+      const
+      originalRatio = original.width / original.height,
+      editedRatio = edited.width / edited.height
+
+      // console.log('original: ', original )
+      // console.log('edited: ', edited )
+      // console.log( originalRatio, editedRatio )
+      if( originalRatio
+          && editedRatio
+          && originalRatio == editedRatio
+          && ( original.width == edited.width || original.height == edited.height ) ){
+        this.showAlert(`Crop the image ${index !== undefined ? 'No.'+ index : ''} or validate the changes you have made first.`)
+        return
+      }
+    }
+
+    // console.log( 'size: ', size, ' - Max: ', this.input.maxSize )
+
+    // Check the maximum file size required
+    if( this.input.maxSize && size > this.input.maxSize ){
+      this.showAlert(`The size of the file ${index !== undefined ? 'No.'+ index : ''} exceed the limit set. Maximum is ${this.input.maxSize} kb.`)
+      return false
+    }
+
+    return asset
+  }
+
+  async uploadFiles(){
+
+    const _this = this
+    let toReturn
+
+    function doUpload( file ){
+
+      return new Promise( ( resolve, reject ) => {
+
+        const data = new FormData()
+
+        Array.isArray( file ) ?
+                  file.map( each => data.append( 'file', each ) )
+                  : data.append( 'file', file )
+        
+        let 
+        url = _this.input.endpoint,
+        headers = {}
+
+        if( _this.input.vts == true ){
+          // Upload files to VTS server
+          if( !_this.state.vts )
+            return debug('[PosterPlus] Undefined VTS Settings')
+          
+          url = `${_this.state.vts.server}/transcode?${_this.input.vtsPath ? 'spaceFolder='+ _this.input.vtsPath : ''}`
+          headers = _this.state.vts.headers
+        }
+
+        $.ajax({
+                url,
+                type: 'POST',
+                headers,
+                data,
+                contentType: false,
+                processData: false,
+                cache: false,
+                beforeSend: () => {
+                  _this.state.uploading = true
+                  _this.state.alert = 'Uploading ...'
+                },
+                success: response => {
+                  // Return uploaded file's links
+                  _this.state.alert = false
+                  resolve( response )
+                },
+                error: ( xhr, status, error ) => {
+
+                  error = status +' > '+ error
+                  console.log( '[PosterPlus] Upload Failed: ', error )
+
+                  _this.state.alert = 'Unexpected Uploading Error Occured. Try again'
+                  reject( error )
+
+                  setTimeout( () => _this.state.alert = false, 15000 ) // Remove alert in 15 seconds
+                },
+                complete: () => _this.state.uploading = false,
+                xhr: () => {
+                  // Watching uploading
+                  let xhr = new window.XMLHttpRequest()
+
+                  xhr.upload.addEventListener( 'progress', e => {
+
+                    if( !e.lengthComputable ) return
+
+                    // Uploaded percentage
+                    let Percent = Math.round( ( e.loaded / e.total ) * 100 )
+
+                    // Update progress
+                    _this.state.alert = 'Uploading ... '+ Percent +'%'
+                    // 100% uploaded
+                    if( Percent == 100 )
+                      _this.state.alert = 'Compression ...'
+                  }, false )
+
+                  return xhr
+                }
+              })
+      } )
+    }
+
+    // Multiple files
+    if( Array.isArray( this.state.multipleFiles ) ){
+      if( !this.state.multipleFiles.length )
+        return
+
+      toReturn = []
+      const
+      files = [],
+      toReplaceIndexes = []
+
+      // Check each file
+      for( let o = 0; o < this.state.multipleFiles.length; o++ ){
+        let output = this.state.multipleFiles[o]
+
+        // Formatage no needed for CDN Assets
+        if( this.isLink( output.src ) ){
+          toReturn.push( output )
+          continue
+        }
+
+        if( this.input.cropping == 'optional' )
+          output = this.formatOutput( this.state.multipleFiles[o] )
+
+        else {
+          output = this.checkOutput( this.state.multipleFiles[o], o + 1 )
+          if( !output ) return
+        }
+
+        files.push( output.blob || output.raw ) // to upload
+        toReplaceIndexes.push( o ) // list of indexes of to be uploaded files
+        toReturn.push( output )
+      }
+
+      if( files.length ){
+        const { error, links } = await doUpload( files )
+
+        // Replace source with uploaded file CDN links
+        if( links && links.length )
+          for( let o = 0; o < toReplaceIndexes.length; o++ )
+            toReturn[ toReplaceIndexes[o] ].src = links[o]
+      }
+    }
+    // Single file
+    else {
+      // Auto-crop
+      if( this.toCrop != null )
+        this.applyImageChanges()
+
+      toReturn = this.state.wsElement
+
+      // Not selected from CDN Assets list
+      if( !this.isLink( toReturn.src ) ){
+
+        // For only images
+        if( toReturn.mime.includes('image') ){
+          toReturn = this.input.cropping == 'optional' ?
+                                    this.formatOutput( toReturn )
+                                    : this.checkOutput( toReturn )
+
+          if( !toReturn ) return
+        }
+        
+        const { error, links } = await doUpload( toReturn.blob || toReturn.raw )
+
+        toReturn.src = links[0]
+      }
+
+      // Directly assign media source to DOM Image
+      if( this.input.preview )
+        $(this.input.preview).attr( 'src', toReturn.src )
+    }
+
+    // Return files details
+    this.allDone( toReturn )
+  }
+
+  allDone( toReturn ){
+
+    // Return data already processed
+    if( toReturn !== 'auto' )
+      return this.emit( 'done', toReturn )
+
+    // Multiple files: Uploading compulsory for now
+    if( Array.isArray( this.state.multipleFiles ) ){
+      // Check each file
+      toReturn = []
+      for( let o = 0; o < this.state.multipleFiles.length; o++ ){
+        let output = this.state.multipleFiles[o]
+
+        // Formatage no needed for CDN Assets
+        if( this.isLink( output.src ) ){
+          toReturn.push( output )
+          continue
+        }
+
+        if( this.input.cropping == 'optional' )
+          output = this.formatOutput( this.state.multipleFiles[o] )
+
+        else {
+          output = this.checkOutput( this.state.multipleFiles[o], o + 1 )
+          if( !output ) return
+        }
+
+        toReturn.push( output )
+      }
+    }
+    
+    // Single file no uploaded
+    else if( !this.input.endpoint ){
+      // Auto-crop
+      if( this.toCrop != null )
+        this.applyImageChanges()
+
+      toReturn = this.state.wsElement
+
+      // Not selected from CDN Assets list
+      if( !this.isLink( toReturn.src ) ){
+
+        if( toReturn.mime.includes('image') )
+          toReturn = this.input.cropping == 'optional' ?
+                                    this.formatOutput( toReturn )
+                                    : this.checkOutput( toReturn )
+
+        if( !toReturn ) return
+      }
+
+      // Directly assign image source to DOM Image
+      if( this.input.preview )
+        $(this.input.preview).attr( 'src', toReturn.src )
+    }
+    
+    // Return files details
+    this.emit( 'done', toReturn )
+  }
+  cancelAll(){ this.emit('cancelled') }
+}
+
+<div class=`position-fixed w-100 vh-100 left-0 top-0 d-flex align-items-center center` style="z-index:2020">
+  <div class="w-100 d-flex justify-content-center">
+    <!-- Overlay background -->
+    <div class="position-fixed top-0 w-100 h-100 animated fadeIn faster" on-click('cancelAll')></div>
+
+    <div class="position-relative zindex-1 w-75 theme-bg shadow-lg">
+      <Row class="m-0">
+        <!-- CDNAssets Display Block -->
+        <div class=('pp-assets border-right col-lg-3 col-md-4 col-8 p-0 '+ state.theme.bg
+                    +( ['xs', 'sm', 'md'].includes( state.screen.media ) ? ' translate shadow-lg' : '' )
+                    +( state.showAssets ? ' in' : ( ['xl', 'lg'].includes( state.screen.media ) ? ' d-none' : ' left' ) ) )>
+          <!-- Search CDN File -->
+          <div class="position-relative p-2" style="height:8vh">
+            <Row class="d-flex align-items-center">
+              <div class="col">
+                <SearchBar placeholder=Locale('Search Image')
+                            on-query('onSearchQuery')
+                            on-dismiss('onDismissSearch')/>
+              </div>
+              
+              <div class="col-2 text-center">
+                <Button class="btn-icon" on-click('closeCDNAssets')><i class="bx bx-x font-large-1"></i></Button>
+              </div>
+            </Row>
+            <br>
+          </div>
+
+          <!-- Display CDN Assets list -->
+          <AutoScroll id="cdn-assets-list" class="position-relative px-2 pb-3" height="92vh">
+            <!-- Loading Assets -->
+            <if( state.assets == false )>
+              <div class="text-center" style="margin-top:70%">
+                <p class="blue-grey-text">Loading ...</p>
+              </div>
+            </if>
+
+            <!-- No Assets Found -->
+            <else-if( state.assets == null )>
+              <div class="position-relative text-center" style="margin-top:70%">
+                <i class=('bx bx-cloud-download font-large-2 '+ state.theme.color +'-text')></i><br><br>
+                <p class="blue-grey-text">No Assets Found on the Cloud</p>
+              </div>
+            </else-if>
+
+            <!-- Display Assets list -->
+            <else>
+              <ul class="list-unstyled text-center px-1">
+                <for|asset, index| of=state.assets>
+                  <li class="cursor-pointer my-2" key=('cdn-'+ index )
+                      on-click( 'toWorkspace', asset, false, false )>
+                    <Display mode="thumbnail" ...asset/>
+                  </li>
+                </for>
+              </ul>
+            </else>
+          </AutoScroll>
+        </div>
+
+        <!-- Middle Block -->
+        <div class=('pp-middle p-0'+( ['xl', 'lg'].includes( state.screen.media ) ? ' col' : ' col-12' ) )>
+          <div class="pp-workspace position-relative top-0"
+                style="height:91vh">
+            <!-- Main Workspace -->
+            <Row class="m-0 pp-workspace-container position-relative h-90"
+                    style="box-shadow:0 2px 4px 0 rgba(0, 0, 0, 0.2) inset !important">
+              <!-- Workspace Container -->
+              <if( state.wsElement !== null )>
+                <div class=('p-0 d-flex align-items-center'
+                            +( ['xl', 'lg'].includes( state.screen.media ) ? ' col' : ' col-12' )
+                            +( ['xl', 'lg'].includes( state.screen.media ) || !state.multipleFiles ? ' h-100' : ' h-80' ) )>
+                  <div class="w-100 text-center d-flex justify-content-center"
+                        no-update-body-if( state.editImage )
+                        style={ height: state.wsElement.height || '100%' }>
+                    <Display ...state.wsElement/>
+                  </div>
+                </div>
+              </if>
+
+              <!-- Placeholder for Empty workspace -->
+              <else>
+                <div class=('p-0 d-flex align-items-center'
+                            +( ['xl', 'lg'].includes( state.screen.media ) ? ' col' : ' col-12' )
+                            +( ['xl', 'lg'].includes( state.screen.media ) || !state.multipleFiles ? ' h-100' : ' h-80' ) )>
+                  <div class="w-100 text-center">
+                    <if( input.cdn && !state.showAssets )>
+                      <button class=`btn btn-outline-${state.theme.btn} btn-lg ${input.btnStyle}`
+                              on-click('fromCloud')>
+                        <i class="bx bx-cloud-download left font-medium-5"></i> Select from Cloud
+                      </button>
+                      <br><br><br>
+                    </if>
+                    <button class=`btn btn-outline-${state.theme.btn} btn-lg ${input.btnStyle}`
+                            on-click('fromComputer')>
+                      <i class="bx bx-laptop left font-medium-5"></i> Select from Computer
+                    </button>
+                    <br><br><br>
+                    <button class=`btn btn-outline-${state.theme.btn} btn-lg d-none ${input.btnStyle}`
+                            on-click('fromCamera')>
+                      <i class="bx bx-camera left font-medium-5"></i> Take a Picture
+                    </button>
+                  </div>
+                </div>
+              </else>
+
+              <!-- Multiple Files List -->
+              <if( state.multipleFiles )>
+                <AutoScroll class=( 'pp-files col-xl-1 col-lg-2 col-12'
+                                      +( ['xl', 'lg', 'md'].includes( state.screen.media ) ? ' h-100' : ' h-20' ) )>
+                  <!-- Files List -->
+                  <ul class=('py-1 list-'+( ['xl', 'lg'].includes( state.screen.media ) ? 'unstyled' : 'inline d-flex align-items-center' ) )>
+                    <for|file, index| of=state.multipleFiles>
+                      <li class="position-relative file-item p-50 cursor-pointer"
+                          key=('file-'+ index )
+                          style=('width: '+( ['xs', 'sm', 'md'].includes( state.screen.media ) ? '8rem' : 'auto' ) )>
+                        <!-- Delete file -->
+                        <span class="btn-remove-file position-absolute top-0 right-0"
+                              style="margin:5px"
+                              on-click( 'onRemoveFile', index )>
+                          <i class="bx bx-x font-medium-3 p-25 border white black-text rounded-circle"></i>
+                        </span>
+
+                        <!-- Mount file to the workspace trigger -->
+                        <div on-click( 'toWorkspace', file, index, false )>
+                          <!-- File thumbnail -->
+                          <Display mode="thumbnail" ...file/>
+                        </div>
+                      </li>
+                    </for>
+
+                    <!-- Add another file trigger -->
+                    <li class="p-50 text-center cursor-pointer"
+                          on-click('onAddFile')>
+                      <div class="btn-add rounded p-2">
+                        <i class="bx bx-plus font-large-3 grey-text"></i>
+                      </div>
+                    </li>
+                  </ul>
+                </AutoScroll>
+              </if>
+            </Row>
+
+            <!-- Workspace Tools -->
+            <div class="pp-workspace-tools position-relative p-1 h-10">
+              <!-- Cropping Tools -->
+              <if( state.editTool == 'image' )>
+                <div class="d-flex justify-content-center">
+                  <span class="cursor-pointer"
+                        on-click('applyImageChanges')
+                        title="Apply Changes">
+                    <i class=('bx bx-check-circle font-large-2 '+ state.theme.color +'-text p-1')></i>
+                  </span>
+                  <span class="cursor-pointer"
+                        on-click('unmountEditImage')
+                        title="Cancel Changes">
+                    <i class=('bx bx-x-circle font-large-2 '+ state.theme.color +'-text p-1')></i>
+                  </span>
+
+                  <if( !state.editImage.autoCrop )>
+                    <span class="cursor-pointer"
+                          on-click('onEditCrop')
+                          title="Crop">
+                      <i class=('bx bx-crop font-large-2 '+ state.theme.color +'-text p-1')></i>
+                    </span>
+                  </if>
+
+                  <span class="cursor-pointer"
+                        on-click( 'onEditZoom', 'in' )
+                        title="Zoom in">
+                    <i class=('bx bx-zoom-in font-large-2 '+ state.theme.color +'-text p-1')></i>
+                  </span>
+                  <span class="cursor-pointer"
+                        on-click( 'onEditZoom', 'out' )
+                        title="Zoom out">
+                    <i class=('bx bx-zoom-out font-large-2 '+ state.theme.color +'-text p-1')></i>
+                  </span>
+
+                  <span class="cursor-pointer"
+                        on-click( 'onEditRotate', 'right' )
+                        title="Rotate right">
+                    <i class=('bx bx-rotate-right font-large-2 '+ state.theme.color +'-text p-1')></i>
+                  </span>
+                  <span class="cursor-pointer"
+                        on-click( 'onEditRotate', 'left' )
+                        title="Rotate left">
+                    <i class=('bx bx-rotate-left font-large-2 '+ state.theme.color +'-text p-1')></i>
+                  </span>
+
+                  <span class="cursor-pointer d-none"
+                        title="Remove Background">
+                    <i class=('bx bxs-magic-wand font-large-2 '+ state.theme.color +'-text p-1')></i>
+                  </span>
+                </div>
+              </if>
+
+              <!-- General File Edition Tools -->
+              <else>
+                <div class="d-flex justify-content-center">
+                  <!-- Crop Image Trigger -->
+                  <span class="cursor-pointer"
+                        on-click('mountEditImage')
+                        title="Edit Image">
+                    <i class=('bx bx-highlight font-large-2 '+ state.theme.color +'-text p-1')></i>
+                  </span>
+
+                  <!-- Select file from computer -->
+                  <span class="cursor-pointer"
+                        on-click('fromComputer')
+                        title="Select from Computer">
+                    <i class=('bx bx-laptop font-large-2 '+ state.theme.color +'-text p-1')></i>
+                  </span>
+
+                  <!-- Show CDN Assets: Available option only if no yet displayed -->
+                  <if( input.cdn && ( !state.assets || !state.assets.length ) )>
+                    <span class="cursor-pointer"
+                          on-click('fromCloud')
+                          title="Select from Cloud">
+                      <i class=('bx bx-cloud-download font-large-2 '+ state.theme.color +'-text p-1')></i>
+                    </span>
+                  </if>
+                </div>
+              </else>
+            </div>
+          </div>
+
+          <div class="pp-footer position-relative text-right px-2 pt-1" style="height:9vh">
+            <Row class="d-flex align-items-center">
+              <!-- Error Message Container -->
+              <div class="col-md-6 col-5">
+                <if( state.alert )>
+                  <p class=('font-medium-2 p-1 '+ state.theme.color +'-text')>${state.alert}</p>
+                </if>
+              </div>
+
+              <!-- Ending Process buttons -->
+              <div class="col">
+                <button class=`btn btn-outline-${state.theme.btn} btn-lg ${input.btnStyle}` on-click('cancelAll')>
+                  <Locale text="Cancel"/>
+                </button>
+                <if( state.showDoneBtn )>
+                  <if( input.vts || input.endpoint )>
+                    <button class=`btn btn-${state.theme.btn} btn-lg ml-1 ${input.btnStyle}` on-click('uploadFiles')>
+                      <if( state.uploading )>
+                        <i class="bx bx-loader-alt icon-spin icon-right font-medium-5" style="color:inherit"></i>
+                      </if>
+                      <Locale text="Upload" class="align-middle"/>
+                    </button>
+                  </if>
+                  <else>
+                    <button class=`btn btn-${state.theme.btn} btn-lg ml-1 ${input.btnStyle}` on-click( 'allDone', 'auto' )>
+                      <Locale text="Done"/>
+                    </button>
+                  </else>
+                </if>
+              </div>
+            </Row>
+          </div>
+        </div>
+      </Row>
+
+      <!-- Select File Form -->
+      <form class="d-none" enctype="multipart/form-data">
+        <input id="pp-from-computer"
+                type="file"
+                multiple=( !!input.multiset )
+                accept=( input.accepts || '*' )
+                on-change('mountSelectedFiles')
+                on-submit('prevenAutoSubmit')>
+      </form>
+    </div>
+  </div>
+</div>

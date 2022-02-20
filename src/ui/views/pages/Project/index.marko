@@ -697,13 +697,13 @@ class {
         </if>
       </div>
 
-      <!-- Sandbox Emulator block -->
-      <Emulator meta=state.emulator
-                status=state.emulatorStatus
-                error=state.emulatorError
-                on-run( 'onAction', 'run-emulator' )
-                on-reload( 'onAction', 'reload-emulator' )
-                on-quit( 'onAction', 'quit-emulator' )/>
+      <!-- Sandbox Emulator: Model EIS8 -->
+      <EIS8 meta=state.emulator
+            status=state.emulatorStatus
+            error=state.emulatorError
+            on-run( 'onAction', 'run-emulator' )
+            on-reload( 'onAction', 'reload-emulator' )
+            on-quit( 'onAction', 'quit-emulator' )/>
     </Row>
   </div>
   

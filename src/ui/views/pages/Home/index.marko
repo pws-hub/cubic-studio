@@ -20,7 +20,7 @@ class {
     <div.text-center>
       <Bx.font-large-5 type="cube-alt"/>
       <h4.mb-1><strong>Cubic Studio</strong></h4>
-      <div.text-right.font-small-2 style="margin-right:4.5rem">Multipple</div>
+      <div.text-right.font-small-2 style="margin-right:4.5rem">${(window.provider || '').toCapitalCase()}</div>
     </div>
 
     <!-- Workspaces -->
@@ -66,7 +66,7 @@ class {
         <div.d-flex.align-items-center.px-0.py-1>
           <Image.mx-2.round-xs src=( state.user.photo || DefaultAvatar ) style="width:26px;height:26px"/>
           <span.font-medium-2.px-2>${state.user.name}</span><br>
-          <span.font-small-1.px-2.text-muted>Multipple</span>
+          <span.font-small-1.px-2.text-muted>${(window.provider || '').toCapitalCase()}</span>
         </div>
       </if>
 
@@ -74,9 +74,9 @@ class {
       <else>
         <a.d-block.d-flex.align-items-center.px-0.py-1 
             class=(!state.isConnected ? 'theme-bg-transparent' : false) 
-            href="/auth/initiate?provider=multipple">
-          <Image.mx-2 src="/images/logo/multipple.png" style="width:26px;height:26px"/>
-          <span.font-medium-2.px-2>Multipple</span>
+            href=`/auth/initiate?provider=${window.provider}`>
+          <Image.mx-2 src=`/images/logo/${window.provider}.png` style="width:26px;height:26px"/>
+          <span.font-medium-2.px-2>${(window.provider || '').toCapitalCase()}</span>
         </a>
       </else>
     </div>

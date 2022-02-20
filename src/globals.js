@@ -22,6 +22,7 @@ global.clc = require('colors')
 global.serverVersion = Configs.APPVERSION || require('../package.json').version
 
 global.isOncloud = () => { process.env.MODE === 'cloud' }
+global.isApp = dataset => { return true }
 
 global.isEmpty = entry => {
   // test empty array or object
@@ -37,6 +38,11 @@ global.ruuid = () => {
       let r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8)
       return v.toString(16)
   })
+}
+
+global.random = ( min, max ) => {
+  // generate random number at a range
+  return Math.floor( Math.random() * ( max - min + 1 )+( min + 1 ) )
 }
 
 global.Obj2Params = ( obj, excludes ) => {

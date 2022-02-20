@@ -1,0 +1,69 @@
+
+import audioThumbnail from './../assets/audio-thumbnail.png'
+import videoThumbnail from './../assets/video-thumbnail.jpeg'
+import unknownThumbnail from './../assets/unknown-thumbnail.png'
+import documentThumbnail from './../assets/document-thumbnail.png'
+
+<if( ( input.mime || '' ).includes('image') || /\.(png|jp(e?)g|webp|gif)/.test( input.src ) )>
+  <!-- Display on thumbnail or Poster -->
+  <if( input.mode == 'thumbnail' )>
+    <div class="text-center border rounded">
+      <Image src=input.src class="img-fluid"/>
+    </div>
+  </if>
+  <!-- Render File to view or play -->
+  <else>
+    <Image class="workspace-element"
+            src=input.src
+            style={
+                    width: input.width || 'auto',
+                    height: input.height || 'auto',
+                    maxWidth: '100%',
+                    maxHeight: '100%',
+                    margin: 'auto'
+                  }/>
+  </else>
+</if>
+
+<else-if( ( input.mime || '' ).includes('video') || /\.(mp4|webm)$/.test( input.src ) )>
+  <!-- Display on thumbnail or Poster -->
+  <if( input.mode == 'thumbnail' )>
+    <div class="text-center border rounded">
+      <img src=videoThumbnail class="img-fluid"/>
+    </div>
+  </if>
+  <!-- Render File to view or play -->
+  <else>
+    <div class="h-100 d-flex align-items-center justify-content-center">
+      <video src=input.src controls></video>
+    </div>
+  </else>
+</else-if>
+
+<else-if( ( input.mime || '' ).includes('audio') || /\.(mp3|mpeg|wave)$/.test( input.src ) )>
+  <!-- Display on thumbnail or Poster -->
+  <if( input.mode == 'thumbnail' )>
+    <div class="text-center border rounded">
+      <img src=audioThumbnail class="img-fluid w-75" style="padding:8px 0"/>
+    </div>
+  </if>
+  <!-- Render File to view or play -->
+  <else>
+    <div class="h-100 d-flex align-items-center justify-content-center">
+      <audio src=input.src controls></audio>
+    </div>
+  </else>
+</else-if>
+
+<else-if( ( input.mime || '' ).includes('application') && /(pdf|doc(x?)|txt|ppt(x?)|xlsx|epub|mobi|kindle|htm(l?))/.test( input.mime ) )>
+  <div class="h-100 d-flex align-items-center justify-content-center">
+    <img src=documentThumbnail class="img-fluid w-75"/>
+  </div>
+</else-if>
+
+<else>
+  <div class="h-100 d-flex align-items-center justify-content-center">
+    <img src=unknownThumbnail class="img-fluid w-75"/><br>
+    <div.py-1><Locale>Unknown File Type</Locale></div>
+  </div>
+</else>

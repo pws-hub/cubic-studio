@@ -10,17 +10,23 @@ export default function( e ){
   this.iof.initiate( e.target.contentWindow, this.input.meta.hostname )
 
   this.iof
-  .once( 'connect', () => {
-    // Get supported languages manifest of app/plugin
-    this.iof.emit( 'get:languages', ( error, manifest ) => {
-      if( error ) return
-      this.setState( 'languages', manifest )
-    } )
-
+  .once( 'connect', async () => {
+    this.iof
     // Get created test manifest of app/plugin
-    this.iof.emit( 'get:tests', ( error, manifest ) => {
+    .emit( 'get:tests', ( error, manifest ) => {
       if( error ) return
       this.setState( 'tests', manifest )
+    } )
+    // Initial workspace state
+    .emit( 'ws:change', GState.get('ws') )
+
+    /* Get supported languages manifest of app/plugin 
+      after a second assuming <Extension/> is mounted
+    */
+    await delay(0.5)
+    this.iof.emit( 'get:languages', ( error, manifest ) => {
+      if( error ) return console.error( error )
+      this.setState( 'languages', manifest )
     } )
   } )
   .on( 'start', () => {
@@ -33,8 +39,9 @@ export default function( e ){
     callback = typeof callback == 'function' ? callback : () => {}
 
     try {
-      const response = await window.APIRequest( options )
-      console.log( response )
+      const 
+      { url, method, ...rest } = options.body,
+      response = await ___.Request( url, method, rest )
       callback( false, response )
     }
     catch( error ){ callback( error ) }

@@ -248,7 +248,7 @@ export default async ( req, res ) => {
     // With or without body
     default: if( body ) options.form = body
   }
-
+  
   /* Attach provider's Base URL when it's a 3rd 
     party API with required authorization or 
     assign LXP API Server by default.
@@ -256,7 +256,7 @@ export default async ( req, res ) => {
   if( !/http(s?):\/\/(.+)/.test( options.url ) ){
     if( base_URL )
       options.url = base_URL + options.url
-    
+
     else {
       if( !req.session.credentials
           || !req.session.credentials.multipple )
@@ -271,7 +271,7 @@ export default async ( req, res ) => {
     
       options.url = toOrigin( process.env.MULTIPPLE_API_SERVER ) + options.url
       options.headers = {
-        'Origin': domain,
+        'Origin': decodeURIComponent( domain ),
         'MP-User-Agent': 'MP.studio/1.0',
         'MP-Auth-Token': token,
         'MP-Auth-Device': deviceId,
@@ -287,11 +287,11 @@ export default async ( req, res ) => {
         case 'ENOTFOUND': error.statusCode = 404; break
       }
     
-    res.status( error.statusCode || 400 ).send( error.message ) 
+    res.status( error.statusCode || 400 ).send( error.message )
   }
 
   console.log('options: ', options )
-
+  
   switch( responseType ){
     // Blob content
     case 'blob': req.pipe( request( url ).on( 'error', onError ) )

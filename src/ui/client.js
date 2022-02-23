@@ -296,27 +296,6 @@ async function Client(){
 	}
 	
 	/*----------------------------------------------------------------*/
-	// API Request Handler
-	window.APIRequest = options => {
-		return new Promise( ( resolve, reject ) => {
-			const 
-			headers = { 'Content-Type': 'application/json' },
-			body = JSON.stringify( options || {} )
-														
-			fetch( `/api/${provider}`, { method: 'POST', headers, body } )
-					.then( response => {
-						if( !response.ok )
-							return reject({ code: response.status, message: response.statusText }) 
-						
-						try { return response.json() }
-						catch( error ){ return response.text() }
-					} )
-					.then( resolve )
-					.catch( reject )
-      } )
-	}
-	
-	/*----------------------------------------------------------------*/
 	// Define routes
 	let Routes = [
 		{ name: 'home', path: '/', component: Home } 

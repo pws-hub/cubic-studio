@@ -49,7 +49,6 @@ window.isEmpty = entry => {
               : Object[ Object.entries ? 'entries' : 'keys' ]( entry ).length === 0 && entry.constructor === Object
 }
 window.Obj2Params = ( obj, excludes ) => {
-
   return Object.entries( obj )
                 .map( ([ key, value ]) => {
                   if( !Array.isArray( excludes ) || !excludes.includes( key ) )
@@ -78,9 +77,8 @@ window.debugLog = ( ...args ) => {
   if( window.env == 'production' ) return
   console.log( ...args )
 }
-window.cleanLog = str => {
-  return (str || '').replace( new RegExp('\s?\[[1-9]+[KGm]', 'g'), '')
-}
+window.cleanLog = str => { return (str || '').replace( new RegExp('\s?\[[1-9]+[KGm]', 'g'), '') }
+window.delay = time => { return new Promise( resolve => setTimeout( resolve, ( time || 1 ) * 1000 ) ) }
 window.newObject = obj => { return typeof obj == 'object' && JSON.parse( JSON.stringify( obj ) ) }
 window.deepAssign = ( obj1, obj2 ) => { return Object.assign( newObject( obj1 ), obj2 || {} ) }
 

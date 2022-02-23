@@ -23,7 +23,7 @@ export const callback = async ({ domain, token, deviceId, role }) => {
       json: true
     },
     response = await request( options )
-
+    
     // Pu user data in CubicStudio User Format
     if( response.user ){
       const { email, first_name, last_name, photo } = response.user

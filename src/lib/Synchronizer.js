@@ -33,12 +33,12 @@ function initChannel( socket ){
 async function getPath( type ){
   let path
   switch( type ){
-    case 'credentials': path = Path.resolve('sync/credentials' )
+    case 'install':
+    case 'credentials': path = Path.resolve(`sync/${type}`)
                         await Fs.ensureDir( path )
                         return path
-
-    case 'session':
-    case 'install': path = Path.resolve('sync')
+                        
+    case 'session': path = Path.resolve('sync')
                     await Fs.ensureDir( path )
                     return path
   }

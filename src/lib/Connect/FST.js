@@ -61,8 +61,7 @@ function initChannel( socket ){
     if( typeof args.slice(-1)[0] === 'function' )
       callback = args.pop()
 
-    console.log( method, ...args, callback )
-
+    // console.log( method, ...args, callback )
     try {
       // Call targeted FileSystem method
       const response = await socket.data.FS[ method ]( ...args )

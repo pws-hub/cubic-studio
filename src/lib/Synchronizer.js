@@ -44,14 +44,6 @@ async function getPath( type ){
   }
 }
 
-async function storeCredentials( provider, data ){
-  // Cache access credentials directory as
-  if( isOncloud() ) return
-  
-  const creddir = await getPath('credentials')
-  await Fs.writeFile( `${creddir}/${provider}.dtf`, encrypt( data ) )
-}
-
 async function setSession( data ){
   // Cache user session for backup in offline mode
   if( isOncloud() ) return
@@ -87,11 +79,14 @@ async function getSession( type, req ){
                     if( typeof session !== 'object' ) return {}
 
                     // Load cache to session
-                    req.session.authError = session.authError
-                    req.session.isConnected = session.isConnected
-                    req.session.user = session.user
+                    const { credentials, isConnected, user, authError } = session
 
-                    return session
+                    req.session.user = user
+                    req.session.authError = authError
+                    req.session.isConnected = isConnected
+                    req.session.credentials = credentials
+
+                    return { isConnected, user, authError }
                   }
                   catch( error ){
                     console.log('Failed fetching cached session: ', error )
@@ -125,8 +120,6 @@ export default ioServer => {
   ioServer.on( 'connection', initChannel )
 
   global.Sync = {
-    storeCredentials,
-
     setSession,
     getSession,
 

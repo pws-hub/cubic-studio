@@ -22,20 +22,19 @@ async function _callback( provider, handler, req, res ){
     req.session.isConnected = false
   }
   else {
-    // Save credentials in session
-    req.session.credentials = {
+    // Store credentials in session for API request checks
+    const credentials = {
       ...(req.session.credentials || {}),
       [ provider ]: req.query
     }
-    // Save credentials in the JSON-file beside the session
-    await Sync.storeCredentials( provider, req.query )
     
     req.session.user = user
     req.session.authError = false
     req.session.isConnected = true
+    req.session.credentials = credentials
     
     // Store locally updated user session
-    await Sync.setSession({ isConnected: true, user, authError: false })
+    await Sync.setSession({ credentials, isConnected: true, user, authError: false })
   }
     
   // Back to home: Make request from there to check session status

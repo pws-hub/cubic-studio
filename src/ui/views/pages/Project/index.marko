@@ -626,8 +626,10 @@ class {
   <div style="width:calc(100% - 4rem)">
     <Row.no-gutters>
       <!-- Main Block -->
-      <div.col.px-0.overflow-hidden>
-        <Row.no-gutters>
+      <div.col.px-0.overflow-hidden.d-flex.align-items-strech>
+        <ControlBar />
+
+        <Row.no-gutters style="width:calc(100% - 2rem)">
           <!-- Menu Bar -->
           <Menu show=state.showMenu
                 project=state.project

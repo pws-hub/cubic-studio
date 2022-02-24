@@ -31,6 +31,24 @@ export const dotCubic = async ({ specs }) => {
   }
 }
 
+export const dotGitignore = async directory => {
+  
+  let gitignore = ''
+
+  try { gitignore = await fs.readFile( directory +'/.gitignore', { encoding: 'UTF-8' } ) }
+  catch( error ){}
+
+  ;[
+    'node_modules',
+    'sandbox',
+    'build',
+    '*.log',
+    'yarn.lock'
+  ].map( each => { if( !gitignore.includes( each ) ) gitignore += '\n'+ each } )
+  
+  return gitignore
+}
+
 export const configJson = async ({ name, description, specs }) => {
 
   let config

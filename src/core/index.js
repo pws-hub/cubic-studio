@@ -1,223 +1,24 @@
 
-import path from 'path-inter'
 import socketServer from 'socket.io'
 import CARConnect from '../lib/Connect/CAR'
 import FSTConnect from '../lib/Connect/FST'
 import IPTConnect from '../lib/Connect/IPT'
 import Synchronizer from '../lib/Synchronizer'
-import Emulator from './Emulator'
-import FileSystem from './FileSystem'
-import GitManager from './GitManager'
-import IProcess from './IProcess'
-import PackageManager from './PackageManager'
-import DTCrypt from './../lib/DTCrypt'
 
-;( async () => {
-  try {
-    // const fsys = new FileSystem({ cwd: './src', debug: true })
-
-    // const { name, path, content } = await fsys.directory('.', { ignore: ['node_modules'] } )
-    // await fsys.newFile('dir.json', JSON.stringify( content ) )
-    // await fsys.newDir('promo')
-    // await fsys.exists('./promo/files')
-    // await fsys.move('dir.json', './promo/files/dir.json')
-    // await fsys.copy('./promo/files', 'mate') // dir to dir
-    // await fsys.copy('./promo/files/dir.jso', './promo/dir.json') // file to file
-    // await fsys.copy('./promo/files/dir.json', '.') // file to dir
-    // await fsys.rename('dir.json', 'tree.json')
-    // await fsys.remove('tree.json')
-    // await fsys.remove(['./mate', 'promo'])
-    // const 
-    // listener = ( event, path, stat ) => console.log( event, path, stat ),
-    // watcher = fsys.watch({ ignore: ['.git/**', 'build/**', 'cache/**', 'node_modules/**'] }, listener )
-
-
-    // const
-    // options = {
-    //   cwd: './../projects/TestApp',
-    //   debug: true,
-    //   auth: {
-    //     username: 'multipple-dev',
-    //     token: 'rF9zpTMYAXSkseVFnHbg'
-    //   },
-    //   repository: 'https://gitlab.com/multipple/applications/test-app.git'
-    // },
-    // gp = new GitManager( options )
-    
-    // await gp.initProject( false, true )
-    // await gp.cloneProject( 'https://github.com/multipple/create-app-marko', '../TestApp', true ) 
-    // console.log('clear: ', await gp.clear()  )
-
-    // const
-    // options = {
-    //   manager: 'yarn',
-    //   cwd: './../projects/TestApp',
-    //   debug: true
-    // },
-    // pm = new PackageManager( options )
-
-    // await pm.init({
-    //   name: 'sample-app',
-    //   description: 'description of the application',
-    //   version: '1.0.0',
-    //   private: true,
-    //   scripts: {
-    //     start: 'cd ./sandbox && yarn start',
-    //     test: 'cd ./sandbox && yarn test:dev'
-    //   },
-    //   main: 'src/index.marko',
-    //   workspaces: [ 'sandbox' ],
-    //   author: 'Me <me@me.com>',
-    //   repository: 'https://gitlab.com/multipple/application/Test-App.git',
-    //   keywords: [],
-    //   licence: false
-    // })
-
-    // console.log( await pm.install( ( _, length, message ) => console.log(`[${length}] -- ${message}`) )
-    // console.log( await pm.remove('express') )
-
-    // const
-    // options = {
-    //   cwd: '/Users/fabricemarlboro/dev-pro/Myapp-labs/multiple/Extensions/Notex',
-    //   // name: 'sandbox-server',
-    //   debug: true,
-    //   watcher: ( process, error, stats ) => {
-    //     error ?
-    //       console.error( error )
-    //       : console.log( `${process} -- [${stats.percent}]: ${stats.message}`)
-    //   }
-    // },
-    // em = new Emulator( options )
-    
-    // console.log( await em.run() )
-    // console.log( await em.reload() )
-    // console.log( await em.stop() )
-    // console.log( await em.metadata() )
-    // console.log( await em.exit() )
-
-
-    // const
-    // options = {
-    //   debug: true,
-    //   watcher: ( process, error, stats ) => {
-    //     error ?
-    //       console.error( error )
-    //       : console.log( `${process} -- [${stats.percent}]: ${stats.message}`)
-    //   }
-    // },
-    // ps = new IProcess( options )
-    
-    // await ps.setupProject({
-    //   type: 'application',
-    //   name: 'TestApp',
-    //   description: 'Test multipple micro-application',
-    //   specs: {
-    //     code: {
-    //       language: 'marko~5+',
-    //       platforms: [ 'multipple~2.0' ],
-    //       directory: '/Users/fabricemarlboro/dev-pro/Myapp-labs/Extensions/TestApp',
-    //       repository: 'https://gitlab.com/multipple/applications/Test-App'
-    //     }
-    //   }
-    // })
-    // await ps.importProject({
-    //   type: 'application',
-    //   name: 'Calendar',
-    //   description: 'Calendar multipple micro-application',
-    //   specs: {
-    //     code: {
-    //       language: 'marko~5+',
-    //       platforms: [ 'multipple~2.0' ],
-    //       directory: '/Users/fabricemarlboro/dev-pro/Myapp-labs/multiple/Extensions/Calendar',
-    //       repository: 'https://gitlab.com/multipple/applications/Calendar'
-    //     }
-    //   }
-    // })
-    // const appId = await ps.installApp({
-    //   "type": "application",
-    //   "name": "Library",
-    //   "namespace": "multipple",
-    //   "nsi": "library",
-    //   "description": "Search, Store books, documents, ... with access to multiple online library document right into your institution",
-    //   "version": "1.0",
-    //   "favicon": "favicon.png",
-    //   "categories": [
-    //     "library"
-    //   ],
-    //   "runscript": {
-    //     "*": {
-    //       "workspace": "qs",
-    //       "autoload": true
-    //     }
-    //   },
-    //   "resource": {
-    //     "dependencies": [],
-    //     "permissions": {
-    //       "scope": [
-    //         {
-    //           "type": "user.*",
-    //           "access": "GRANTED"
-    //         },
-    //         {
-    //           "type": "tenant.*",
-    //           "access": "GRANTED"
-    //         }
-    //       ]
-    //     },
-    //     "services": {
-    //       "editor": [
-    //         "BOOK",
-    //         "XDOC",
-    //         "ESHL"
-    //       ]
-    //     }
-    //   },
-    //   "author": {
-    //     "type": "developer",
-    //     "name": "Multipple"
-    //   },
-    //   "info": {}
-    // })
-    // console.log('Installed: ', appId )
-    // await ps.uninstallApp( appId )
-    // await ps.addComponents({ name: 'Locale', package: 'Switch' }, '/Users/fabricemarlboro/dev-pro/Myapp-labs/multiple/Extensions' )
-    // await ps.addPackages( [{ source: 'npm', name: 'express', version: '1.0.0' }], '/Users/fabricemarlboro/dev-pro/Myapp-labs/multiple/Extensions/Calendar' )
-    // await ps.updatePackages( [{ source: 'npm', name: 'express', version: '1.0.0' }], '/Users/fabricemarlboro/dev-pro/Myapp-labs/multiple/Extensions/Calendar' )
-    // await ps.removePackages( [{ source: 'npm', name: 'express', version: '1.0.0' }], '/Users/fabricemarlboro/dev-pro/Myapp-labs/multiple/Extensions/Calendar' )
-    
-    
-    // const 
-    // // input = 'Sample string to encypt'
-    // // input = 12976736092639
-    // input = { name: 'Gnimy', email: 'elem@mail.com' }
-
-    // // Encrypt
-    // const encrypted = DTCrypt.encrypt( input )
-    // console.log('Encrypted:', encrypted )
-
-    // // Decrypt
-    // const decrypted = DTCrypt.decrypt( encrypted )
-    // console.log('Decrypted:', typeof decrypted, decrypted )
-    
-
-  }
-  catch( error ){ 
-    console.log( error )
-  }
-} )()
+import '../../test'
 
 export const init = server => {
 
   // Use Socket.io Connection between Backend and Frontend in local environment
   const io = socketServer( server )
 
-  // Cubic Server Request channel
+  // Cubic API Request channel
   CARConnect( io )
   // File System Transaction channel
   FSTConnect( io )
   // Internal Process Transaction channel
   IPTConnect( io )
-  // Synchronizer channel
+  // Cloud-Local & Backend-Frontend Synchronizer channel
   Synchronizer( io )
 
   return { io }

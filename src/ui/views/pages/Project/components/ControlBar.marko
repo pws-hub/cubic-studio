@@ -1,0 +1,18 @@
+
+static const Tabs = [
+  { label: 'Menu', color: 'danger' },
+  { label: 'Project' }
+]
+
+<div.position-relative.theme-bg-lighten.h-100.border-right style="width:2rem">
+  <div.position-absolute.w-100.h-100.d-flex.flex-column-reverse.text-center style="transform:rotate(180deg)">
+    <for|{ label, color }, index| of=Tabs>
+      <div.w-100.cursor-pointer 
+          key=index
+          class=`bg-${color || 'inherit'}`
+          style="padding:1.5rem 3px;writing-mode: tb-rl">
+        <Locale text=label/>
+      </div>
+    </for>
+  </div>
+</div>

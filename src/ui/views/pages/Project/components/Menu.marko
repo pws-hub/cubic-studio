@@ -22,22 +22,22 @@ class {
 }
 
 <if( input.show && input.project )>
-  <WSAdapt.in-block.section-block.px-1.theme-bg-fade
+  <WSAdapt.in-block.section-block.theme-bg-fade
           ns="col-1"
           qs="col-1"
           hs="d-none">
-    <div.text-center.py-25>
+    <div.text-center.px-1.py-25>
       <a href=`javascript:history.back()`>
         <Bx.font-large-1.py-50.cursor-pointer type="arrow-back"/>
       </a>
     </div>
 
-    <div.text-center.py-2>
+    <div.text-center.px-1.py-2>
       <Image.mr-2.round-sm.border src=( input.project.logo || DefaultLogo ) style="width:50px;height:50px"/>
       <div.font-medium-3.py-1.text-ellipsis>${input.project.name}</div>
     </div>
 
-    <div.position-relative.overflow-auto>
+    <div.position-relative.px-1.overflow-auto>
       <ul.list-unstyled>
         <for|{ name, label, disabled }, index| of=Menu>
           <li.px-1.py-75.my-1.border.border-2.round.text-center.nav-item.cursor-pointer
@@ -49,21 +49,21 @@ class {
       </ul>
     </div>
 
-    <div.position-absolute.bottom-0>
-      <ul.list-unstyled.my-2>
-        <li.px-1.py-50>
-          <Bx.font-large-1.p-1.rounded-circle.theme-bg-primary.white-text.shadow-lg.cursor-pointer 
+    <div.position-absolute.w-100.d-flex.justify-content-center.bottom-0>
+      <ul.list-unstyled.mx-0.my-2>
+        <li.py-50>
+          <Bx.font-large-1.p-1.rounded-circle.theme-bg-primary.white-text.cursor-pointer.scale-up
               type="plus"
               on-click( () => component.emit('add', {}) )/>
         </li>
-        <li.px-1.py-50>
-          <Bx.font-large-1.p-1.rounded-circle.only-dark-bg-lighten.shadow-lg.cursor-pointer 
+        <li.py-50>
+          <Bx.font-large-1.p-1.rounded-circle.only-dark-bg-lighten.cursor-pointer.scale-up
               type="search"
               on-click( () => component.emit('search', {}) )/>
         </li>
-        <li.px-1.py-50>
+        <li.py-50>
           <route-link href="/">
-            <Bx.font-large-1.p-1.rounded-circle.only-dark-bg-lighten.shadow-lg.cursor-pointer 
+            <Bx.font-large-1.p-1.rounded-circle.only-dark-bg-lighten.cursor-pointer.scale-up
               type="home-alt"
               on-click( () => component.emit('export', {}) )/>
           </route-link>

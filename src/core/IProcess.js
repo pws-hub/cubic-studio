@@ -132,10 +132,12 @@ export default class IProcess {
                       })
         const
         dotCubic = await GenericFile.dotCubic( dataset ),
-        configJson = await GenericFile.configJson( dataset )
+        configJson = await GenericFile.configJson( dataset ),
+        dotGitignore = await GenericFile.dotGitignore( directory )
 
         await fs.newFile( directory +'/.cubic', JSON.stringify( dotCubic, null, '\t' ) )
         await fs.newFile( directory +'/config.json', JSON.stringify( configJson, null, '\t' ) )
+        await fs.newFile( directory +'/.gitignore', dotGitignore )
 
         /*-------------------------------------------------------------------------*/
         // Clone sandbox by language from Git
@@ -307,10 +309,12 @@ export default class IProcess {
                       })
         const
         dotCubic = await GenericFile.dotCubic( dataset ),
-        configJson = await GenericFile.configJson( dataset )
+        configJson = await GenericFile.configJson( dataset ),
+        dotGitignore = await GenericFile.dotGitignore( directory )
 
         await fs.newFile( directory +'/.cubic', JSON.stringify( dotCubic, null, '\t' ) )
         await fs.newFile( directory +'/config.json', JSON.stringify( configJson, null, '\t' ) )
+        await fs.newFile( directory +'/.gitignore', dotGitignore )
 
         /*-------------------------------------------------------------------------*/
         // Clone and add new sandbox by language from Git

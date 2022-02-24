@@ -178,39 +178,38 @@ class {
 
             <!-- List of projects in the workspace -->
             <br>
-            <if( state.fetching )>
-              <div.h-40.d-flex.align-items-center.justify-content-center>
-                <Preloader.font-large-2.text-muted active/>
-              </div>
-            </if>
-            <else>
-              <div.all-projects>
-                <if( state.projects.length )>
-                  <!-- Seperator label -->
-                  <if( RecentProjects.length )>
-                    <h4.px-2.pb-50.font-small-3>
-                      <Locale.text-muted text="All projects"/>
-                    </h4>
-                  </if>
-
-                  <ul.list-unstyled>
-                    <for|each, index| of=state.projects>
-                      <!-- Generate project link -->
-                      $ each.link = `/workspace/${input.params.id}/${each.projectId}`
-                      <Project key=index ...each />
-                    </for>
-                  </ul>
-                      
-                  <br>
-                </if>
-
-                <br>
-                <div.px-2>
-                  <Button.mx-50 on-click('onCreateProjectToggle', true )>Create new project</Button>
-                  <Button.mx-50 on-click('onImportProjectToggle', true )>Import project</Button>
+            <div.all-projects>
+              <if( state.fetching )>
+                <div.d-flex.align-items-center.justify-content-center.py-5>
+                  <Preloader.font-large-2.text-muted active/>
                 </div>
+              </if>
+              <else>
+                  <if( state.projects.length )>
+                    <!-- Seperator label -->
+                    <if( RecentProjects.length )>
+                      <h4.px-2.pb-50.font-small-3>
+                        <Locale.text-muted text="All projects"/>
+                      </h4>
+                    </if>
+
+                    <ul.list-unstyled>
+                      <for|each, index| of=state.projects>
+                        <!-- Generate project link -->
+                        $ each.link = `/workspace/${input.params.id}/${each.projectId}`
+                        <Project key=index ...each />
+                      </for>
+                    </ul>
+                        
+                    <br>
+                  </if>
+              </else>
+              <br>
+              <div.px-2>
+                <Button.mx-50 on-click('onCreateProjectToggle', true )>Create new project</Button>
+                <Button.mx-50 on-click('onImportProjectToggle', true )>Import project</Button>
               </div>
-            </else>
+            </div>
           </@col>
 
           <!-- Support and helps informations -->
@@ -282,7 +281,7 @@ class {
 
 <!-- Create/Setup project -->
 <if( state.showSetupProject )>
-  <Modal.px-4.py-2 width=40 noBackdrop=true on-dismiss('onCreateProjectToggle', false )>
+  <Modal.px-4.py-2 width=40 noBackdrop overflow on-dismiss('onCreateProjectToggle', false )>
     <SetupProject on-explorer('onExplorerToggle', true )
                   on-dismiss('onCreateProjectToggle', false )
                   on-submit('onCreateProject')/>
@@ -291,7 +290,7 @@ class {
 
 <!-- Import project -->
 <if( state.showImportProject )>
-  <Modal.px-4.py-2 width=40 noBackdrop=true on-dismiss('onImportProjectToggle', false )>
+  <Modal.px-4.py-2 width=40 noBackdrop overflow on-dismiss('onImportProjectToggle', false )>
     <ImportProject on-explorer('onExplorerToggle', true )
                     on-dismiss('onImportProjectToggle', false )
                     on-submit('onImportProject')/>
@@ -300,7 +299,7 @@ class {
 
 <!-- Add new team members -->
 <if( state.showInviteForm )>
-  <Modal.px-3.py-2 width=25 noBackdrop=true on-dismiss('onAddMemberToggle', false )>
+  <Modal.px-3.py-2 width=25 noBackdrop on-dismiss('onAddMemberToggle', false )>
     <AddMembers existing=state.workspace.members
                 on-dismiss('onAddMemberToggle', false )
                 on-submit('onAddMembers')/>

@@ -13,6 +13,8 @@ static const defaultOptions = {
 
 class {
   onCreate({ file, language, options }){
+    this.state = { isMediaFile: false }
+
     // File input value is explicitly `null` by default
     this.file = file || null
     // Marko is default
@@ -41,7 +43,7 @@ class {
     this.adjustEditorLayout()
     this.fs = fs
     
-    // Dispose editor when `file` explicitly have `null` value
+    // Dispose editor when `file` value is explicitly `null`
     if( file === null && this.editor ){
       this.editor.setModel( null )
       return
@@ -49,11 +51,11 @@ class {
     
     // Open new file/model
     if( file && ( !this.file || file.path !== this.file.path ) )
-      this.editorOpen( this.file = file )
+      this.open( this.file = file )
   }
   onMount(){
     this.initMonaco()
-    this.editorOpen( this.file )
+    this.open( this.file )
 
     // Adapt editor container to window resize
     $(window).on( 'resize', () => this.editor.layout() )
@@ -179,7 +181,14 @@ class {
     }
     catch( error ){ console.log('[Editor-Event] Error: ', error ) }
   }
-  async editorOpen( file ){
+  async open( file ){
+
+    // Display media files: Image, Audio, Video
+    if( file && /\.(jpe?g|png|gif|webp|mp3|ogg|webm|mp4)$/i.test( file.path ) ){
+      await this.setMedia( file )
+      return
+    }
+
     // Initialize editor
     !this.editor && await this.initEditor()
 
@@ -202,6 +211,20 @@ class {
 
     file && this.setModel( file )
   }
+  async setMedia( file ){
+    // Display media files as image, video, ...
+    if( !this.fs ) return
+
+    let base64 = await this.fs.readFile( file.path, { encoding: 'base64' })
+
+    base64 = `data:application/octet-stream;base64,${base64}`
+
+    this.media = {
+      ...file,
+      src: URL.createObjectURL( await ( await window.fetch( base64 ) ).blob() )
+    }
+    this.state.isMediaFile = true
+  }
   async getModel( path ){
     
     const uri = monaco.Uri.file( path )
@@ -218,7 +241,8 @@ class {
     return model
   }
   async setModel( file ){
-    
+
+    this.state.isMediaFile = false
     const model = await this.getModel( file.path )
     
     model.file = file
@@ -282,3 +306,9 @@ class {
 }
 
 <div.code-editor no-update></div>
+
+<if( state.isMediaFile )>
+  <div.position-absolute.top-0.w-100.h-100.theme-bg.d-flex.align-items-center.justify-content-center style="z-index:30">
+    <Media ...component.media/>
+  </div>
+</if>

@@ -1,0 +1,23 @@
+
+static function getType( path ){
+  if( /\.(jpe?g|png|webp|gif)$/.test( path ) ) return 'image'
+  if( /\.(mp3|ogg)$/.test( path ) ) return 'audio'
+  if( /\.(mp4|webm)$/.test( path ) ) return 'video'
+  
+  return 'unknown'
+}
+
+<Switch by=getType( input.path )>
+  <@case is="image">
+    <img src=input.src/>
+  </@case>
+  <@case is="audio">
+    <audio src=input.src></audio>
+  </@case>
+  <@case is="video">
+    <video src=input.src></video>
+  </@case>
+  <@default>
+    <div><Locale>Unknown Media Type</Locale></div>
+  </@default>
+</Switch>

@@ -25,7 +25,7 @@ Then run the command below to start the app
 yarn start
 ```
 
-Open your browser, enter **http://localhost:12121** and there you go.
+Open your browser, enter **http://localhost:12120** and there you go.
 
 Full documentation of how to use it is upcoming, for now, enjoy playing with it.
 

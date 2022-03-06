@@ -1,0 +1,7 @@
+
+import Extension from 'extension'
+
+$ const { name, ...rest } = input
+<${Extension} ...window.Extension.meta( name ) 
+              ...rest 
+              on-forward( ( ...args ) => component.emit( ...args ) )/>

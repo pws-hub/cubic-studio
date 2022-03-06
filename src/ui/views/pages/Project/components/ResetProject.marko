@@ -1,0 +1,80 @@
+
+class {
+  onCreate(){ 
+    this.state = { directory: '', updating: false } 
+  }
+  onSelectDirectory({ path }){
+    if( !path ) return
+    this.state.directory = path
+  }
+  async onContinue(){
+    try {
+      this.state.updating = true
+      
+      const
+      workspaceId = this.input.workspace.workspaceId,
+      projectId = this.input.project.projectId,
+      { error, message, project } = await RPatch(`/workspaces/${workspaceId}/projects/${projectId}`, { 'specs.code.directory': this.state.directory })
+      if( error ) throw new Error( message )
+      
+      this.state.updating = false
+      
+      this.emit( 'continue', workspaceId, projectId )
+      this.emit('dismiss')
+    }
+    catch( error ){
+      console.log('Failed updating project directory: ', error )
+      this.state.updating = false
+    }
+  }
+}
+
+<Modal.px-3.py-1 width=40 on-dismiss( () => component.emit('dismiss') )>
+  <div.in-block.position-relative>
+    <h5><Locale.text-info text="Project Not Found"/></h5>
+    <p.text-muted>${input.project.specs.code.directory}</p>
+    
+    <br>
+    <!-- Source code locations -->
+    <div.form-group>
+      <label><Locale text="Select Directory"/></label>
+      <div class="form-group">
+        <div class="input-group">
+          <input.round-xs.form-control.form-control-lg.px-2
+                  type="text"
+                  value=state.directory/>
+
+          <!-- Show FileSyste Explorer Modal -->
+          <div class="input-group-append">
+            <button class="btn btn-primary btn-lg" 
+                    on-click( () => component.emit( 'explorer', component.onSelectDirectory.bind( component ) ) )>
+              <Bx.font-medium-5 type="folder"/>
+            </button>
+          </div>
+        </div>
+        <p.small.mt-50.mb-2.text-muted>
+          <Locale>Location of the project on your local drive</Locale>
+        </p>
+      </div>
+    </div>
+
+    <if( !state.directory )>
+      <Locale.text-muted.font-small-3 text="Or"/>
+
+      <Button.mx-1 type="md" on-click( () => component.emit('setup') )>
+        <Locale text="Setup new project"/>
+      </Button>
+      <br>
+    </if>
+    
+    <br>
+    <div.text-right>
+      <if( state.directory )>
+        <Button.mx-50 primary type="md" on-click('onContinue')>
+          <Locale text="Continue"/>
+          <Preloader.pl-4.font-medium-4.float-right active=state.updating/>
+        </Button>
+      </if>
+    </div>
+  </div>
+</Modal>

@@ -82,5 +82,11 @@
     "version": "1.0.0",
     "description": "Nice form alert display base on bootstrap alert style and variations",
     "package": "FormAlert.marko"
+  },
+  {
+    "name": "Plugin",
+    "version": "1.0.0",
+    "description": "Run plugins in your app/plugin",
+    "package": "Plugin.marko"
   }
 ]

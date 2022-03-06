@@ -55,7 +55,7 @@ class {
     this.state.files = []
     this.state.fetching = false
 
-    content.map( each => {
+    Array.isArray( content ) && content.map( each => {
       each.isDir ? 
           this.state.dirs.push( each ) // Folder
           : this.state.files.push( each ) // File

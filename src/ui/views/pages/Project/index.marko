@@ -61,7 +61,9 @@ class {
       showAddon: false,
       showSearch: false,
       showConsole: false,
+      showExplorer: false,
       showSettings: false,
+      showResetProject: false,
       showDeleteProject: false,
 
       tabs: [],
@@ -110,7 +112,9 @@ class {
   onSearchToggle( args ){ this.state.showSearch = args }
   onAddonToggle( args ){ this.state.showAddon = args }
   onSettingsToggle( type ){ this.state.showSettings = type }
+  onShowResetProjectToggle( type ){ this.state.showResetProject = type }
   onShowDeleteProjectToggle( type ){ this.state.showDeleteProject = type }
+  onExplorerToggle( status, fn ){ this.state.showExplorer = status ? { fn } : false }
   onConsoleToggle( status ){
     this.state.showConsole = status
 
@@ -307,8 +311,9 @@ class {
     this.state.Code.dependencies = deps
     this.state.Code = newObject( this.state.Code )
   }
-  async SetupProject(){
+  async SetupProject( flag ){
     try {
+      if( flag ) this.flag = flag
       let AUTORUN = true
       
       // Declare filesystem I/O handler at the project's current working directory
@@ -342,16 +347,20 @@ class {
       await this.getDirectory()
       
       // Project has no directory: Setup or Import (Depending of flag value)
-      if( isEmpty( this.state.Code.directories ) )
-        this.flag = this.flag || 'setup'
-
+      if( isEmpty( this.state.Code.directories ) ){
+        if( !this.flag ){
+          // TODO: Prompt modal for user to select project directory or setup new
+          this.onShowResetProjectToggle( true )
+          return
+        }
+      }
       // Import if project have no package.json file at the directory root
       else if( !( await this.fs.readFile( 'package.json', { encoding: 'json' } ) ) )
         this.flag = 'import'
-
+      
 
       // Flag when something fishing about the setup
-      if( this.flag ){
+      if( ['setup', 'import'].includes( this.flag ) ){
         // Importing project from specified repo (import) or setup new (default)
         const action = this.flag || 'setup'
 
@@ -776,12 +785,34 @@ class {
             on-delete-toggle('onShowDeleteProjectToggle', true )/>
 </if>
 
+<!-- Reset project -->
+<if( state.showResetProject )>
+  <ResetProject workspace=state.workspace
+                project=state.project
+                on-continue('getProject')
+                on-setup('SetupProject', 'setup')
+                on-explorer('onExplorerToggle', true )
+                on-dismiss('onShowResetProjectToggle', false )/>
+</if>
+
 <!-- Delete project -->
 <if( state.showDeleteProject )>
   <DeleteProject workspace=state.workspace
                   project=state.project
                   on-confirm('onAction', 'delete-project')
                   on-dismiss('onShowDeleteProjectToggle', false )/>
+</if>
+
+<!-- Show File System Explorer -->
+<if( state.showExplorer )>
+  <Modal.mh-50.overflow-auto 
+        noBackdrop=true
+        noDismissButton=true 
+        width=25 on-dismiss('onExplorerToggle', false )>
+    <FSExplorer options={ ignore: '^\\.' }
+                ...state.showExplorer
+                on-dismiss('onExplorerToggle', false )/>
+  </Modal>
 </if>
 
 <if( state.ongoingSetup )>

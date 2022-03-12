@@ -90,7 +90,7 @@ class {
         <div.w-100.text-center>
           <Preloader.font-large-3 active=true/>
           <br><br>
-          <Locale text=input.status.toCapitalCase()/>
+          <Locale text=( input.status || 'Reloading' ).toCapitalCase()/>
         </div>
       </if>
       <!-- Display error message -->
@@ -103,7 +103,6 @@ class {
           <Button type="md" on-click('onReload')>Retry</Button>
         </div>
       </else-if>
-      
       <else>
         <Bx.font-large-3.text-muted type="cube-alt"/>
       </else>

@@ -6,37 +6,44 @@ class {
   onToggle( by ){ this.state.active = by }
 }
 
-<div.in-block.position-relative>
-  <h5><Locale text="Import Project"/></h5>
-  <br>
 
-  <!-- Tabs -->
-  <div.header.position-relative.zindex-1>
-    <ul.list-inline.m-0>
-      <for|by, index| of=Tabs>
-        <li.px-1.py-50.cursor-pointer.d-inline-flex.align-items-center.round.mx-25
-            class=( state.active == by ? 'theme-bg-primary' : 'theme-bg-fade' )
-            on-click( 'onToggle', by )>
-          <span>${by.toCapitalCase()}</span>
-        </li>
-      </for>
-    </ul>
-  </div>
+<Modal.px-4.py-2 
+      width=40 
+      noBackdrop 
+      overflow 
+      on-dismiss( () => component.emit('dismiss') )>
+  <div.in-block.position-relative>
+    <h5><Locale text="Import Project"/></h5>
+    <br>
 
-  <!-- Tab contents -->
-  <context on-dismiss( () => component.emit('dismiss') )
-            on-explorer( fn => component.emit( 'explorer', fn ) )
-            on-submit( ( ...args ) => component.emit( 'submit', ...args ) )>
-    <div.w-100>
-      <br><br>
-      <Switch by=state.active>
-        <@case is="link">
-          <ByLink />
-        </@case>
-        <@case is="directory">
-          <ByDirectory />
-        </@case>
-      </Switch>
+    <!-- Tabs -->
+    <div.header.position-relative.zindex-1>
+      <ul.list-inline.m-0>
+        <for|by, index| of=Tabs>
+          <li.px-1.py-50.cursor-pointer.d-inline-flex.align-items-center.round.mx-25
+              class=( state.active == by ? 'theme-bg-primary' : 'theme-bg-fade' )
+              on-click( 'onToggle', by )>
+            <span>${by.toCapitalCase()}</span>
+          </li>
+        </for>
+      </ul>
     </div>
-  </context>
-</div>
+
+    <!-- Tab contents -->
+    <context on-dismiss( () => component.emit('dismiss') )
+              on-explorer( fn => component.emit( 'explorer', fn ) )
+              on-submit( ( ...args ) => component.emit( 'submit', ...args ) )>
+      <div.w-100>
+        <br><br>
+        <Switch by=state.active>
+          <@case is="link">
+            <ByLink />
+          </@case>
+          <@case is="directory">
+            <ByDirectory />
+          </@case>
+        </Switch>
+      </div>
+    </context>
+  </div>
+</Modal>

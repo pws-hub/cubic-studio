@@ -57,14 +57,14 @@ $ const isQuaterScreen = state.ws.mode == 'qs'
     <div.position-relative.round-sm.d-flex.align-items-stretch.overflow-hidden>
       <ul.h-100.list-unstyled.m-0.position-relative.zindex-1.theme-bg-lighten.py-1>
         <!-- Workspace mode switcher -->
-        <li.cursor-pointer.p-50
+        <li.cursor-pointer.scale-down.p-50
             title=Locale( isQuaterScreen ? 'Half Screen' : 'Quarter Screen' )
             on-click('onWorkspaceSwitch')>
           <Bx.font-medium-5.p-50.white-text type=`dock-${isQuaterScreen ? 'left' : 'right'}`/>
         </li>
         
         <!-- Select & inject user account type -->
-        <li.cursor-pointer.p-50
+        <li.cursor-pointer.scale-down.p-50
             title=Locale('Change user account type')
             on-click('onExtendOption', 'accounttype')>
           <Bx.font-medium-5.p-50.rounded-circle
@@ -73,7 +73,7 @@ $ const isQuaterScreen = state.ws.mode == 'qs'
         </li>
         
         <!-- Select & inject context -->
-        <li.cursor-pointer.p-50
+        <li.cursor-pointer.scale-down.p-50
             title=Locale('Change context')
             on-click('onExtendOption', 'context')>
           <Bx.font-medium-5.p-50.rounded-circle
@@ -83,7 +83,7 @@ $ const isQuaterScreen = state.ws.mode == 'qs'
         
         <!-- Open available testing kit -->
         <if( input.tests && !isEmpty( input.tests ) )>
-          <li.cursor-pointer.p-50
+          <li.cursor-pointer.scale-down.p-50
               title=Locale('Test tools')
               on-click('onTestMode')>
             <Bx.font-medium-5.p-50.rounded-circle
@@ -99,7 +99,7 @@ $ const isQuaterScreen = state.ws.mode == 'qs'
         </li>
         
         <!-- Theme mode switcher -->
-        <li.cursor-pointer.p-50
+        <li.cursor-pointer.scale-down.p-50
             title=Locale( state.darkMode ? 'Light' : 'Dark' )
             on-click('onThemeModeSwitch')>
           <Bx.font-medium-5.p-50 type="moon" bxs=state.darkMode/>
@@ -107,24 +107,24 @@ $ const isQuaterScreen = state.ws.mode == 'qs'
 
         <!-- List of available languages supported -->
         <if( input.languages && !isEmpty( input.languages ) )>
-          <li.cursor-pointer.p-50
+          <li.cursor-pointer.scale-down.p-50
               title=Locale('Change language')
               on-click('onExtendOption', 'language')>
             <Bx.font-medium-5.p-50.rounded-circle
-              type="world" 
+              type="world"
               class=( state.option == 'language' ? 'theme-bg-fade' : false )/>
           </li>
         </if>
         
         <!-- Reload emulator -->
-        <li.cursor-pointer.p-50
+        <li.cursor-pointer.scale-down.p-50
             title=Locale('Reload')
             on-click( () => component.emit('reload') )>
           <Bx.font-medium-5.p-50 type="rotate-left"/>
         </li>
 
         <!-- Exit emulator -->
-        <li.cursor-pointer.p-50
+        <li.cursor-pointer.scale-down.p-50
             title=Locale('Quit')
             on-click( () => component.emit('quit') )>
           <Bx.font-medium-5.p-50 type="power-off"/>

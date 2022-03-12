@@ -2,7 +2,6 @@
 import pm2 from 'pm2'
 import fs from 'fs-inter'
 import fetch from 'node-fetch'
-import kebabCase from 'kebab-case'
 
 function isValidEnv( env ){
   return typeof env == 'object' && !isEmpty( env )
@@ -14,8 +13,8 @@ export default class Emulator {
     // Process config
     this.process = {
       cwd: options.cwd || process.cwd(),
-      name: `${kebabCase( ( options.name || 'test' ).toLowerCase() )}:cubic:sandbox`,
-      script: options.script || 'yarn start',
+      name: `${toNSI( options.name )}:cubic:sandbox`,
+      script: options.script || 'cd ./sandbox && yarn "start"',
       env: {
         NODE_ENV: 'development',
         HOST: 'localhost',

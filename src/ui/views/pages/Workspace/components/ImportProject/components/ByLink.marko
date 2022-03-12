@@ -29,7 +29,7 @@ class {
   }
   onCancel(){
     this.fhandler.reset()
-    this.emit('dismiss')
+    this.contextEmit('dismiss')
   }
   onAddDirectory({ path }){
     if( !path ) return

@@ -103,120 +103,133 @@ class {
   }
 }
 
-<div.fs-explorer>
-  <!-- Header -->
-  <div.position-sticky.top-0.header.theme-bg-fade.px-3.py-2>
-    <div>
-      <!-- Navigation history back -->
-      <Bx.font-medium-5.cursor-pointer
-          class=(!state.history.length ? 'text-muted' : '')
-          type="arrow-back"
-          on-click('onHistoryBack')/>
+<macro name="Content">
+  <div.fs-explorer>
+    <!-- Header -->
+    <div.position-sticky.top-0.header.theme-bg-fade.px-3.py-2>
+      <div>
+        <!-- Navigation history back -->
+        <Bx.font-medium-5.cursor-pointer
+            class=(!state.history.length ? 'text-muted' : '')
+            type="arrow-back"
+            on-click('onHistoryBack')/>
 
-      <!-- Add new folder -->
-      <Bx.font-medium-5.float-right.cursor-pointer
-          type="folder-plus"
-          on-click('onAddFolderToggle', !state.createFolder )/>
+        <!-- Add new folder -->
+        <Bx.font-medium-5.float-right.cursor-pointer
+            type="folder-plus"
+            on-click('onAddFolderToggle', !state.createFolder )/>
+      </div>
+
+      <!-- Navigation breadcumb -->
+      <if( state.current.path )>
+        <div.w-100.mt-2.overflow-auto>
+          $ {
+            const list = state.current.path.split('/')
+            let path = ''
+
+            list.shift()
+          }
+
+          <ul.list-inline.d-inline-flex.align-items-center.m-0>
+            <for|name, index| of=list>
+              $ {
+                path += '/'+ name
+                const active = ( index < list.length - 1 )
+              }
+              
+              <li.text-nowrap class=( active ? 'cursor-pointer' : 'text-muted')
+                  on-click('onOpen', active ? { path } : false )>
+                <if( index > 0 )>
+                  <span.px-50.text-muted>/</span>
+                </if>
+
+                ${name}
+              </li>
+            </for>
+          </ul>
+        </div>
+      </if>
+
+      <if( state.createFolder )>
+        <div.mt-4.animated.fadeIn.faster>
+          <div class="form-group">
+            <div class="input-group">
+              <input.round-xs.form-control
+                      key="input-folder-name"
+                      type="text"
+                      placeholder=( Locale('Folder name*') )/>
+              <div class="input-group-append">
+                <button class="btn btn-primary" 
+                        on-click('onCreateFolder')>
+                  <Locale text="Save"/>
+                </button>
+              </div>
+            </div>
+            <if( state.createFolderError )>
+              <p.small.mt-50.mb-2>
+                <Locale.text-warning text=state.createFolderError/>
+              </p>
+            </if>
+          </div>
+        </div>
+      </if>
     </div>
 
-    <!-- Navigation breadcumb -->
-    <if( state.current.path )>
-      <div.w-100.mt-2.overflow-auto>
-        $ {
-          const list = state.current.path.split('/')
-          let path = ''
+    <!-- Content -->
+    <div.py-1 style="min-height:300px">
+      <if( !state.dirs.length && !state.files.length )>
+        <div.padding-8.text-center>
+          <Locale.text-muted text="Empty"/>
+        </div>
+      </if>
 
-          list.shift()
-        }
+      <!-- Display dirs -->
+      <if( state.dirs.length )>
+        <ul.list-unstyled.m-0>
+          <for|dir, index| of=state.dirs>
+            $ const { name, path, size } = dir
 
-        <ul.list-inline.d-inline-flex.align-items-center.m-0>
-          <for|name, index| of=list>
-            $ {
-              path += '/'+ name
-              const active = ( index < list.length - 1 )
-            }
-            
-            <li.text-nowrap class=( active ? 'cursor-pointer' : 'text-muted')
-                on-click('onOpen', active ? { path } : false )>
-              <if( index > 0 )>
-                <span.px-50.text-muted>/</span>
-              </if>
-
-              ${name}
+            <li.nav-item.cursor-pointer.px-3.py-25.d-flex.align-items-center
+                on-click('onOpen', dir )>
+              <Bx.font-large-1.pr-4.text-muted type="folder"/>
+              <div.text-ellipsis.w-75>${name}</div>
             </li>
           </for>
         </ul>
-      </div>
-    </if>
+      </if>
 
-    <if( state.createFolder )>
-      <div.mt-4.animated.fadeIn.faster>
-        <div class="form-group">
-          <div class="input-group">
-            <input.round-xs.form-control
-                    key="input-folder-name"
-                    type="text"
-                    placeholder=( Locale('Folder name*') )/>
-            <div class="input-group-append">
-              <button class="btn btn-primary" 
-                      on-click('onCreateFolder')>
-                <Locale text="Save"/>
-              </button>
-            </div>
-          </div>
-          <if( state.createFolderError )>
-            <p.small.mt-50.mb-2>
-              <Locale.text-warning text=state.createFolderError/>
-            </p>
-          </if>
-        </div>
-      </div>
-    </if>
+      <!-- Display files -->
+      <if( state.files.length )>
+        <ul.list-unstyled.m-0>
+          <for|{ name, path, size }, index| of=state.files>
+            <li.nav-item.cursor-pointer.px-3.py-25.d-flex.align-items-center>
+              <!-- File type -->
+              <span.font-medium-2.pl-1.pr-5>
+                <FileLabel type=name.split('.').pop()/>
+              </span>
+              <!-- Name -->
+              <div.text-ellipsis.w-75>${name}</div>
+            </li>
+          </for>
+        </ul>
+      </if>
+    </div>
+
+    <!-- Footer -->
+    <div.position-sticky.footer.theme-bg.border-top.px-2.py-75.text-right style="bottom:-2px">
+      <Button.mx-25 type="md" on-click( () => component.emit('dismiss') )>Cancel</Button>
+      <Button.mx-25 type="md" primary=true on-click('onDone')>Done</Button>
+    </div>
   </div>
+</macro>
 
-  <!-- Content -->
-  <div.py-1 style="min-height:300px">
-    <if( !state.dirs.length && !state.files.length )>
-      <div.padding-8.text-center>
-        <Locale.text-muted text="Empty"/>
-      </div>
-    </if>
-
-    <!-- Display dirs -->
-    <if( state.dirs.length )>
-      <ul.list-unstyled.m-0>
-        <for|dir, index| of=state.dirs>
-          $ const { name, path, size } = dir
-
-          <li.nav-item.cursor-pointer.px-3.py-25.d-flex.align-items-center
-              on-click('onOpen', dir )>
-            <Bx.font-large-1.pr-4.text-muted type="folder"/>
-            <div.text-ellipsis.w-75>${name}</div>
-          </li>
-        </for>
-      </ul>
-    </if>
-
-    <!-- Display files -->
-    <if( state.files.length )>
-      <ul.list-unstyled.m-0>
-        <for|{ name, path, size }, index| of=state.files>
-          <li.nav-item.cursor-pointer.px-3.py-25.d-flex.align-items-center>
-            <!-- File type -->
-            <span.font-medium-2.pl-1.pr-5>
-              <FileLabel type=name.split('.').pop()/>
-            </span>
-            <!-- Name -->
-            <div.text-ellipsis.w-75>${name}</div>
-          </li>
-        </for>
-      </ul>
-    </if>
-  </div>
-
-  <!-- Footer -->
-  <div.position-sticky.footer.theme-bg.border-top.px-2.py-75.text-right style="bottom:-2px">
-    <Button.mx-25 type="md" on-click( () => component.emit('dismiss') )>Cancel</Button>
-    <Button.mx-25 type="md" primary=true on-click('onDone')>Done</Button>
-  </div>
-</div>
+<if( input.modal )>
+  <Modal.mh-50.overflow-auto 
+        noBackdrop
+        noDismissButton 
+        width=25 
+        on-dismiss( () => component.emit('dismiss') )>
+    <Content/>
+  </Modal>
+</if>
+<else><Content/></else>

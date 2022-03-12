@@ -1,5 +1,6 @@
 
 import dotenv from 'dotenv'
+import kebabCase from 'kebab-case'
 
 dotenv.config()
 
@@ -86,6 +87,10 @@ global.toOrigin = ( domain, local ) => {
     domain = domain.replace(/^http(s?):\/\//, '')
 
   return 'http'+( !local && process.env.HTTP_SECURE.includes('true') ? 's' : '' )+'://'+ domain
+}
+
+global.toNSI = name => {
+  return kebabCase( name.toLowerCase().replace(/\s+/g, '-') ).replace(/^-/, '')
 }
 
 global.debugLog = ( ...args ) => {

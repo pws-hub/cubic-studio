@@ -311,39 +311,46 @@ class {
     this.state.Code.dependencies = deps
     this.state.Code = newObject( this.state.Code )
   }
+  async initialProjectWS(){
+    // Declare filesystem I/O handler at the project's current working directory
+    const cwd = this.state.project.specs.code.directory
+    this.fs = await window.FileSystem.init( 'project', { cwd, debug: true } )
+    // Declare Project's background Process Manager
+    this.pm = await window.IProcess.create({ debug: true })
+
+    // Watch external/background operations on this directory
+    let wait = 0
+    this.fs.watch( async ( event, path, stats ) => {
+      debugLog(`[DIRECTORY Event] ${event}: ${path}`, stats )
+
+      switch( event ){
+        // New file/dir added: Refresh directory tree
+        case 'add':
+        case 'addDir': wait && clearTimeout( wait )
+                        await this.getDirectory()
+            break
+        /** Wait for `add` event to conclude file/dir moved: 
+            In that case `add event` will refresh the directory.
+            otherwise, conclude `delete`
+        */
+        case 'unlink': wait = setTimeout( async () => await this.getDirectory(), 2000 ); break
+                        
+      }
+    } )
+
+    // Close active ResetProject modal
+    this.onShowResetProjectToggle( false )
+    // Console to previous show/hide state
+    this.state.showConsole = this.pstore.get('active-console')
+  }
   async SetupProject( flag ){
     try {
       if( flag ) this.flag = flag
       let AUTORUN = true
-      
-      // Declare filesystem I/O handler at the project's current working directory
-      const cwd = this.state.project.specs.code.directory
-      this.fs = await window.FileSystem.init( 'project', { cwd, debug: true } )
-      // Declare Project's background Process Manager
-      this.pm = await window.IProcess.create({ debug: true })
 
-      // Watch external/background operations on this directory
-      let wait = 0
-      this.fs.watch( async ( event, path, stats ) => {
-        debugLog(`[DIRECTORY Event] ${event}: ${path}`, stats )
-
-        switch( event ){
-          // New file/dir added: Refresh directory tree
-          case 'add':
-          case 'addDir': wait && clearTimeout( wait )
-                          await this.getDirectory()
-              break
-          /** Wait for `add` event to conclude file/dir moved: 
-              In that case `add event` will refresh the directory.
-              otherwise, conclude `delete`
-          */
-          case 'unlink': wait = setTimeout( async () => await this.getDirectory(), 2000 ); break
-                          
-        }
-
-      } )
-
-      // Get project directory content
+      // Initialize project's UI workspace
+      await this.initialProjectWS()
+      // Load project directory
       await this.getDirectory()
       
       // Project has no directory: Setup or Import (Depending of flag value)
@@ -403,11 +410,8 @@ class {
                         : this.RunEmulator() // Connect frontend to process or run process if not available
       }
 
-      // Get project dependencies
+      // Load project dependencies
       await this.getDependencies()
-
-      // Console to previous show/hide state
-      this.state.showConsole = this.pstore.get('active-console')
     }
     catch( error ){
       console.log('Failed setting up project: ', error )
@@ -805,14 +809,10 @@ class {
 
 <!-- Show File System Explorer -->
 <if( state.showExplorer )>
-  <Modal.mh-50.overflow-auto 
-        noBackdrop=true
-        noDismissButton=true 
-        width=25 on-dismiss('onExplorerToggle', false )>
-    <FSExplorer options={ ignore: '^\\.' }
-                ...state.showExplorer
-                on-dismiss('onExplorerToggle', false )/>
-  </Modal>
+  <FSExplorer modal
+              options={ ignore: '^\\.' }
+              ...state.showExplorer
+              on-dismiss('onExplorerToggle', false )/>
 </if>
 
 <if( state.ongoingSetup )>

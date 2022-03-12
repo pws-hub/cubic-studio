@@ -1,5 +1,5 @@
 
-class { onCreate(){ this.state = { locale: {}, text: '' } } }
+class { onCreate(){ this.state = { locale: '', text: '' } } }
 
 $ component.once( 'mount', () => {
 	// Pipe to context component in <Extension/>
@@ -17,8 +17,8 @@ $ component.once( 'mount', () => {
 	translate()
 })
 
-<span data-lang=( state.locale.language +( state.locale.variant ? '-'+ state.locale.variant : '' ) )
+<span data-lang=state.locale
 			class=input.class
-			style="color:inherit;">
+			style="color:inherit">
 	${state.text}
 </span>

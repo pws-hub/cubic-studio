@@ -43,8 +43,7 @@ export default class Emulator {
 
     if( !config.emulator )
       throw new Error('No emulator configuration found in .cubic file')
-
-    console.log( config )
+      
     return config.emulator
   }
 
@@ -113,15 +112,16 @@ export default class Emulator {
                 { name, cwd, env } = this.process,
                 hostname = toOrigin( `${env.HOST}:${env.PORT}`, !isOncloud() )
 
-                /** HACK: Check frequently whether the started
-                 *        process (server) has finished compiling
-                 *        an now listener.
-                 * 
+                /** 
                  * TODO: Handle this with PM2 process.send & process.launchBus event manager
                  * ISSUE: Razzle spawn the sandbox server process so PM2
                  *        only run a script to start the process without
                  *        managing it. Therefore process.send(...) & bus.on(...)
                  *        between started sandbox-server and Emulator doen't work
+                 * 
+                 * HACK: Check frequently whether the started
+                 *        process (server) has finished compiling
+                 *        and now listen.
                  */
                 let 
                 MAX_ATTEMPT = 45, // 45 seconds
@@ -193,15 +193,16 @@ export default class Emulator {
                 { name, cwd, env } = this.process,
                 hostname = toOrigin( `${env.HOST}:${env.PORT}`, !isOncloud() )
 
-                /** HACK: Check frequently whether the started
-                 *        process (server) has finished compiling
-                 *        an now listener.
-                 * 
+                /** 
                  * TODO: Handle this with PM2 process.send & process.launchBus event manager
                  * ISSUE: Razzle spawn the sandbox server process so PM2
                  *        only run a script to start the process without
                  *        managing it. Therefore process.send(...) & bus.on(...)
                  *        between started sandbox-server and Emulator doen't work
+                 * 
+                 * HACK: Check frequently whether the started
+                 *        process (server) has finished compiling
+                 *        and now listen.
                  */
                 let 
                 MAX_ATTEMPT = 45, // 45 seconds

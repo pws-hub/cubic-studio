@@ -309,7 +309,7 @@ class {
 <div.code-editor no-update></div>
 
 <!-- Media content display -->
-<if( state.isMediaFile )>
+<if( Array.isArray( input.paths ) && input.paths.length && state.isMediaFile )>
   <div.position-absolute.top-0.w-100.h-100.theme-bg.d-flex.align-items-center.justify-content-center style="z-index:30">
     <Media ...component.media/>
   </div>

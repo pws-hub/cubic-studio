@@ -6,15 +6,14 @@ import fetch from 'node-fetch'
 function isValidEnv( env ){
   return typeof env == 'object' && !isEmpty( env )
 }
-
 export default class Emulator {
-
+  
   constructor( options = {} ){
     // Process config
     this.process = {
       cwd: options.cwd || process.cwd(),
       name: `${toNSI( options.name )}:cubic:sandbox`,
-      script: options.script || 'cd ./sandbox && yarn "start"',
+      script: options.script || 'yarn start',
       env: {
         NODE_ENV: 'development',
         HOST: 'localhost',

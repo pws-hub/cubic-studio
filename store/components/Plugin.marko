@@ -1,7 +1,20 @@
 
 import Extension from 'extension'
 
-$ const { name, ...rest } = input
-<${Extension} ...window.Extension.meta( name ) 
-              ...rest 
-              on-forward( ( ...args ) => component.emit( ...args ) )/>
+$ {
+  const 
+  { name, core, ...rest } = input,
+  plugin = core.getPlugin( name )
+}
+
+<if( name && plugin )>
+  <${Extension} core=core
+                ...plugin
+                ...rest 
+                on-forward( ( ...args ) => component.emit( ...args ) )/>
+</if>
+<else>
+  <div.w-100.h-100.p-4.font-medium-5>
+    "${name}" plugin <Locale text="not found"/>
+  </div>
+</else>

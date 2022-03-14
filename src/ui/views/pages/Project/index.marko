@@ -575,8 +575,8 @@ class {
     GState.ws.layout({ mode: 'auto' })
     
     /* Try cached config to reconnect emulator without
-      restarting it. Usefull when page got refreshed
-      and servers are up
+      restarting it, when project got refreshed and
+      servers are up
     */
     const cachedEMImage = !force ? this.pstore.get('emulator') : false
     if( cachedEMImage )

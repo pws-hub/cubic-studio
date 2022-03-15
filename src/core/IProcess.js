@@ -148,11 +148,11 @@ export default class IProcess {
                         processor: 'git',
                         message: 'Setup development sandbox'
                       })
-        await git.cloneProject( `https://github.com/${Configs.INSTANCE_PROVIDER}/${plang}-sandbox.git`, directory +'/sandbox' )
+        await git.cloneProject( `https://github.com/${Configs.INSTANCE_PROVIDER}/${plang}-sandbox.git`, directory +'/.sandbox' )
         inSandbox = true
 
         /*-------------------------------------------------------------------------*/
-        // Init yarn & package.json + sandbox workspace
+        // Init yarn & package.json + .sandbox workspace
         this.watcher( 'setup',
                       false,
                       {
@@ -169,8 +169,8 @@ export default class IProcess {
           version: configJson.version || '1.0.0',
           private: true,
           scripts: {
-            start: `cd ./sandbox && ${starter} start`,
-            test: `cd ./sandbox && ${starter} test:dev`
+            start: `cd ./.sandbox && ${starter} start`,
+            test: `cd ./.sandbox && ${starter} test:dev`
           },
           main: 'src/index.'+ plang,
           author: configJson.author.name,
@@ -179,7 +179,7 @@ export default class IProcess {
         }
 
         // Manage sandbox and its dependencies as workspace
-        if( inSandbox ) packageJson.workspaces = [ 'sandbox' ]
+        if( inSandbox ) packageJson.workspaces = [ '.sandbox' ]
 
         // Generate initial package.json at project root directory
         await pm.init( packageJson )
@@ -318,7 +318,7 @@ export default class IProcess {
 
         /*-------------------------------------------------------------------------*/
         // Clone and add new sandbox by language from Git
-        if( !( await fs.exists(`${directory}/sandbox`) ) ){
+        if( !( await fs.exists(`${directory}/.sandbox`) ) ){
           this.watcher( 'import',
                         false,
                         {
@@ -327,12 +327,12 @@ export default class IProcess {
                           message: 'Setup development sandbox'
                         })
                         
-          await git.cloneProject( `https://github.com/${Configs.INSTANCE_PROVIDER}/${plang}-sandbox.git`, directory +'/sandbox' )
+          await git.cloneProject( `https://github.com/${Configs.INSTANCE_PROVIDER}/${plang}-sandbox.git`, directory +'/.sandbox' )
           inSandbox = true
         }
 
         /*-------------------------------------------------------------------------*/
-        // Update yarn & package.json + sandbox workspace
+        // Update yarn & package.json + .sandbox workspace
         this.watcher( 'import',
                       false,
                       {
@@ -349,8 +349,8 @@ export default class IProcess {
           version: configJson.version || '1.0.0',
           private: true,
           scripts: {
-            start: `cd ./sandbox && ${starter} start`,
-            test: `cd ./sandbox && ${starter} test:dev`
+            start: `cd ./.sandbox && ${starter} start`,
+            test: `cd ./.sandbox && ${starter} test:dev`
           },
           main: 'src/index.'+ plang,
           author: configJson.author.name,
@@ -359,7 +359,7 @@ export default class IProcess {
         }
 
         // Manage sandbox and its dependencies as workspace
-        if( inSandbox ) packageJson.workspaces = [ 'sandbox' ]
+        if( inSandbox ) packageJson.workspaces = [ '.sandbox' ]
 
         // Merge & re-initialize package.json
         await pm.init( packageJson )
@@ -420,7 +420,7 @@ export default class IProcess {
       if( !( await fs.exists() ) )
         throw new Error('Project directory not found')
         
-      if( !( await fs.exists('sandbox') ) )
+      if( !( await fs.exists('.sandbox') ) )
         throw new Error('Project setup not found. Synchronize with CPM may solve the problem')
 
       // Run

@@ -37,7 +37,7 @@ function initChannel( socket ){
                   '**/dist/**',
                   '**/build/**',
                   '**/cache/**',
-                  '**/sandbox/**',
+                  '**/.sandbox/**',
                   '**/node_modules/**'
                 ],
                 listener = ( event, path, stats ) => socket.emit( 'FS::EVENT', event, path, stats )

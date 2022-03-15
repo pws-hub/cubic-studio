@@ -10,7 +10,6 @@ class {
                   filters: {},
                   results: []
                 }
-    GState.bind( this, ['screen'] )
   }
   onInput( input ){
     this.state.target = input.target
@@ -113,7 +112,7 @@ class {
 }
 
 <div class=`position-relative w-100 zindex-${ state.active ? 3 : 2 }`
-      style=`height: ${input.size == 'xl' ? '65px' : ( state.screen.media == 'xs' ? '42px' : '50px' )}`>
+      style=`height: ${input.size == 'xl' ? '65px' : '50px'}`>
   <fieldset.search-bar.theme-bg-transparent.border.mx-auto.mb-0.overflow-hidden class=`${input.class} ${state.active ? 'active shadow' : ''}`>
     <div>
       <input type="text" class=('form-control form-control-'+( input.size || 'lg' )+' pl-5 border-none shadow-none')

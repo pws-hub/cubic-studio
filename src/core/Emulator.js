@@ -13,7 +13,7 @@ export default class Emulator {
     this.process = {
       cwd: options.cwd || process.cwd(),
       name: `${toNSI( options.name )}:cubic:sandbox`,
-      script: options.script || 'yarn start',
+      script: options.script || '.sandbox/start.sh',
       env: {
         NODE_ENV: 'development',
         HOST: 'localhost',

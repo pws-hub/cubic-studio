@@ -1,12 +1,12 @@
 
-import Emulator from '../src/core/Emulator'
+import Emulator from '../src/core/Emulator.alt'
 
 ;( async () => {
   try {
     const
     options = {
       cwd: '/Users/fabricemarlboro/dev-pro/Myapp-labs/multiple/Extensions/Notex',
-      // name: 'sandbox-server',
+      name: 'sandbox-server',
       debug: true,
       watcher: ( process, error, stats ) => {
         error ?
@@ -16,11 +16,11 @@ import Emulator from '../src/core/Emulator'
     },
     em = new Emulator( options )
     
-    // console.log( await em.run() )
+    console.log( await em.run() )
     // console.log( await em.reload() )
     // console.log( await em.stop() )
     // console.log( await em.metadata() )
-    console.log( await em.exit() )
+    // console.log( await em.exit() )
   }
   catch( error ){ 
     console.log( error )

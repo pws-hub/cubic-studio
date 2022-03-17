@@ -6,7 +6,7 @@ $ component.once( 'mount', () => {
 	const 
 	context = component.___context[1],
 	translate = () => {
-		const originalText = input.text || ( typeof input.renderBody == 'function' ? input.renderBody(out) : '' )
+		const originalText = input.value || ( typeof input.renderBody == 'function' ? input.renderBody(out) : '' )
 		component.setState({
 			locale: context.data.locale,
 			text: context.data.RenderLocale( originalText )

@@ -27,12 +27,12 @@ export const AVAILABLE_SOURCES = {
   //   resultField: 'results',
   //   matchFields: [ 'nsi', 'name', 'description', 'namespace', 'author', 'category' ]
   // },
-  // plugin: {
-  //   type: 'API',
-  //   source: 'https://marketplace.multipple.com/search?rst=plugin&q=',
-  //   resultField: 'results',
-  //   matchFields: [ 'nsi', 'name', 'description', 'namespace', 'author', 'category' ]
-  // },
+  plugin: {
+    type: 'API',
+    source: 'https://marketplace.getlearncloud.com/v1/extension/search?rst=plugin&query=',
+    resultField: 'results',
+    matchFields: [ 'nsi', 'name', 'description', 'namespace', 'author', 'category' ]
+  },
   // library: {
   //   type: 'API',
   //   source: 'https://cpm.cubic.studio/v1/search?q=',

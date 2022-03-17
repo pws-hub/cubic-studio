@@ -1,9 +1,9 @@
 [
   {
-    "name": "Locale",
+    "name": "String",
     "version": "1.0.0",
-    "description": "Auto-translate test in the app to locale language",
-    "package": "Locale.marko"
+    "description": "Display and Auto-translate text into the app's current user language",
+    "package": "String.marko"
   },
   {
     "name": "Switch",

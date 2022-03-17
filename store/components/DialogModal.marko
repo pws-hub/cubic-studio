@@ -82,8 +82,8 @@ class {
 
               <@col>
                 <!-- Dialog content message -->
-                <if( input.status )><h6.text-primary.mt-0><Locale>${input.status}</Locale></h6></if>
-                <p><Locale>$!{input.message || 'Dialog message is required'}</Locale></p>
+                <if( input.status )><h6.text-primary.mt-0><String>${input.status}</String></h6></if>
+                <p><String>$!{input.message || 'Dialog message is required'}</String></p>
                 
                 <!-- Todo actions buttons -->
                 <if( input.actions )>
@@ -99,13 +99,13 @@ class {
                       <!-- No Confirmation action button -->
                       <button class=`btn btn-${input.actions.no && input.actions.no.active ? 'primary' : 'light' } m-25` 
                               on-click('onNo')>
-                        <Locale text=( ( input.actions.no && input.actions.no.label ) || 'No' )/>
+                        <String value=( ( input.actions.no && input.actions.no.label ) || 'No' )/>
                       </button>
 
                       <!-- Yes Confirmation action button -->
                       <button class=`btn btn-${!input.actions.no || !input.actions.no.active ? 'primary' : 'light' } m-25` 
                               on-click('onYes')>
-                        <Locale text=( ( input.actions.yes && input.actions.yes.label ) || 'Yes' )/>
+                        <String value=( ( input.actions.yes && input.actions.yes.label ) || 'Yes' )/>
                       </button>
                     </div>
                   </else>

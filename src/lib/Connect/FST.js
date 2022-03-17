@@ -24,7 +24,7 @@ function initChannel( socket ){
       case 'project':
       default: if( !options.cwd ){
                   typeof callback == 'function' 
-                  && callback({ error: true, message: 'Undefined FS options <cwd>'})
+                  && callback({ error: true, message: 'Undefined FS options <cwd>' })
                   return
                 }
       
@@ -67,7 +67,7 @@ function initChannel( socket ){
       const response = await socket.data.FS[ method ]( ...args )
       callback({ error: false, response })
     }
-    catch( error ){ 
+    catch( error ){
       console.log( error )
       callback({ error: true, message: error.message }) 
     }

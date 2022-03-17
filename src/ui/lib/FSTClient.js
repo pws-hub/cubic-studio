@@ -2,6 +2,7 @@
 import { io } from 'socket.io-client'
 
 let isConnected = false
+const ACTIVE_FS_INSTANCES = []
 
 function FSHandler( mode, client ){
 
@@ -147,18 +148,18 @@ function Manager( client ){
 
       if( !client || !isConnected )
         return reject('[FST-Client] No connection to server')
-
+      
       client.emit( 'FS::INIT', mode, options, ({ error, message }) => {
         if( error ) 
           return reject( message )
-
+          
         resolve( new FSHandler( mode, client ) )
       })
     } )
   }
 }
 
-export default ( namespace ) => {
+export default namespace => {
   return new Promise( ( resolve, reject ) => {
     // Establish socket connection channel
     const 

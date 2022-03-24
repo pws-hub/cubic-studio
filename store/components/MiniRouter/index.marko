@@ -1,0 +1,91 @@
+
+static function format( sequence ){
+  return typeof sequence == 'object' ? sequence : { path: sequence }
+}
+
+class {
+  onCreate({ namespace, norefresh, nomenory, page }){
+    // At least one <@page /> tag must be defined
+    if( !Array.isArray( page ) || !page.length )
+      throw new Error('No router <@page /> defined')
+
+    // Initialise navigation history or load stored histories
+    this.histories = !nomenory && uiStore.get(`${namespace}-history`) || []
+
+    page.map( each => {
+      if( !each.path ) return
+      if( each.default ) this.defaultPage = each
+    } )
+    
+    // Use first listed page as default
+    if( !this.defaultPage ) this.defaultPage = page[0]
+
+    // State the last history page or default
+    let { path, params } = format( !norefresh && this.histories.slice(-1)[0] || this.defaultPage )
+    this.state = { current: path, params }
+  }
+  onInput({ page }){
+    
+    let activePage
+    page.map( each => {
+      if( !each.path ) return
+      if( each.active ) activePage = each
+    } )
+    
+    if( activePage ){
+      let { path, params } = format( activePage )
+      
+      // Already opened with same params
+      if( activePage.path == this.state.current
+          && JSON.stringify( params ) == JSON.stringify( this.state.params ) ) return
+
+      this.setState({ current: path, params })
+    }
+  }
+  navigate( path, params ){
+    // Navigate through pages
+    if( this.state.current == path
+        && JSON.stringify( this.state.params ) == JSON.stringify( params ) ) return
+    
+    // Escape DOM Element or Marko Component added as params
+    if( typeof params == 'object' && ( params.target || params.$e ) )
+      params = null
+    
+    if( path == 'back' ){
+      // navigate back history
+      this.histories.pop()
+
+      const 
+      historyLen = this.histories.length,
+      history = format( historyLen ? this.histories[ historyLen - 1 ] : this.defaultPage )
+
+      path = history.path
+      params = history.params
+    }
+    // New path
+    else {
+      this.histories.push({ path, params })
+
+      // Clear history when back to initial route
+      if( this.defaultPage && path == this.defaultPage.path )
+        this.histories = []
+    }
+
+    // New page to go & its params
+    this.setState({ current: path, params })
+    uiStore.set( `${this.input.namespace}-history`, this.histories )
+  }
+}
+
+<!-- Wrapper so Router component get required
+    params and events via context -->
+<for|page, index| of=input.page>
+  <if( page.path == state.current )>
+    $ const { path, template, params, ...inputs } = page
+    <${template} path=path
+                  params=(state.params || params || {})
+                  ...inputs
+                  goback=( Array.isArray( component.histories ) && component.histories.length )
+                  navigate=component.navigate.bind(component)/>
+  </if>
+</for>

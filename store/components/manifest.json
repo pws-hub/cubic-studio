@@ -88,5 +88,11 @@
     "version": "1.0.0",
     "description": "Run plugins in your app/plugin",
     "package": "Plugin.marko"
+  },
+  {
+    "name": "MiniRouter",
+    "version": "1.0.0",
+    "description": "Simple and Smooth marko-component level routing",
+    "package": "MiniRouter.marko"
   }
 ]

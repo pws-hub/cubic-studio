@@ -8,6 +8,41 @@ import FileSystem from './FileSystem'
 import * as GenericFile from './GenericFile'
 import PackageManager from './PackageManager'
 
+async function generateId( name ){
+
+  const 
+  dirpath = Path.resolve('sync'),
+  filepath = `${dirpath}/ids.json`
+  try {
+    const IDs = await Fs.readJson( filepath )
+    if( typeof IDs != 'object' )
+      throw new Error('Not Exist')
+
+    if( !IDs[ name ] ){
+      IDs[ name ] = 'EXT-'+ random( 10, 99999 )
+                          +'-'+ randtoken.generate(4).toUpperCase()
+                          +'-'+ randtoken.generate(8).toUpperCase()
+
+      await Fs.ensureDir( dirpath )
+      await Fs.writeFile( filepath, JSON.stringify( IDs, null, '\t' ), 'UTF-8' )
+
+      return IDs[ name ]
+    }
+
+    return IDs[ name ]
+  }
+  catch( error ){
+    const ID = 'EXT-'+ random( 10, 99999 )
+                        +'-'+ randtoken.generate(4).toUpperCase()
+                        +'-'+ randtoken.generate(8).toUpperCase()
+
+    await Fs.ensureDir( dirpath )
+    await Fs.writeFile( filepath, JSON.stringify({ [name]: ID }, null, '\t' ), 'UTF-8' )
+
+    return ID
+  }
+}
+
 async function PackageProcess( action, dataset, directory, source, _process ){
   
   const processName = action +'-packages'
@@ -585,9 +620,7 @@ export default class IProcess {
                     })
                     
       const appId =
-      dataset.extensionId = 'EXT-'+ random( 10, 99999 )
-                                  +'-'+ randtoken.generate(4).toUpperCase()
-                                  +'-'+ randtoken.generate(8).toUpperCase()
+      dataset.extensionId = await generateId( dataset.name )
 
       await Sync.setApp( appId, dataset )
       

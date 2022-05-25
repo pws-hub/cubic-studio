@@ -103,7 +103,6 @@ export default class Emulator {
       rsOptions = {
         cwd,
         env,
-        // uid: env.PORT,
         stdio: 'pipe',
         shell: true,
         windowsHide: true
@@ -111,9 +110,8 @@ export default class Emulator {
 
       console.log( rsOptions )
 
-      rs( `npm`, rsOptions, ( ...args ) => console.log( ...args ) )
-        .then( async () => {
-          return console.log('Succeed')
+      rs( `chmod +x ./.sandbox/start.sh`, rsOptions, ( ...args ) => console.log('watcher: ', ...args ) )
+        .then( async ( ...args ) => {
           try {
             const hostname = toOrigin( `${env.HOST}:${env.PORT}`, !isOncloud() )
 

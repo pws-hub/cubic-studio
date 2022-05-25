@@ -61,10 +61,10 @@ class {
     </if>
 
     <!-- Dialog container -->
-    <WSAdapt ns=`col-${input.ns || '3'}`
-              qs=`col-${input.qs || '4'}`
-              hs=`col-${input.hs || '6'}`
-              fs=`col-${input.fs || '3'}`
+    <WSAdapt ns=`col-md-${input.ns || '3'} col-10`
+              qs=`col-md-${input.qs || '4'} col-10`
+              hs=`col-md-${input.hs || '6'} col-10`
+              fs=`col-md-${input.fs || '3'} col-10`
               class="animated bounceIn fast">
       <div class="card shadow-lg">
         <div class="card-content">
@@ -82,8 +82,8 @@ class {
 
               <@col>
                 <!-- Dialog content message -->
-                <if( input.status )><h6.text-primary.mt-0><String>${input.status}</String></h6></if>
-                <p><String>$!{input.message || 'Dialog message is required'}</String></p>
+                <if( input.status )><h6.text-primary.mt-0><Locale>${input.status}</Locale></h6></if>
+                <p><Locale>$!{input.message || 'Dialog message is required'}</Locale></p>
                 
                 <!-- Todo actions buttons -->
                 <if( input.actions )>
@@ -99,13 +99,13 @@ class {
                       <!-- No Confirmation action button -->
                       <button class=`btn btn-${input.actions.no && input.actions.no.active ? 'primary' : 'light' } m-25` 
                               on-click('onNo')>
-                        <String value=( ( input.actions.no && input.actions.no.label ) || 'No' )/>
+                        <Locale text=( ( input.actions.no && input.actions.no.label ) || 'No' )/>
                       </button>
 
                       <!-- Yes Confirmation action button -->
                       <button class=`btn btn-${!input.actions.no || !input.actions.no.active ? 'primary' : 'light' } m-25` 
                               on-click('onYes')>
-                        <String value=( ( input.actions.yes && input.actions.yes.label ) || 'Yes' )/>
+                        <Locale text=( ( input.actions.yes && input.actions.yes.label ) || 'Yes' )/>
                       </button>
                     </div>
                   </else>

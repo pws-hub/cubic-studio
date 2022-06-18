@@ -3,20 +3,20 @@ import DefaultLogo from '~/images/logo/cubic-default.png'
 
 static const Menu = [
   { name: 'Code' }, 
-  { name: 'API', disabled: true },
-  { name: 'socket', label: 'Sockets', disabled: true },
+  { name: 'API' },
+  { name: 'socket', label: 'Sockets' },
   { name: 'test', label: 'Test', disabled: true }, 
   { name: 'roadmaps', label: 'Roadmaps', disabled: true }
 ]
 
 class {
-  onCreate({ activeTool }){
-    this.state = { activeTool: activeTool || null }
+  onCreate({ activeSection }){
+    this.state = { activeSection: activeSection || null }
   }
   onToggleMenu( name ){
     if( !name ) return
 
-    this.state.activeTool = name
+    this.state.activeSection = name
     this.emit('select', name )
   }
 }
@@ -40,11 +40,13 @@ class {
     <div.position-relative.px-1.overflow-auto>
       <ul.list-unstyled>
         <for|{ name, label, disabled }, index| of=Menu>
-          <li.px-1.py-75.my-1.border.border-2.round.text-center.text-ellipsis.nav-item.cursor-pointer
-              class=(state.activeTool == name ? 'only-dark-bg-lighten' : ( disabled ? 'text-muted cursor-not-allowed' : false ) )
-              on-click('onToggleMenu', !disabled ? name : false )>
-            <Locale text=(label || name)/>
-          </li>
+          <if( Array.isArray( input.sections ) && input.sections.includes( name ) )>
+            <li.px-1.py-75.my-1.border.border-2.round.text-center.text-ellipsis.nav-item.cursor-pointer
+                class=(state.activeSection == name ? 'only-dark-bg-lighten' : ( disabled ? 'text-muted cursor-not-allowed' : false ) )
+                on-click('onToggleMenu', !disabled ? name : false )>
+              <Locale text=(label || name)/>
+            </li>
+          </if>
         </for>
       </ul>
     </div>

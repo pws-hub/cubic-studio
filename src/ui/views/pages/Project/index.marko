@@ -1,5 +1,8 @@
 
-import PStore from 'all-localstorage'
+import Utils from './extends/utils'
+import Operators from './extends/operators'
+import ProjectManager from './extends/project'
+import EmulatorManager from './extends/emulator'
 
 static const APITabs = [
   {
@@ -46,12 +49,13 @@ class {
       workspace: GState.workspaces.get( params.id ),
       project: false,
       
-      // Tools dataset
+      // Sections dataset
       Code: {},
       API: {},
 
       // Active indications
-      activeTool: 'Code',
+      sections: [],
+      activeSection: 'Code',
       activeElement: null,
       
       emulator: false,
@@ -74,11 +78,10 @@ class {
       editorCursorPosition: null
     }
 
-    this.fs = false
-    this.pm = false
-    this.pstore = false
-    this.packager = false
-    this.emulator = false
+    new Utils( this )
+    new Operators( this )
+    new ProjectManager( this )
+    new EmulatorManager( this )
 
     // Inherit flag from precedent page
     this.flag = uiStore.get('action-flag')
@@ -87,120 +90,7 @@ class {
     // Fetch project metadata
     await this.getProject( params.id, params.project )
   }
-  onAction( action, ...args ){
-    switch( action ){
-      case 'open': this.Open( ...args ); break
-      
-      case 'new-dir': 
-      case 'new-file':
-      case 'move-element':
-      case 'rename-element':
-      case 'remove-element': this.FSOperator( action, ...args ); break
-      case 'cursor-position': this.state.editorCursorPosition = args[0]; break
-
-      case 'run-emulator': this.RunEmulator( ...args ); break
-      case 'reload-emulator': this.ReloadEmulator(); break
-      case 'quit-emulator': this.QuitEmulator(); break
-      
-      case 'add-dependency': this.onAddonSelect('dependency'); break
-      case 'update-packages':
-      case 'remove-packages': 
-      case 'refresh-packages': this.PackageOperator( action, ...args ); break
-      case 'delete-project': this.DeleteProject(); break
-    }
-  }
-  onSearchToggle( args ){ this.state.showSearch = args }
-  onAddonToggle( args ){ this.state.showAddon = args }
-  onSettingsToggle( type ){ this.state.showSettings = type }
-  onShowResetProjectToggle( type ){ this.state.showResetProject = type }
-  onShowDeleteProjectToggle( type ){ this.state.showDeleteProject = type }
-  onExplorerToggle( status, fn ){ this.state.showExplorer = status ? { fn } : false }
-  onConsoleToggle( status ){
-    this.state.showConsole = status
-
-    status !== false ? 
-            this.pstore.set('active-console', true )
-            : this.pstore.clear('active-console')
-  }
-  
-  onMenuSelect( name ){ this.state.activeTool = name }
-  onLayoutChange( blocks ){
-    this.state.layouts = blocks
-    this.setStateDirty('layouts')
-  }
-  onAddonSelect( type ){
-
-    switch( type ){
-      case 'plugin':
-      case 'component': this.onSearchToggle({ filters: { targets: [ type ] } }); break
-      case 'dependency': this.onSearchToggle({ filters: { targets: ['package', 'library'] } }); break
-      case 'share': this.onSettingsToggle('share'); break
-    }
-
-    this.onAddonToggle( false )
-  }
-  onChangeOccurance( element, changes ){
-    // Awarness of changes occured on this activeElement
-    if( !this.state.activeElement
-        || this.state.activeElement.path !== element.path ) return
-    
-    this.state.activeElement = element // Has changes or revert to initial content
-    this.setStateDirty('activeElement')
-
-    // Show changes on tabs
-    this.applyTabsChange( element )
-    
-    /* TODO: Implement auto-save to prevent lost of changes
-              when page get accidentally refreshed
-    */
-
-
-
-  }
-
-  ongoing( labels ){
-
-    if( labels === false ){
-      this.state.ongoingSetup = false
-      return
-    }
-    
-    this.state.ongoingSetup = { ...(this.state.ongoingSetup || {}), ...labels }
-  }
-  progression( stats ){
-    // Display ongoing process progression details on Footer
-    if( !stats )
-      this.state.ongoingProcess = false
-
-    else {
-      const { percent, processor, message } = stats
-
-      this.state.ongoingProcess = {
-        status: percent == 100 ? 'COMPLETED' : 'ONGOING',
-        message: `[${percent}%] ${processor ? processor +': ' : ''}${message}`
-      }
-    }
-  }
-  applyTabsChange( arg ){
-    // Apply and reflect changes on tabs
-    if( typeof arg !== 'object' ) return
-    
-    Array.isArray( arg ) ?
-            this.state.tabs = newObject( arg ) // Update the whole tabs list
-            // Change on single tab
-            : this.state.tabs = this.state.tabs.map( tab => {
-              // Tab already exist
-              if( tab.path === arg.path )
-                return arg
-
-              return tab
-            } )
-    
-    this.setStateDirty('tabs')
-    this.pstore.set('tabs', this.state.tabs )
-  }
-
-  Open( element ){
+  onOpen( element ){
     // Open file, request, ...
     if( !element ){
       this.state.activeElement = null
@@ -249,229 +139,76 @@ class {
     this.setStateDirty('tabs')
     this.pstore.set('tabs', this.state.tabs )
   }
-  async getProject( workspaceId, projectId ){
-    try {
-      const { error, message, project } = await RGet(`/workspaces/${workspaceId}/projects/${projectId}`)
-      if( error ) throw new Error( message )
+  onAction( action, ...args ){
+    switch( action ){
+      case 'open': this.onOpen( ...args ); break
       
-      this.state.project = project
-      // locale store for only this project
-      this.pstore = new PStore({ prefix: `cs-${project.name}`, encrypt: true })
-      await this.SetupProject()
-    }
-    catch( error ){
-      console.log('Failed retreiving project: ', error )
-      this.state.project = null
+      case 'new-dir': 
+      case 'new-file':
+      case 'move-element':
+      case 'rename-element':
+      case 'remove-element': this.FSOperator( action, ...args ); break
+      case 'cursor-position': this.state.editorCursorPosition = args[0]; break
 
-      this.ongoing({ headline: 'Project Not Found', noLoading: true })
-    }
-  }
-  async getDirectory( path ){
-    // Get project directory content
-    if( !this.fs ) return
-
-    const dirOptions = {
-      ignore: '\\.git|(.+)\\.lock|\\.sandbox|node_modules',
-      subdir: true
-    }
-
-    this.state.Code.directories = await this.fs.directory( path || null, dirOptions )
-    this.state.Code = newObject( this.state.Code )
-  }
-  async getDependencies(){
-    // Get project dependencies in package.json
-    if( !this.fs ) return
-    
-    const packageJson = await this.fs.readFile( 'package.json', { encoding: 'json' } )
-    if( !packageJson )
-      throw new Error('[Dependency] No package.json file found at the project root')
-
-    const 
-    { dependencies, devDependencies } = packageJson,
-    deps = [],
-    collector = async ( name, version, dev ) => {
-      // Get more information about the package in node_modules
-      let dep = { name, version: version.replace('^', ''), dev }
-      try {
-        const { description, repository } = await this.fs.readFile(`./node_modules/${name}/package.json`, { encoding: 'json' } )
-        dep = { ...dep, description, repository }
-      }
-      catch( error ){
-        // Failed fetching package.json of the dependency
-      }
-
-      deps.push( dep )
-    }
-    
-    for( const name in dependencies )
-      await collector( name, dependencies[ name ] )
-
-    for( const name in devDependencies )
-      await collector( name, devDependencies[ name ], true )
-    
-    this.state.Code.dependencies = deps
-    this.state.Code = newObject( this.state.Code )
-  }
-  async initialProjectWS(){
-    // Declare filesystem I/O handler at the project's current working directory
-    const cwd = this.state.project.specs.code.directory
-    this.fs = await window.FileSystem.init( 'project', { cwd, debug: true } )
-    // Declare Project's background Process Manager
-    this.pm = await window.IProcess.create({ debug: true })
-
-    // Watch external/background operations on this directory
-    let wait = 0
-    this.fs.watch( async ( event, path, stats ) => {
-      debugLog(`[DIRECTORY Event] ${event}: ${path}`, stats )
-
-      switch( event ){
-        // New file/dir added: Refresh directory tree
-        case 'add':
-        case 'addDir': wait && clearTimeout( wait )
-                        await this.getDirectory()
-            break
-        /** Wait for `add` event to conclude file/dir moved: 
-            In that case `add event` will refresh the directory.
-            otherwise, conclude `delete`
-        */
-        case 'unlink': wait = setTimeout( async () => await this.getDirectory(), 2000 ); break
-                        
-      }
-    } )
-
-    // Close active ResetProject modal
-    this.onShowResetProjectToggle( false )
-    // Console to previous show/hide state
-    this.state.showConsole = this.pstore.get('active-console')
-  }
-  async SetupProject( flag ){
-    try {
-      if( flag ) this.flag = flag
-      let AUTORUN = true
-
-      // Initialize project's UI workspace
-      await this.initialProjectWS()
-      // Load project directory
-      await this.getDirectory()
+      case 'run-emulator': this.RunEmulator( ...args ); break
+      case 'reload-emulator': this.ReloadEmulator(); break
+      case 'quit-emulator': this.QuitEmulator(); break
       
-      // Project has no directory: Setup or Import (Depending of flag value)
-      if( isEmpty( this.state.Code.directories ) ){
-        if( !this.flag ){
-          // TODO: Prompt modal for user to select project directory or setup new
-          this.onShowResetProjectToggle( true )
-          return
-        }
-      }
-      // Import if project have no package.json file at the directory root
-      else if( !( await this.fs.readFile( 'package.json', { encoding: 'json' } ) ) )
-        this.flag = 'import'
-      
-
-      // Flag when something fishing about the setup
-      if( ['setup', 'import'].includes( this.flag ) ){
-        // Importing project from specified repo (import) or setup new (default)
-        const action = this.flag || 'setup'
-
-        // Setup a completely new project
-        this.ongoing({ headline: 'Setting up the project' })
-        await delay(3)
-        await this.pm[ action ]( this.state.project, ( error, stats ) => {
-          
-          
-            
-          if( error ){
-            // TODO: Manage process exception errors
-            console.log('--Progress Error: ', error )
-            this.ongoing({ error: typeof error == 'object' ? error.message : error })
-            return
-          }
-          
-          // TODO: Display progression stats
-          this.ongoing({ headline: `[${stats.percent}%] ${stats.message}` })
-          this.progression( stats )
-        } )
-
-        debugLog('-- Completed indeed --')
-        
-        // Automatically run project in 3 second
-        await delay(3)
-        this.ongoing( false )
-        AUTORUN && this.RunEmulator( true )
-      }
-      else {
-        // Mount project's last states
-        this.state.tabs = this.pstore.get('tabs') || []
-        this.state.activeElement = this.pstore.get('active-element') || null
-        
-        // Reload cached emulator state of this project
-        const cachedEMImage = this.pstore.get('emulator')
-        if( AUTORUN && cachedEMImage )
-          window.env == 'production' ? 
-                        this.ReloadEmulator() // Reload backend process
-                        : this.RunEmulator() // Connect frontend to process or run process if not available
-      }
-
-      // Load project dependencies
-      await this.getDependencies()
-    }
-    catch( error ){
-      console.log('Failed setting up project: ', error )
-      this.ongoing({ 
-        noLoading: true,
-        headline: 'Project setup failed', 
-        error: error.message
-      })
+      case 'add-dependency': this.onAddonSelect('dependency'); break
+      case 'update-packages':
+      case 'remove-packages': 
+      case 'refresh-packages': this.PackageOperator( action, ...args ); break
+      case 'delete-project': this.DeleteProject(); break
     }
   }
-  async DeleteProject(){
-    // Close running emulator
-    this.ongoing({ headline: 'Dropping all running emulator instances' })
-    await this.QuitEmulator()
-    await delay(2)
-
-    // Clear store
-    this.ongoing({ headline: 'Flushing project cache' })
-    this.pstore.flush(`cs-${this.state.project.name}`)
-    await delay(3)
-
-    // Clear directory
-    this.ongoing({ headline: 'Clearing project directory' })
-    await this.fs.remove('')
-    this.setState({
-      tabs: [],
-      Code: {},
-      API: {}
-    })
-    await delay(5)
-
-    // Delete project specs from cubic server
-    this.ongoing({ headline: 'Deleting project specifications from cubic servers' })
-    try {
-      const 
-      url = `/workspaces/${this.state.workspace.workspaceId}/projects/${this.state.project.projectId}`,
-      { error, message } = await await RDelete( url )
-
-      if( error ) throw new Error( message )
-    }
-    catch( error ){}
-    await delay(3)
-    
-    // Clear open tabs
-    this.ongoing({ headline: 'Clearing project workspace' })
-    this.state.project = false
-    
-    // Reset operators
-    this.fs = false
-    this.pm = false
-    this.packager = false
-    this.emulator = false
-    await delay(2)
-    
-    // Move back to workspace
-    this.ongoing( false )
-    navigate(`/workspace/${this.state.workspace.workspaceId}`)
+  onSearchToggle( args ){ this.state.showSearch = args }
+  onAddonToggle( args ){ this.state.showAddon = args }
+  onSettingsToggle( type ){ this.state.showSettings = type }
+  onShowResetProjectToggle( type ){ this.state.showResetProject = type }
+  onShowDeleteProjectToggle( type ){ this.state.showDeleteProject = type }
+  onExplorerToggle( status, fn ){ this.state.showExplorer = status ? { fn } : false }
+  onMenuSelect( name ){ this.state.activeSection = name }
+  onLayoutChange( blocks ){
+    this.state.layouts = blocks
+    this.setStateDirty('layouts')
   }
+  onAddonSelect( type ){
 
+    switch( type ){
+      case 'plugin':
+      case 'component': this.onSearchToggle({ filters: { targets: [ type ] } }); break
+      case 'dependency': this.onSearchToggle({ filters: { targets: ['package', 'library'] } }); break
+      case 'share': this.onSettingsToggle('share'); break
+    }
+
+    this.onAddonToggle( false )
+  }
+  onChangeOccurance( element, changes ){
+    // Awarness of changes occured on this activeElement
+    if( !this.state.activeElement
+        || this.state.activeElement.path !== element.path ) return
+    
+    this.state.activeElement = element // Has changes or revert to initial content
+    this.setStateDirty('activeElement')
+
+    // Show changes on tabs
+    this.applyTabsChange( element )
+    
+    /* TODO: Implement auto-save to prevent lost of changes
+              when page get accidentally refreshed
+    */
+
+
+
+  }
+  onConsoleToggle( status ){
+    this.state.showConsole = status
+
+    status !== false ? 
+            this.pstore.set('active-console', true )
+            : this.pstore.clear('active-console')
+  }
+  
   async onSave( element, changes, confirmCallback ){
     // Awarness of changes occured on this activeElement
     if( typeof element != 'object'
@@ -511,132 +248,6 @@ class {
           break
     }
   }
-
-  async FSOperator( type, element ){
-    switch( type ){
-      case 'new-dir': if( !element.path || !this.fs ) return
-                      await this.fs.newDir( element.path )
-          break
-      case 'new-file': if( !element.path || !this.fs ) return
-                      await this.fs.newFile( element.path )
-          break
-      case 'rename-element': if( !element.path || !element.name || !this.fs ) return
-                            await this.fs.rename( element.path, element.name  )
-          break
-      case 'remove-element': if( !element.path || !this.fs ) return
-                            await this.fs.remove( element.path )
-          break
-      case 'move-element': if( !element.source || !element.destination || !this.fs ) return
-                          await this.fs.move( element.source, element.destination )
-          break
-    }
-  }
-  async PackageOperator( type, element ){
-    
-    if( !this.pm ){
-      debugLog('[AddElement Event] error: Undeclared process manager')
-      return
-    }
-
-    type = type.replace('-packages', '')
-
-    const 
-    cwd = this.state.project.specs.code.directory,
-    progress = ( error, stats ) => {
-
-      if( error ){
-        // TODO: Manage process exception errors
-        console.log('--Progress Error: ', error )
-        return
-      }
-
-      // TODO: Display progression stats on Footer
-      this.progression( stats )
-    }
-
-    this.packager = this.pm.Packager( element, cwd )
-
-    await this.packager[ type ]( progress )
-    await this.getDependencies()
-  }
-
-  async RunEmulator( force ){
-    // Run/Stop emulator
-    if( !this.pm ){
-      debugLog('[Emulator Event] error: Undeclared process manager')
-      return
-    }
-    
-    // Create emulator instance
-    if( !this.emulator )
-      this.emulator = this.pm.Emulator( this.state.project )
-
-    // Run
-    this.state.emulatorStatus = 'loading'
-    GState.ws.layout({ mode: 'auto' })
-    
-    /* Try cached config to reconnect emulator without
-      restarting it, when project got refreshed and
-      servers are up
-    */
-    const cachedEMImage = !force ? this.pstore.get('emulator') : false
-    if( cachedEMImage )
-      this.state.emulator = cachedEMImage
-      
-    else {
-      const metadata = await this.emulator.run()
-      if( !metadata ){
-        this.state.emulatorStatus = false
-        this.state.emulatorError = 'Emulator failed to run. Check your code and retry'
-        return
-      }
-
-      this.state.emulator = metadata
-    }
-
-    this.state.emulatorStatus = 'running'
-    this.pstore.set('emulator', this.state.emulator )
-  }
-  async ReloadEmulator(){
-    // Reload emulator
-    if( !this.pm ){
-      debugLog('[Emulator Event] error: Undeclared process manager')
-      return
-    }
-    
-    // Create emulator instance
-    if( !this.emulator )
-      this.emulator = this.pm.Emulator( this.state.project )
-    
-    this.state.emulatorStatus = 'reloading'
-
-    this.state.emulator = await this.emulator.reload()
-    this.state.emulatorStatus = 'running'
-  }
-  async QuitEmulator(){
-    // Run/Stop emulator
-    if( !this.pm ){
-      debugLog('[Emulator Event] error: Undeclared process manager')
-      return
-    }
-    
-    if( !this.emulator ){
-      debugLog('[Emulator Event] error: No active Emulator found')
-      return
-    }
-
-    // Quit
-    this.state.emulator = false
-    this.state.emulatorStatus = 'stopping'
-  
-    await this.emulator.quit()
-    this.state.emulatorStatus = false
-
-    GState.ws.layout({ mode: 'ns' })
-
-    // Clear cached config
-    this.pstore.clear('emulator')
-  }
 }
 
 <div.vh-100>
@@ -652,56 +263,68 @@ class {
           <Menu show=state.layouts.includes('menu')
                 project=state.project
                 workspace=state.workspace
-                activeTool=state.activeTool
+                sections=[ ...state.sections ]
+                activeSection=state.activeSection
                 on-add('onAddonToggle')
                 on-select('onMenuSelect')
                 on-search('onSearchToggle', true )/>
-                      
-          <!-- SideBar -->
-          <SideBar show=state.layouts.includes('sidebar')
-                    type=state.activeTool
-                    dataset=state[ state.activeTool ]
-                    active=state.activeElement
-                    status={
-                      emulator: state.emulatorStatus
-                    }
-                    on-action('onAction')
-                    on-show-settings('onSettingsToggle')/>
 
-          <!-- Main Block -->
           <main.main-block.section-block.col.px-0.border-left.overflow-hidden>
-            <!-- Tabs Bar -->
-            <TabBar type=state.activeTool
-                    tabs=state.tabs
-                    on-open('Open')
-                    on-update('applyTabsChange')/>
-            
-            <div style="height:calc(100% - 3rem)">
-              <div.overflow-hidden class=(state.showConsole ? 'h-75' : 'h-100')>
-                <Switch by=state.activeTool>
-                  <@case is="Code">
-                    <CodeEditor file=state.activeElement
-                                paths=state.tabs.map( ({ path }) => { return path } )
-                                language=null
-                                fs=component.fs
-                                on-save('onSave')
-                                on-change('onChangeOccurance')
-                                on-cursor-position('onAction', 'cursor-position')/>
-                  </@case>
+            <if( state.sections.length )>
+              <for|section, index| of=state.sections>
+                <!-- Superposed Active Sections -->
+                <div.position-absolute.w-100.h-100.theme-bg.top-0 class=(state.activeSection != section ? 'd-none' : false)>
+                  <Row.no-gutters>
+                    <!-- SideBar -->
+                    <SideBar show=state.layouts.includes('sidebar')
+                              type=state.activeSection
+                              dataset=state[ state.activeSection ]
+                              active=state.activeElement
+                              status={
+                                emulator: state.emulatorStatus
+                              }
+                              on-action('onAction')
+                              on-show-settings('onSettingsToggle')/>
 
-                  <@case is="API">
-                    <APITestor />
-                  </@case>
-                </Switch>
-              </div>
+                    <!-- Main Block -->
+                    <div.section-block.col.px-0.border-left.overflow-hidden>
+                      <!-- Tabs Bar -->
+                      <TabBar type=state.activeSection
+                              tabs=state.tabs
+                              on-open('onOpen')
+                              on-update('applyTabsChange')/>
+                      
+                      <div style="height:calc(100% - 3rem)">
+                        <div.overflow-hidden class=(state.showConsole ? 'h-75' : 'h-100')>
+                          <Switch by=section>
+                            <@case is="Code">
+                              <CodeEditor file=state.activeElement
+                                          paths=state.tabs.map( ({ path }) => { return path } )
+                                          language=null
+                                          fs=component.fs
+                                          on-save('onSave')
+                                          on-change('onChangeOccurance')
+                                          on-cursor-position('onAction', 'cursor-position')/>
+                            </@case>
 
-              <if( state.showConsole )>
-                <div.h-25.border-top>
-                  <Console project=state.project
-                          on-dismiss('onConsoleToggle', false )/>
+                            <@case is="API">
+                              <APITestor />
+                            </@case>
+                          </Switch>
+                        </div>
+
+                        <if( state.showConsole )>
+                          <div.h-25.border-top>
+                            <Console project=state.project
+                                    on-dismiss('onConsoleToggle', false )/>
+                          </div>
+                        </if>
+                      </div>
+                    </div>
+                  </Row>
                 </div>
-              </if>
-            </div>
+              </for>
+            </if>
           </main>
         </Row>
 
@@ -757,7 +380,7 @@ class {
           </li>
 
           <!-- Display main programming language -->
-          <if( state.project )>
+          <if( component.hasCodeSection() )>
             <li.px-1.white-text>${state.project.specs.code.language.replace('~', ' ').toCapitalCase()}</li>
           </if>
 

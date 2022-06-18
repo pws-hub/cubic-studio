@@ -54,10 +54,11 @@ class {
     ]
     Form.icon = false
 
-    Form.specs.API = []
-    Form.specs.sockets = []
-    Form.specs.units = []
-    Form.specs.roadmap = []
+    if( !['application', 'plugin'].includes( Form.type ) ) Form.specs.code = {}
+    if( Form.specs.API ) Form.specs.API = []
+    if( Form.specs.sockets ) Form.specs.sockets = []
+    if( Form.specs.units ) Form.specs.units = []
+    if( Form.specs.roadmap ) Form.specs.roadmap = []
 
     this.state.submitting = true
     
@@ -89,7 +90,7 @@ class {
                   { label: 'Application', value: 'application' },
                   { label: 'Plugin', value: 'plugin' },
                   { label: 'Library', value: 'library' },
-                  { label: 'Testing Only', value: 'tests' }
+                  { label: 'Testing', value: 'tests' }
                 ]
                 on-select('__onChange')/>
       </div>
@@ -234,7 +235,6 @@ class {
         <div class="checkbox checkbox-primary">
           <input.disabled type="checkbox"
                   no-update
-                  disabled
                   id="specs.API"
                   name="specs.API"
                   checked=state.form.specs.API
@@ -256,7 +256,6 @@ class {
         <div class="checkbox checkbox-primary">
           <input type="checkbox"
                   no-update
-                  disabled
                   id="specs.sockets"
                   name="specs.sockets"
                   checked=state.form.specs.sockets
@@ -309,7 +308,7 @@ class {
               type="submit"
               on-click('onSubmit')>
         <Locale text="Create"/>
-        <Preloader.pl-2.font-medium-4.float-right active=state.submitting/>
+        <Preloader.ml-2.font-medium-4 active=state.submitting/>
       </Button>
     </if>
   </div>

@@ -1,0 +1,48 @@
+
+<!-- Environments Block -->
+<context >
+  <div.position-relative.border-top.overflow-auto
+      style=`height:${input.extended ? '40%' : '3rem'}`>
+    <div.position-sticky.zindex-2.top-0.w-100.theme-bg.d-flex.align-items-center.border-bottom.px-1 style="height:3rem">
+      <div.w-100.d-flex.align-items-center>
+        <div.w-70>
+          <Locale.px-25 text="Environments"/>
+        </div>
+
+        <div.px-25.text-right.d-flex.align-items-center>
+          <!-- Add new environment button -->
+          <Bx.font-medium-5.cursor-pointer.px-50
+              type="plus"
+              title="Add environment"
+              on-click( () => component.emit('add') )/>
+
+          <!-- Open/Close environments row button -->
+          <Bx.font-medium-5.cursor-pointer.px-50
+              type=`chevron-${!input.extended ? 'up' : 'down'}`
+              title=( !input.extended ? 'Show' : 'Close' )
+              on-click( () => component.emit( 'extends', !input.extended ) )/>
+        </div>
+      </div>
+    </div>
+
+    <if( input.extended )>
+      <ul.list-unstyled.py-1.my-0>
+        <if( Array.isArray( input.envs ) && input.envs.length )>
+          <for|{ name }, index| of=input.envs>
+            <li.nav-item.cursor-pointer.hover-toggle.d-flex.align-items-center>
+              <Bx.font-medium-5
+                  type=`hive`
+                  style="padding:0 .4rem 0 .95rem"
+                  on-click('onShowContent')/>
+          
+              <div.font-medium-1.text-ellipsis.w-75.py-75>${name}</div>
+              
+              <Bx.hover-show.font-medium-2.px-50.float-right type="star"/>
+              <Bx.hover-show.font-medium-5.px-75.float-right type="dots-vertical-rounded"/>
+            </li>
+          </for>
+        </if>
+      </ul>
+    </if>
+  </div>
+</context>

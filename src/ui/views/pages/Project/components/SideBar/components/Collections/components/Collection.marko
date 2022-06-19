@@ -12,11 +12,13 @@ class {
 }
 
 <li.position-relative.overflow-hidden>
-  <div.position-relative.py-50.zindex-1.hover-toggle.d-flex.align-items-center.cursor-pointer class=(state.open ? 'theme-bg-fade' : false )>
-    <Bx.font-medium-5.pl-50.pr-2
-        type=`chevron-${state.open ? 'down' : 'right'}`
+  <div.position-relative.zindex-1.hover-toggle.d-flex.align-items-center.nav-item.cursor-pointer 
+      class=(state.open ? 'theme-bg-fade' : false )>
+    <Bx.font-medium-5
+        type=`list-minus`
+        style="padding:0 .4rem 0 .95rem"
         on-click('onShowContent')/>
-    <div.font-medium-1.text-ellipsis.w-75 on-click('onShowContent')>${input.name}</div>
+    <div.font-medium-1.text-ellipsis.w-75.py-75 on-click('onShowContent')>${input.name}</div>
     
     <Bx.hover-show.font-medium-2.px-50.float-right type="star"/>
     <Bx.hover-show.font-medium-5.px-75.float-right type="dots-vertical-rounded"/>

@@ -61,9 +61,11 @@ class {
 
     this.state.submitting = true
     
-    this.emit( 'submit', Form, (function(){
-      // After saved
+    this.emit( 'submit', Form, (function( error, status ){
+      
       this.state.submitting = false
+      if( error )
+        return this.fhandler.alert( error, status )
 
       this.fhandler.alert('Project imported')
       this.fhandler.reset()

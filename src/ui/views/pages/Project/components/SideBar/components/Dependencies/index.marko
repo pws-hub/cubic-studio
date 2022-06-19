@@ -33,9 +33,9 @@
     </div>
 
     <if( input.extended )>
-      <if( Array.isArray( input.dependencies ) && input.dependencies.length  )>
+      <if( Array.isArray( input.deps ) && input.deps.length  )>
         <ul.list-unstyled.py-1>
-          <for|dependency| of=input.dependencies>
+          <for|dependency| of=input.deps>
             <Dependency ...dependency/>
           </for>
         </ul>

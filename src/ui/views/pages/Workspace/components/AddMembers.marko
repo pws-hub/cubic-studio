@@ -62,7 +62,10 @@ class {
         && Object.values( this.state.formError ).includes( true ) ) return
         
     // After saved
-    this.emit('submit', this.state.form.members, (function(){
+    this.emit('submit', this.state.form.members, (function( error, status ){
+      if( error )
+        return this.fhandler.alert( error, status )
+
       this.fhandler.alert('Members added')
       this.fhandler.reset()
     }).bind(this) )

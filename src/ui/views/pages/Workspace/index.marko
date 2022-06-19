@@ -79,7 +79,7 @@ class {
     }
     catch( error ){
       console.log('Failed creating project: ', error )
-      this.fhandler.alert('Failed! Check your connection and try again', 'warning')
+      callback('Failed! Check your connection and try again', 'warning')
     }
   }
   async onImportProject( payload, callback ){
@@ -109,7 +109,7 @@ class {
     }
     catch( error ){
       console.log('Failed creating project: ', error )
-      this.fhandler.alert('Failed! Check your connection and try again', 'warning')
+      callback('Failed! Check your connection and try again', 'warning')
     }
   }
   async fetchMembers(){
@@ -140,7 +140,7 @@ class {
     }
     catch( error ){
       console.log('Failed creating project: ', error )
-      this.fhandler.alert('Failed! Check your connection and try again', 'warning')
+      callback('Failed! Check your connection and try again', 'warning')
     }
   }
 }

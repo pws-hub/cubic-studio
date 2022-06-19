@@ -22,6 +22,13 @@ class {
                     dependencies: dataset.dependencies
                   }
           break
+          
+      case 'API': if( isEmpty( dataset ) ) return
+                  this.Actives[ type ] = { 
+                    collections: dataset.collections,
+                    environments: dataset.environments
+                  }
+          break
     }
     
     this.state.active = type
@@ -45,8 +52,7 @@ class {
   <div.in-block.section-block.px-0 style="width:24rem">
     <div.position-relative.h-100.overflow-auto>
       <for|type, dataset| in=component.Actives>
-        <div.position-absolute.theme-bg.h-100.top-0.left-0.right-0
-            key=type
+        <div.position-absolute.theme-bg.h-100.top-0.left-0.right-0 key=type
             class=( state.active == type ? 'zindex-2' : 'zindex-1')>
           <Switch by=type>
             <@case is="Code">
@@ -64,13 +70,22 @@ class {
                             on-rename( element => component.emit( 'action', 'rename-element', element ) )
                             on-remove( element => component.emit( 'action', 'remove-element', element ) )/>
 
-              <Dependencies dependencies=dataset.dependencies
+              <Dependencies deps=dataset.dependencies
                             extended=state.extendedBlocks.includes('dependencies')
                             on-extends('onExtendExtraBlock', 'dependencies')
                             on-add( () => component.emit( 'action', 'add-dependency' ) )
                             on-refresh( () => component.emit( 'action', 'refresh-packages' ) )
                             on-update( packages => component.emit( 'action', 'update-packages', packages ) )
                             on-remove( packages => component.emit( 'action', 'remove-packages', packages ) )/>
+            </@case>
+
+            <@case is="API">
+              <Collections cols=dataset.collections
+                            extended=(!state.extendedBlocks.includes('environments'))/>
+
+              <Environments envs=dataset.environments
+                            extended=state.extendedBlocks.includes('environments')
+                            on-extends('onExtendExtraBlock', 'environments')/>
             </@case>
           </Switch>
         </div>

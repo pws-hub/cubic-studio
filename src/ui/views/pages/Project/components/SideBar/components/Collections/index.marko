@@ -1,41 +1,46 @@
 
+<!-- Collections row -->
 <context active=input.active on-open( ( ...args ) => component.emit( 'open', ...args ) )>
-  <ul.list-unstyled.my-0.ml-1>
-    <Switch by=input.type>
-      <@case is="API">
-        <for|collection, index| of=input.list>
-          <Collection ...collection/>
-        </for>
-      </@case>
-      <@case is="environments">
-        <for|collection, index| of=input.list>
-          <Environment ...collection/>
-        </for>
-      </@case>
-      <@case is="IDE">
-        <for|folder| of=input.list>
-          <Folder ...folder/>
-        </for>
-      </@case>
-      <@default>
-        Default Mode
-      </@default>
-    </Switch>
-    
-    <li>
-      <div.hover-toggle.py-1.d-flex.align-items-center.cursor-pointer>
-        <Bx.font-medium-5 type="plus" style="padding:0 .4rem 0 .95rem"/>
-        <div.font-medium-1.text-ellipsis.w-75>
-          <Switch by=input.type>
-            <@case is=["API"]>
-              <Locale text="Create New"/>
-            </@case>
-            <@default>
-              <Locale text="Add Folder"/>
-            </@default>
-          </Switch>
-        </div>
+  <div.directories.position-relative.overflow-auto
+      style=`height:${!input.extended ? '60%' : 'calc(100% - 3rem)'}`>
+    <div.position-sticky.zindex-2.top-0.w-100.theme-bg.d-flex.align-items-center.border-bottom style="height:3rem">
+      <div.w-100>
+        <ul.list-inline.m-0.px-25>
+          <li>
+            <Bx.font-medium-5.px-75.cursor-pointer
+                type="cog"
+                on-click( () => component.emit('show-settings') )/>
+          </li>
+          
+          <li.float-right>
+            <Bx.font-medium-5.px-75.cursor-pointer
+                title=Locale('Git branch')
+                type="git-branch"/>
+          </li>
+          <li.float-right>
+            <Bx.font-medium-5.px-75.cursor-pointer
+                title=Locale('Git commit')
+                type="git-commit"/>
+          </li>
+        </ul>
       </div>
-    </li>
-  </ul>
+    </div>
+
+    <ul.list-unstyled.py-1.my-0>
+      <if( Array.isArray( input.cols ) && input.cols.length )>
+        <for|collection, index| of=input.cols>
+          <Collection key=index ...collection/>
+        </for>
+      </if>
+      
+      <li>
+        <div.hover-toggle.py-1.d-flex.align-items-center.cursor-pointer>
+          <Bx.font-medium-5 type="plus" style="padding:0 .4rem 0 .95rem"/>
+          <div.font-medium-1.text-ellipsis.w-75>
+            <Locale text="Add Collection"/>
+          </div>
+        </div>
+      </li>
+    </ul>
+  </div>
 </context>

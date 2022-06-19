@@ -52,10 +52,11 @@ class {
       // Sections dataset
       Code: {},
       API: {},
+      Socket: {},
 
       // Active indications
       sections: [],
-      activeSection: 'Code',
+      activeSection: null,
       activeElement: null,
       
       emulator: false,
@@ -102,12 +103,13 @@ class {
     this.state.activeElement = { ...element, active: true }
     this.pstore.set('active-element', this.state.activeElement )
 
-    let 
+    let
+    activeSection = this.state.activeSection,
     isActive = false,
     focusIndex,
     counter = 0
 
-    this.state.tabs = this.state.tabs.map( tab => {
+    this.state[ activeSection ].tabs = (this.state[ activeSection ].tabs || []).map( tab => {
       // Tab already exist
       if( tab.path === element.path ){
         // Make tab active
@@ -132,12 +134,12 @@ class {
     if( !isActive )
       focusIndex === undefined ?
                 // At the end of the chain
-                this.state.tabs.push( this.state.activeElement )
+                this.state[ activeSection ].tabs.push( this.state.activeElement )
                 // Insert right after the last active tab
-                : this.state.tabs.splice( focusIndex + 1, 0, this.state.activeElement )
+                : this.state[ activeSection ].tabs.splice( focusIndex + 1, 0, this.state.activeElement )
 
     this.setStateDirty('tabs')
-    this.pstore.set('tabs', this.state.tabs )
+    this.pstore.set('tabs', this.state[ activeSection ].tabs )
   }
   onAction( action, ...args ){
     switch( action ){
@@ -273,7 +275,7 @@ class {
             <if( state.sections.length )>
               <for|section, index| of=state.sections>
                 <!-- Superposed Active Sections -->
-                <div.position-absolute.w-100.h-100.theme-bg.top-0 class=(state.activeSection != section ? 'd-none' : false)>
+                <div.position-absolute.w-100.h-100.theme-bg.top-0.animated.faster.fadeIn class=(state.activeSection != section ? 'd-none' : false)>
                   <Row.no-gutters>
                     <!-- SideBar -->
                     <SideBar show=state.layouts.includes('sidebar')
@@ -290,7 +292,7 @@ class {
                     <div.section-block.col.px-0.border-left.overflow-hidden>
                       <!-- Tabs Bar -->
                       <TabBar type=state.activeSection
-                              tabs=state.tabs
+                              tabs=(state[ state.activeSection ] && state[ state.activeSection ].tabs)
                               on-open('onOpen')
                               on-update('applyTabsChange')/>
                       
@@ -299,7 +301,7 @@ class {
                           <Switch by=section>
                             <@case is="Code">
                               <CodeEditor file=state.activeElement
-                                          paths=state.tabs.map( ({ path }) => { return path } )
+                                          paths=(state.Code.tabs && state.Code.tabs.map( ({ path }) => { return path } ))
                                           language=null
                                           fs=component.fs
                                           on-save('onSave')
@@ -316,7 +318,7 @@ class {
                         <if( state.showConsole )>
                           <div.h-25.border-top>
                             <Console project=state.project
-                                    on-dismiss('onConsoleToggle', false )/>
+                                      on-dismiss('onConsoleToggle', false )/>
                           </div>
                         </if>
                       </div>

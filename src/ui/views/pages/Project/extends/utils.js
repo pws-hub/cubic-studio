@@ -45,8 +45,8 @@ export default $ => {
     $.pstore.set('tabs', State.tabs )
   }
   
-  $.hasCodeSection = () => { return State.project && !isEmpty( State.project.specs.code ) }
-  $.hasAPISection = () => { return State.project && !isEmpty( State.project.specs.API ) }
-  $.hasSocketSection = () => { return State.project && !isEmpty( State.project.specs.sockets ) }
-  $.hasUnitSection = () => { return State.project && !isEmpty( State.project.specs.units ) }
+  $.hasCodeSection = () => { return State.project && State.project.specs.code && !isEmpty( State.project.specs.code ) }
+  $.hasAPISection = () => { return State.project && Array.isArray( State.project.specs.API ) }
+  $.hasSocketSection = () => { return State.project && Array.isArray( State.project.specs.sockets ) }
+  $.hasUnitSection = () => { return State.project && Array.isArray( State.project.specs.units ) }
 }

@@ -116,6 +116,10 @@ class {
     key="editable"
     contenteditable
     placeholder=input.placeholder
+    autocomplete="off"
+    autocorrect="off"
+    autocapitalize="off"
+    spellcheck="false"
     on-input('onEntry')
     on-keyup('onKeyUp')
     on-keydown('onKeyDown')>$!{state.content}</div>

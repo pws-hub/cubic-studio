@@ -15,9 +15,10 @@ class {
           directory: '',
           repository: ''
         },
-        API: false,
-        sockets: false,
-        units: false
+        API: null,
+        sockets: null,
+        units: null,
+        roadmap: null
       }
     })
   }
@@ -54,7 +55,7 @@ class {
     ]
     Form.icon = false
 
-    if( !['application', 'plugin'].includes( Form.type ) ) Form.specs.code = {}
+    if( !['application', 'plugin'].includes( Form.type ) ) Form.specs.code = null
     if( Form.specs.API ) Form.specs.API = []
     if( Form.specs.sockets ) Form.specs.sockets = []
     if( Form.specs.units ) Form.specs.units = []
@@ -62,10 +63,13 @@ class {
 
     this.state.submitting = true
     
-    this.emit( 'submit', Form, (function(){
-      // After saved
+    this.emit( 'submit', Form, (function( error, status ){
+      
       this.state.submitting = false
+      if( error )
+        return this.fhandler.alert( error, status )
 
+      // After submited
       this.fhandler.alert('Project created')
       this.fhandler.reset()
     }).bind(this) )
@@ -303,12 +307,12 @@ class {
     <Button.mx-50 type="reset" on-click('onCancel')>Cancel</Button>
 
     <if( state.form.type && state.form.name )>
-      <Button.mx-50
+      <Button.mx-50.d-inline-flex.align-items-center
               primary=true
               type="submit"
               on-click('onSubmit')>
         <Locale text="Create"/>
-        <Preloader.ml-2.font-medium-4 active=state.submitting/>
+        <Preloader.font-medium-2.ml-2 active=state.submitting/>
       </Button>
     </if>
   </div>

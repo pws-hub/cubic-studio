@@ -1,6 +1,11 @@
 
+import Plugins from 'plugins/manifest.json'
+
 class {
 	onCreate(){ GState.bind( this, ['marketplace', 'ws'] ) }
+	onMount(){
+
+	}
   /*
 	onToggle( id ){
 		let 
@@ -32,6 +37,18 @@ class {
     <li.cursor-pointer><Bx.px-1.py-2.font-medium-5 type="info-circle"/></li>
     <li.cursor-pointer><Bx.px-1.py-2.font-medium-5 type="file"/></li>
     <li.cursor-pointer><Bx.px-1.py-2.font-medium-5 type="sync"/></li>
+
+		<!-- List of plugins icons -->
+		<if( Array.isArray( Plugins ) && Plugins.length )>
+			<for|{ name, icon }| of=Plugins>
+				<li.cursor-pointer>
+					<i.px-1.py-2.font-medium-5 
+						class=icon 
+						title=name
+						on-click('onToggle', name )></i>
+				</li>
+			</for>
+		</if>
 
 		<!-- Workspace mode controls -->
 		<!-- <li.position-relative>

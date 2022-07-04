@@ -337,15 +337,25 @@ class {
                         on-return('onAddElement')
                         on-dismiss('onSearchToggle', false )/>
         </if>
-      </div>
 
-      <!-- Sandbox Emulator: Model EIS8 -->
-      <EIS8 meta=state.emulator
-            status=state.emulatorStatus
-            error=state.emulatorError
-            on-run( 'onAction', 'run-emulator' )
-            on-reload( 'onAction', 'reload-emulator' )
-            on-quit( 'onAction', 'quit-emulator' )/>
+        <Plugin name="LiveShare"/>
+      </div>
+      
+      <WSAdapt.section-block.px-0.border-left.theme-bg-fade
+              ns="d-none"
+              qs="col-3"
+              hs="col-6"
+              fs="position-absolute col-12">
+        <!-- Sandbox Emulator: Model EIS8 -->
+        <!-- <EIS8 meta=state.emulator
+              status=state.emulatorStatus
+              error=state.emulatorError
+              on-run( 'onAction', 'run-emulator' )
+              on-reload( 'onAction', 'reload-emulator' )
+              on-quit( 'onAction', 'quit-emulator' )/> -->
+
+        
+      </WSAdapt>
     </Row>
   </div>
   

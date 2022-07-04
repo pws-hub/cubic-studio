@@ -1,0 +1,17 @@
+
+import socketClient from 'socket.io-client'
+
+class {
+  onCreate({ name, path }){
+    
+    this.utils = {
+      ioclient: socketClient
+    }
+
+    this.plugin = require(`plugins/${path || name}`)
+  }
+}
+
+<if( component.plugin )>
+  <${component.plugin} utils=component.utils/>
+</if>

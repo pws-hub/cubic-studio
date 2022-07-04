@@ -1,0 +1,20 @@
+
+import Connect from './connect'
+
+class {
+  onCreate({ utils }){
+    
+    const isHost = navigator.userAgent.includes('Chrome')
+    console.log('isHost: ', isHost )
+
+    const options = { 
+      isHost, // TEMP: for testing using Chrome and Firefox
+      name: isHost ? 'Elvis Agah' : 'Fabrice Marley', 
+      token: '972bf5-82ef-779a$bd9bc6d2a4f' 
+    }
+
+    this.connect = new Connect( utils, options )
+  }
+}
+
+<div></div>

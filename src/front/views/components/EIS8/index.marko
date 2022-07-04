@@ -54,11 +54,7 @@ class {
   }
 }
 
-<WSAdapt.Emulator.section-block.px-0.border-left.theme-bg-fade
-        ns="d-none"
-        qs="col-3"
-        hs="col-6"
-        fs="position-absolute col-12">
+<div.Emulator.h-100>
   <if( state.canLoad )>
     $ const { name, hostname, pid } = input.meta
     
@@ -108,7 +104,7 @@ class {
       </else>
     </div>
   </else>
-</WSAdapt>
+</div>
 
 <if( state.testMode )>
   <TestKit tests=state.tests

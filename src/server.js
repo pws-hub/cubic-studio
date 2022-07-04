@@ -5,15 +5,14 @@ import redis from 'redis'
 import logger from 'morgan'
 import helmet from 'helmet'
 import express from 'express'
-import { APS } from 'globe-sdk'
 import randtoken from 'rand-token'
 import session from 'express-session'
 import redisConnect from 'connect-redis'
 import cookieParser from 'cookie-parser'
 import markoMiddleware from '@marko/express'
 import * as Core from './core'
-import WWW from './ui/views/www.marko'
-import ErrorPage from './ui/views/pages/error.marko'
+import WWW from 'front/views/www.marko'
+import ErrorPage from 'front/views/pages/error.marko'
 
 const 
 getInitialScope = async ( req, res ) => {

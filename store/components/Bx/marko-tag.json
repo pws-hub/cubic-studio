@@ -1,0 +1,30 @@
+{
+  "open-tag-only": true,
+  "attributes": {
+    "class": {
+      "type": "string",
+      "description": "HTML class attribute"
+    },
+    "style": {
+      "type": "string",
+      "description": "HTML style attribute"
+    },
+    "type": {
+      "type": "string",
+      "description": "Type of boxicon to display",
+      "required": true
+    },
+    "bxs": {
+      "type": "boolean",
+      "description": "Bold boxicon type"
+    },
+    "bxl": {
+      "type": "boolean",
+      "description": "Logo boxicon type"
+    },
+    "title": {
+      "type": "string",
+      "description": "Title description on mouse hover"
+    }
+  }
+}

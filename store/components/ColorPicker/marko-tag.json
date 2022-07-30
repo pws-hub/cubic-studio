@@ -1,0 +1,34 @@
+{
+  "open-tag-only": true,
+  "attributes": {
+    "value": {
+      "type": "string",
+      "description": "Input color value"
+    },
+    "width": {
+      "type": "string",
+      "description": "Set the width size of the color picker"
+    },
+    "layoutDirection": {
+      "type": "string",
+      "description": "Color list layout direction"
+    },
+    "borderWidth": {
+      "type": "string",
+      "description": "Color item border width"
+    },
+    "borderColor": {
+      "type": "string",
+      "description": "Color item border style color"
+    },
+    "advanced": {
+      "type": "boolean",
+      "description": "Display more advanced color picket tools"
+    },
+    "maxSelect": {
+      "type": "boolean",
+      "description": "Maximum color to save for pre-selection list",
+      "default-value": 12
+    }
+  }
+}

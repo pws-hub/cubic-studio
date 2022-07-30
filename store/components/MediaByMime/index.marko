@@ -1,0 +1,323 @@
+
+import audioThumbnail from './assets/mp3.png'
+import videoThumbnail from './assets/mp4.png'
+import pdfThumbnail from './assets/pdf.png'
+import docThumbnail from './assets/doc.png'
+import pptThumbnail from './assets/ppt.png'
+import txtThumbnail from './assets/txt.png'
+import xlsxThumbnail from './assets/xlsx.png'
+import zipThumbnail from './assets/zip.png'
+import unknownThumbnail from './assets/unknown.png'
+
+class {
+  onCreate(){
+    this.state = {
+      mode: 'player', 
+      toPlay: false 
+    }
+  }
+  onInput({ mode }){ if( mode ) this.state.mode = mode }
+  onPlay( player ){
+    this.setState('mode', 'player')
+
+    // Time for player to render
+    setTimeout( () => {
+      player = this.getEl( player )
+      player.play()
+
+      if( this.input.mode == 'thumbnail' )
+        player.onpause = () => this.state.mode = 'thumbnail'
+    }, 300 )
+  }
+  onToPlay( status ){ this.state.toPlay = status }
+  onSelect(){ this.emit('select') }
+  onRemove(){ this.emit('remove') }
+}
+
+$ const mimeType = input.mime || input.type || input.media.type || input.media.mime || input.media.src || ''
+
+<!-- Image File -->
+<if( mimeType.includes('image') || /\.?(png|jp(e?)g|webp|gif)/.test( mimeType ) )>
+  <div class="col-6 my-75">
+    <if( input.removeBtn )>
+      <div.text-right>
+        <span.cursor-pointer on-click('onRemove')>
+          <Bx.font-medium-5.p-50 type="x"/>
+        </span>
+      </div>
+    </if>
+
+    <!-- Display on thumbnail or Poster -->
+    <div class="cursor-pointer text-center rounded" on-click('onSelect')>
+      <Draggable data=input.media>
+        <if( state.mode == 'thumbnail' )>
+          <img src=input.media.src class="img-fluid"/>
+        </if>
+        <!-- Render Image -->
+        <else>
+          <img class="workspace-element"
+                src=input.media.src
+                style={
+                        width: input.width || 'auto',
+                        height: input.height || 'auto',
+                        maxWidth: '100%',
+                        maxHeight: '100%',
+                        margin: 'auto'
+                      }/>
+        </else>
+      </Draggable>
+    </div>
+  </div>
+</if>
+
+<!-- Native Video File -->
+<else-if( mimeType.includes('video') || /\.?(mp4|webm)/.test( mimeType ) )>
+  <!-- Display on thumbnail or Poster -->
+  <if( state.mode == 'thumbnail' )>
+    <div class="col-6 my-75"
+          on-mouseover('onToPlay', true )
+          on-mouseleave('onToPlay', false )>
+      <div class="position-relative text-center border rounded overflow-hidden">
+        <Draggable data=input.media>
+          <img src=( input.media.poster || videoThumbnail ) class="img-fluid w-75"/>
+          <if( state.toPlay )>
+            <div class="position-absolute w-100 h-100 top-0 left-0 border text-center d-flex align-items-center justify-content-center theme-bg-transparent">
+              <!-- Select Media Button -->
+              <span class="m-50"
+                    title="Select"
+                    on-click('onSelect')>
+                <Bx type="check-square" class="font-large-2 cursor-pointer"/>
+              </span>
+
+              <!-- Play Media Button -->
+              <span class="m-50" 
+                    title="Play"
+                    on-click('onPlay', 'video-player')>
+                <Bx type="play-circle" class="font-large-2 cursor-pointer"/>
+              </span>
+
+              <!-- Select Media Button -->
+              <if( input.removeBtn )>
+                <span class="m-50"
+                      title="Delete"
+                      on-click('onRemove')>
+                  <Bx type="x" class="font-large-2 cursor-pointer"/>
+                </span>
+              </if>
+            </div>
+          </if>
+        </Draggable>
+      </div>
+    </div>
+  </if>
+  <!-- Render Player-->
+  <else>
+    <div class="col-12 my-1 h-100 d-flex align-items-center justify-content-center">
+      <video key="video-player" 
+              width="100%" 
+              poster=input.media.poster 
+              src=input.media.src 
+              controls></video>
+    </div>
+  </else>
+</else-if>
+
+<!-- Youtube Video File -->
+<else-if( mimeType.includes('youtube') )>
+  <!-- Display on thumbnail or Poster -->
+  <if( state.mode == 'thumbnail' )>
+    <div class="col-6 my-75"
+          on-mouseover('onToPlay', true )
+          on-mouseleave('onToPlay', false )>
+      <div class="position-relative text-center border rounded overflow-hidden">
+        <Draggable data=input.media>
+          <img src=( input.media.poster || videoThumbnail ) class="img-fluid w-75"/>
+          <if( state.toPlay )>
+            <div class="position-absolute w-100 h-100 top-0 left-0 border text-center d-flex align-items-center justify-content-center theme-bg-transparent">
+              <!-- Select Media Button -->
+              <span class="m-50"
+                    title="Select"
+                    on-click('onSelect')>
+                <Bx type="check-square" class="font-large-2 cursor-pointer"/>
+              </span>
+
+              <!-- Play Media Button -->
+              <span class="m-50" 
+                    title="Play"
+                    on-click('onPlay', 'youtube-player')>
+                <Bx type="play-circle" class="font-large-2 cursor-pointer"/>
+              </span>
+
+              <!-- Select Media Button -->
+              <if( input.removeBtn )>
+                <span class="m-50"
+                      title="Delete"
+                      on-click('onRemove')>
+                  <Bx type="x" class="font-large-2 cursor-pointer"/>
+                </span>
+              </if>
+            </div>
+          </if>
+        </Draggable>
+      </div>
+    </div>
+  </if>
+  <!-- Render Player-->
+  <else>
+    <div class="col-12 my-1 h-100 d-flex align-items-center justify-content-center">
+      <div class=`embed-responsive embed-responsive-16by9`>
+        <iframe class="embed-responsive-item"
+                src=`https://www.youtube-nocookie.com/embed/${input.media.id}`
+                frameborder=0 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen></iframe>
+      </div>
+    </div>
+  </else>
+</else-if>
+
+<!-- Audio File -->
+<else-if( mimeType.includes('audio') || /\.?(mp3|mpeg|wave)/.test( mimeType ) )>
+  <!-- Display on thumbnail or Poster -->
+  <if( state.mode == 'thumbnail' )>
+    <div class="col-6 my-75"
+          on-mouseover('onToPlay', true )
+          on-mouseleave('onToPlay', false )>
+      <div class="position-relative text-center border rounded overflow-hidden">
+        <Draggable data=input.media>
+          <img src=audioThumbnail class="img-fluid w-75" style="padding:8px 0"/>
+          <if( state.toPlay )>
+            <div class="position-absolute w-100 h-100 top-0 left-0 border text-center d-flex align-items-center justify-content-center theme-bg-transparent">
+              <!-- Select Media Button -->
+              <span class="m-50" 
+                    title="Select"
+                    on-click('onSelect')>
+                <Bx type="check-square" class="font-large-2 cursor-pointer"/>
+              </span>
+
+              <!-- Play Media Button -->
+              <span class="m-50" 
+                    title="Play"
+                    on-click('onPlay', 'audio-player')>
+                <Bx type="play-circle" class="font-large-2 cursor-pointer"/>
+              </span>
+
+              <!-- Select Media Button -->
+              <if( input.removeBtn )>
+                <span class="m-50"
+                      title="Remove"
+                      on-click('onRemove')>
+                  <Bx type="x" class="font-large-2 cursor-pointer"/>
+                </span>
+              </if>
+            </div>
+          </if>
+        </Draggable>
+      </div>
+    </div>
+  </if>
+  <!-- Render Player-->
+  <else>
+    <div class="col-12 h-100 d-flex align-items-center justify-content-center">
+      <audio key="audio-player" src=input.media.src controls></audio>
+    </div>
+  </else>
+</else-if>
+
+<!-- PDF File Type -->
+<else-if( /\.?(pdf)/.test( mimeType ) )>
+  <div class="col-12 p-0 text-center border rounded">
+    <div class="px-75 py-2">
+      <img src=pdfThumbnail class="img-fluid w-75"/>
+    </div>
+    <if( input.media && input.media.name )>
+      <div class="theme-bg-fade w-100 text-ellipsis p-75 border-top">
+        ${input.media.name}
+      </div>
+    </if>
+  </div>
+</else-if>
+
+<!-- Plain Text File Type -->
+<else-if( /\.?(txt|plain)/.test( mimeType ) )>
+  <div class="col-12 p-0 text-center border rounded">
+    <div class="px-75 py-2">
+      <img src=txtThumbnail class="img-fluid w-75"/>
+    </div>
+    <if( input.media && input.media.name )>
+      <div class="theme-bg-fade w-100 text-ellipsis p-75 border-top">
+        ${input.media.name}
+      </div>
+    </if>
+  </div>
+</else-if>
+
+<!-- Document File Type -->
+<else-if( /\.?(doc|docx)/.test( mimeType ) )>
+  <div class="col-12 p-0 text-center border rounded">
+    <div class="px-75 py-2">
+      <img src=docThumbnail class="img-fluid w-75"/>
+    </div>
+    <if( input.media && input.media.name )>
+      <div class="theme-bg-fade w-100 text-ellipsis p-75 border-top">
+        ${input.media.name}
+      </div>
+    </if>
+  </div>
+</else-if>
+
+<!-- PPT File Type -->
+<else-if( /\.?(ppt|pptx)/.test( mimeType ) )>
+  <div class="col-12 p-0 text-center border rounded">
+    <div class="px-75 py-2">
+      <img src=pptThumbnail class="img-fluid w-75"/>
+    </div>
+    <if( input.media && input.media.name )>
+      <div class="theme-bg-fade w-100 text-ellipsis p-75 border-top">
+        ${input.media.name}
+      </div>
+    </if>
+  </div>
+</else-if>
+
+<!-- Excel File Type -->
+<else-if( /\.?(xlsx)/.test( mimeType ) )>
+  <div class="col-12 p-0 text-center border rounded">
+    <div class="px-75 py-2">
+      <img src=xlsxThumbnail class="img-fluid w-75"/>
+    </div>
+    <if( input.media && input.media.name )>
+      <div class="theme-bg-fade w-100 text-ellipsis p-75 border-top">
+        ${input.media.name}
+      </div>
+    </if>
+  </div>
+</else-if>
+
+<!-- Zip File Type -->
+<else-if( /\.?(zip|rar)/.test( mimeType ) )>
+  <div class="col-12 p-0 text-center border rounded">
+    <div class="px-75 py-2">
+      <img src=zipThumbnail class="img-fluid w-75"/>
+    </div>
+    <if( input.media && input.media.name )>
+      <div class="theme-bg-fade w-100 text-ellipsis p-75 border-top">
+        ${input.media.name}
+      </div>
+    </if>
+  </div>
+</else-if>
+
+<!-- Unknown File Type -->
+<else>
+  <div class="col-12 p-0 text-center border rounded">
+    <div class="px-75 py-2">
+      <img src=unknownThumbnail class="img-fluid w-75"/>
+    </div>
+    <if( input.media && input.media.name )>
+      <div class="theme-bg-fade w-100 text-ellipsis p-75 border-top">
+        ${input.media.name}
+      </div>
+    </if>
+  </div>
+</else>

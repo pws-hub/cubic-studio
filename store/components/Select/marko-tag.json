@@ -1,0 +1,50 @@
+{
+  "open-tag-only": true,
+  "attributes": {
+    "class": {
+      "type": "string",
+      "description": "HTML class attribute"
+    },
+    "style": {
+      "type": "string",
+      "description": "HTML style attribute"
+    },
+    "name": {
+      "type": "string",
+      "description": "Select input name attribute"
+    },
+    "value": {
+      "type": "string",
+      "description": "Selected value"
+    },
+    "options": {
+      "type": "array",
+      "description": "Selectable options list",
+      "required": true
+    },
+    "size": {
+      "type": "string",
+      "description": "Size of the input: xl, lg, md, sm"
+    },
+    "placeholder": {
+      "type": "string",
+      "description": "Select input placeholder"
+    },
+    "returnAll": {
+      "type": "boolean",
+      "description": "Return all the selected option set"
+    },
+    "maxHeight": {
+      "type": "string",
+      "description": "Maximum height of the dropdown"
+    },
+    "fontSize": {
+      "type": "string",
+      "description": "Font Sise class of selectable options"
+    },
+    "optionStyle": {
+      "type": "string",
+      "description": "CSS Style customization of each the selectable options"
+    }
+  }
+}

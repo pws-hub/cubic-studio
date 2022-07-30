@@ -118,6 +118,7 @@ class {
   }
   isLoadedModel( path ){
     return this.input
+            && this.input.paths
             && this.input.paths.includes( path )
             && !!( monaco.editor.getModel( monaco.Uri.file( path ) ) )
   }

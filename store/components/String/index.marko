@@ -1,0 +1,17 @@
+
+class {
+	onCreate(){ GState.bind( this, ['locale'] ) }
+	innerBody(){
+		return this.input
+								.renderBody
+								.toString()
+								.replace( new RegExp('function\\(\\w+\\)\\s*\\{\\s*\\w+.t\\\("'), '')
+								.replace( new RegExp('"\\);?\\s*\\}'), '')
+	}
+}
+
+<span data-lang=( state.locale.language +( state.locale.variant ? '-'+ state.locale.variant : '' ) )
+			class=input.class
+			style=`color:inherit;${input.style}`>
+	$!{Locale( input.value || (typeof input.renderBody == 'function' ? component.innerBody() : ''), input.notrack )}
+</span>

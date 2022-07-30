@@ -10,12 +10,9 @@ class {
                   filters: {},
                   results: []
                 }
+    GState.bind( this, ['screen'] )
   }
-  onInput( input ){
-    this.state.target = input.target
-    this.state.filters = input.filters
-    this.state.selected = null // probable new suggestion list
-  }
+  onInput({ target, filters }){ this.setState({ target, filters, selected: null }) }
   onToggle( active, e ){
 
     this.state.active = active
@@ -51,7 +48,7 @@ class {
       request is prefers to be done out of the
       compoment.
     */
-    this.emit( 'query', this.state.query.replace(/\s+/g,'+') )
+    this.emit( 'query', this.state.query.replace(/\s+/,'+') )
 
     /* No target mean the search requet is handled
       externally once the query is send out
@@ -73,6 +70,17 @@ class {
     this.state.query = this.input.suggestions[ index ][ this.input.mount || 'title' ]
     // Tell selected item index and value
     this.emit( 'select', index, this.state.results[ index ] )
+
+    /* Clear temporary the suggestion because
+      they are usually formated outside the
+      component therefore strictly depend
+      on input injection
+    */
+    this.input.suggestions = []
+  }
+  onSelectAlt( index ){
+    // Return selected alternative options
+    this.emit( 'select-alt', index, this.input.alternatives[ index ] )
 
     /* Clear temporary the suggestion because
       they are usually formated outside the
@@ -112,8 +120,8 @@ class {
 }
 
 <div class=`position-relative w-100 zindex-${ state.active ? 3 : 2 }`
-      style=`height: ${input.size == 'xl' ? '65px' : '50px'}`>
-  <fieldset.search-bar.theme-bg-transparent.border.mx-auto.mb-0.overflow-hidden class=`${input.class} ${state.active ? 'active shadow' : ''}`>
+      style=`height: ${input.size == 'xl' ? '65px' : ( state.screen.media == 'xs' ? '42px' : '50px' )}`>
+  <fieldset class=( 'search-bar theme-bg-transparent border rounded mx-auto mb-0 overflow-hidden'+( state.active ? ' active shadow' : '' ) )>
     <div>
       <input type="text" class=('form-control form-control-'+( input.size || 'lg' )+' pl-5 border-none shadow-none')
               placeholder=( input.placeholder || 'Search ...' )
@@ -129,34 +137,60 @@ class {
       </if>
     </div>
 
-    <div class=( 'suggestions'+( !input.suggestions || !input.suggestions.length ? ' d-none' : '' ) )>
-      <ul class="list-unstyled">
-        <for|{ poster, title, subtitle, status }, index| of=input.suggestions>
-          <li class="nav-item cursor-pointer p-1" on-click( 'onSelect', index )>
-            <div class="row m-0 d-flex align-items-center">
-              <if( poster )>
-                <div class="col-xl-2 col-md-2 col-3 text-center">
-                  <if( poster.type == 'icon' )>
-                    <i class=( 'font-large-1 p-1 '+( poster.round ? 'round' : 'rounded-circle' )+' theme-bg-fade bx '+ poster.value )></i>
-                  </if>
-                  <if( poster.type == 'image' )>
-                    <Image src=poster.value
-                            class=( poster.round ? 'round' : 'rounded-circle' )
-                            style="width:50px"/>
-                  </if>
+    <div class=( 'suggestions'+( !Array.isArray( input.suggestions ) ? ' d-none' : '' ) )>
+      <if( Array.isArray( input.alternatives ) 
+            && state.active 
+            && Array.isArray( input.suggestions ) 
+            && !input.suggestions.length )>
+        <ul class="list-unstyled m-0">
+          <for|{ icon, title, subtitle }, index| of=input.alternatives>
+            <li class="nav-item cursor-pointer p-1" on-click( 'onSelectAlt', index )>
+              <div class="row m-0 d-flex align-items-center">
+                <if( icon )>
+                  <div class="col-xl-2 col-md-2 col-3 text-center">
+                    <i class=('font-large-1 p-1 rounded-circle theme-bg-fade bx '+ icon)></i>
+                  </div>
+                </if>
+                
+                <div class="col">
+                  <span class="font-medium-3">${title}</span>
+                  <if( subtitle )><p class="blue-grey-text font-small-2 m-0">${subtitle}</p></if>
                 </div>
-              </if>
-
-              <div class="col">
-                <span class="font-medium-3">${title}</span>
-                <if( subtitle )><p class="blue-grey-text font-small-2 m-0">${subtitle}</p></if>
               </div>
+            </li>
+          </for>
+        </ul>
+      </if>
+      
+      <if( Array.isArray( input.suggestions ) && input.suggestions.length )>
+        <ul class="list-unstyled m-0">
+          <for|{ poster, title, subtitle, status }, index| of=input.suggestions>
+            <li class="nav-item cursor-pointer p-1" on-click( 'onSelect', index )>
+              <div class="row m-0 d-flex align-items-center">
+                <if( poster )>
+                  <div class="col-xl-2 col-md-2 col-3 text-center">
+                    <if( poster.type == 'icon' )>
+                      <i class=( 'font-large-1 p-1 '+( poster.round ? 'round' : 'rounded-circle' )+' theme-bg-fade bx '+ poster.value )></i>
+                    </if>
+                    <if( poster.type == 'image' )>
+                      <Image src=poster.value
+                              class=( poster.round ? 'round' : 'rounded-circle' )
+                              style="width:50px"/>
+                    </if>
+                  </div>
+                </if>
 
-              <if( status )><div class="col-3 text-center">${status}</div></if>
-            </div>
-          </li>
-        </for>
-      </ul>
+                <div class="col">
+                  <span class="font-medium-3">${title}</span>
+                  <if( subtitle )><p class="blue-grey-text font-small-2 m-0">${subtitle}</p></if>
+                </div>
+
+                <if( status )><div class="col-3 text-center">${status}</div></if>
+              </div>
+            </li>
+          </for>
+        </ul>
+      </if>
     </div>
   </fieldset>
 </div>

@@ -1,0 +1,18 @@
+{
+  "open-tag-only": true,
+  "attributes": {
+    "class": {
+      "type": "string",
+      "description": "HTML class attribute"
+    },
+    "style": {
+      "type": "string",
+      "description": "HTML style attribute"
+    },
+    "alert": {
+      "type": "object",
+      "description": "Contain details of the alert: message, status, ...",
+      "required": true
+    }
+  }
+}

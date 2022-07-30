@@ -1,0 +1,6 @@
+
+class { onDragstart(e){ e.dataTransfer.setData( 'text/plain', JSON.stringify( this.input.data || {} ) ) } }
+
+<div draggable="true" on-dragstart('onDragstart')>
+  <${input.renderBody}/>
+</div>

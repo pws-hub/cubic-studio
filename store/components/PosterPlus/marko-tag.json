@@ -1,0 +1,61 @@
+{
+  "open-tag-only": true,
+  "attributes": {
+    "multiset": {
+      "type": "string",
+      "description": "Allow selection of multiple media"
+    },
+    "theme": {
+      "type": "string",
+      "description": "Specify theme type"
+    },
+    "adaptive": {
+      "type": "boolean",
+      "description": "Make container adaptive to the element"
+    },
+    "preview": {
+      "type": "string",
+      "description": "DOM selector of where to display file preview"
+    },
+    "cdn": {
+      "type": "string",
+      "description": "CDN bucket name/path"
+    },
+    "width": {
+      "type": "string",
+      "description": "Width of the container"
+    },
+    "height": {
+      "type": "string",
+      "description": "Height of the container"
+    },
+    "maxSize": {
+      "type": "string",
+      "description": "Upload maximum file size required"
+    },
+    "accepts": {
+      "type": "string",
+      "description": "Mime type of media to accepts or selectable"
+    },
+    "vts": {
+      "type": "object",
+      "description": "Upload to Video Transaction Server access & HTTP request settings"
+    },
+    "vtsPath": {
+      "type": "string",
+      "description": "Upload to Video Transaction Server endpoint/path"
+    },
+    "endpoint": {
+      "type": "string",
+      "description": "Upload server endpoint/URL"
+    },
+    "cropping": {
+      "type": "string",
+      "description": "Media cropping type"
+    },
+    "btnStyle": {
+      "type": "string",
+      "description": "Define action buttons style"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "open-tag-only": true,
+  "attributes": {
+    "class": {
+      "type": "string",
+      "description": "HTML class attribute"
+    },
+    "mode": {
+      "type": "string",
+      "description": "Display thumbnail, illustration icon or render the actual media"
+    },
+    "type": {
+      "type": "string",
+      "description": "Type of media to display: image, audio, video, ..."
+    },
+    "mime": {
+      "type": "boolean",
+      "description": "Explict media mime to display: text/plain, image/png, ..."
+    },
+    "media": {
+      "type": "object",
+      "description": "Information about media to display: "
+    },
+    "removeBtn": {
+      "type": "boolean",
+      "description": "Indicate whether media is removable: Fire `remove` event"
+    }
+  }
+}

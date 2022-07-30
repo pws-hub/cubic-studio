@@ -2,8 +2,8 @@
 class {
   onCreate(){ this.state = { activeState: false } }
   onInput( input ){
-    if( input.active !== undefined )
-      this.state.activeState = input.active == true
+    if( input.state !== undefined )
+      this.state.activeState = input.state === true
   }
   onClick(){
     this.state.activeState = !this.state.activeState

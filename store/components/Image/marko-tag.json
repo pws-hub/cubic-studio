@@ -1,0 +1,44 @@
+{
+  "open-tag-only": true,
+  "attributes": {
+    "id": {
+      "type": "string",
+      "description": "HTML id attribute"
+    },
+    "class": {
+      "type": "string",
+      "description": "HTML class attribute"
+    },
+    "style": {
+      "type": "string",
+      "description": "HTML style attribute"
+    },
+    "src": {
+      "type": "string",
+      "description": "Image media source",
+      "required": true
+    },
+    "alt": {
+      "type": "string",
+      "description": "Alternative description",
+      "default-value": "Image",
+      "required": true
+    },
+    "title": {
+      "type": "string",
+      "description": "Title description on mouse hover"
+    },
+    "icon": {
+      "type": "string",
+      "description": "Alternative icon to display when image media not found"
+    },
+    "noBackground": {
+      "type": "string",
+      "description": "Ignore default image placeholder background-color"
+    },
+    "defaultStyle": {
+      "type": "string",
+      "description": "Default style to image placeholder"
+    }
+  }
+}

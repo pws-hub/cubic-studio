@@ -1,0 +1,22 @@
+{
+  "open-tag-only": true,
+  "attributes": {
+    "class": {
+      "type": "string",
+      "description": "HTML class attribute"
+    },
+    "style": {
+      "type": "string",
+      "description": "HTML style attribute"
+    },
+    "list": {
+      "type": "array",
+      "description": "Array list of selectable versions",
+      "required": true
+    },
+    "selected": {
+      "type": "string",
+      "description": "Current or default selected version"
+    }
+  }
+}

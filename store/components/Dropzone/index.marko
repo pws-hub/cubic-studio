@@ -1,0 +1,27 @@
+
+class {
+  onCreate(){ this.state = { active: false } }
+  onDragover(e){
+    e.preventDefault()
+    if( this.state.active ) return
+    this.state.active = true
+  }
+  onDragleave(e){
+    e.preventDefault()
+    if( !this.state.active ) return
+    this.state.active = false
+  }
+  onDrop(e){
+    e.preventDefault()
+    this.emit('data', { type: this.input.type, value: JSON.parse( e.dataTransfer.getData('text/plain') ) } )
+    e.dataTransfer.clearData()
+  }
+}
+
+<div class="w-100"
+      style=( state.active ? 'transform:scale(1.05);transition:600ms;' : false )
+      on-dragover('onDragover')
+      on-dragleave('onDragleave')
+      on-drop('onDrop')>
+  <${input.renderBody}/>
+</div>

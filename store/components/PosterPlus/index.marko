@@ -393,7 +393,7 @@ class {
 
                   error = status +' > '+ error
                   console.log( '[PosterPlus] Upload Failed: ', error )
-
+                  
                   _this.state.alert = 'Unexpected Uploading Error Occured. Try again'
                   reject( error )
 
@@ -561,7 +561,7 @@ class {
   cancelAll(){ this.emit('cancelled') }
 }
 
-<div class=`position-fixed w-100 vh-100 left-0 top-0 d-flex align-items-center center` style="z-index:2020">
+<div class=`position-${input.adaptive ? 'absolute' : 'fixed'} w-100 vh-100 left-0 top-0 d-flex align-items-center center` style="z-index:2020">
   <div class="w-100 d-flex justify-content-center">
     <!-- Overlay background -->
     <div class="position-fixed top-0 w-100 h-100 animated fadeIn faster" on-click('cancelAll')></div>
@@ -576,7 +576,7 @@ class {
           <div class="position-relative p-2" style="height:8vh">
             <Row class="d-flex align-items-center">
               <div class="col">
-                <SearchBar placeholder="Search Image"
+                <SearchBar placeholder=Locale('Search Image')
                             on-query('onSearchQuery')
                             on-dismiss('onDismissSearch')/>
               </div>

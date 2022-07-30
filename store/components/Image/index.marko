@@ -14,7 +14,7 @@ class {
       this.state.image = null
       this.state.loading = true
 
-      window.fetch( corsProxy( src ) )
+      window.fetch( corsProxy( src.replace(/^@/, '/@') ) ) // Add (/) to prefixed links
             .then( response => response.blob() )
             .then( blob => {
               this.state.loading = false
@@ -33,11 +33,14 @@ class {
   }
 }
 
-<if( state.image )><img ...state.attrs src=state.image draggable="false"/></if>
+<if( state.image )>
+  <img ...state.attrs src=state.image draggable="false" on-click( () => component.emit('click') )/>
+</if>
 <else>
-  <div.image-placeholder.theme-bg-lighten.d-flex.align-items-center.justify-content-center
-        class=`${input.class} ${state.loading ? 'animated-placeholder' : ''}` 
-        style=state.attrs.style>
+  <div.image-placeholder.d-inline-flex.align-items-center.justify-content-center
+        class=`${input.class} ${state.loading ? 'animated-placeholder' : ''} ${!input.noBackground ? 'theme-bg-fade' : ''}` 
+        style=(state.attrs.defaultStyle || state.attrs.style)
+        on-click( () => component.emit('click') )>
     <div.w-100.text-center>
       <i.blue-grey-text.text-lighten-3 class=( input.icon || 'bx bxs-landscape' ) style="font-size:250%"></i>
     </div>

@@ -1,0 +1,90 @@
+
+import WebFont from 'webfontloader'
+import Fonts from './sources/google.json'
+
+static const Configs = {
+  classes: false
+}
+
+class { 
+  onCreate(){
+    this.state = {
+      Groups: {},
+      loading: false
+    }
+
+    const GroupNames = []
+    let families = []
+
+    Object.entries( Fonts )
+          .map( ([ group, fonts ]) => {
+            GroupNames.push( group )
+            families = [ ...families, ...fonts ]
+          } )
+    
+    if( !window.WebFontsLoaded )
+      WebFont.load({
+                    ...Configs, 
+                    google: { families }, 
+                    
+                    // Events
+                    loading: () => this.state.loading = true,
+                    active: () => {
+                      window.WebFontsLoaded = true
+                      this.state.loading = false
+                    },
+                    inactive: () => this.state.loading = false,
+
+                    fontactive: ( fontName, fvd ) => {
+                      GroupNames.map( group => {
+                        if( !Array.isArray( this.state.Groups[ group ] ) )
+                          this.state.Groups[ group ] = []
+                        
+                        if( Fonts[ group ].includes( fontName ) )
+                          this.state.Groups[ group ].push( fontName )
+                      } )
+                    },
+                    fontinactive: ( name, fvd ) => console.log(`[FONT]: Failed to load <${name}:${fvd}>`),
+                  } )
+  }
+  onSelect( name ){
+    this.emit('select', name )
+    this.emit('dismiss')
+  }
+}
+
+<if( !input.loadOnly )>
+  <AutoScroll class="position-relative" height="480px">
+    <div style="min-width:200px">
+      <if( state.loading )>
+        <div class="w-100 h-100 d-flex align-items-center justify-content-center">
+          <Preloader active=true class="font-large-2"/>
+        </div>
+      </if>
+
+      <else>
+        <!-- Grouping Fonts -->
+        <for|group, fonts| in=( !window.WebFontsLoaded ? state.Groups : Fonts ) >
+          <div key=`group-${group}` class="py-1">
+            <p class="font-small-3 text-muted"># ${group}</p>
+
+            <!-- List of font by group -->
+            <ul class="list-unstyled">
+              <for|name, index| of=fonts>
+                <li key=index 
+                    class=`nav-item cursor-pointer font-medium-2 py-50${input.value == name ? ' active' : ''}`
+                    style={
+                      fontFamily: name,
+                      fontStyle: 'normal',
+                      fontWeight: 'normal' 
+                    }
+                    title=name
+                    on-click('onSelect', name )>${name}</li>
+              </for>
+            </ul>
+          </div>
+        </for>
+      </else>
+    </div>
+  </AutoScroll>
+</if>

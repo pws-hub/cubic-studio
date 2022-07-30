@@ -1,0 +1,39 @@
+{
+  "open-tag-only": true,
+  "attributes": {
+    "type": {
+      "type": "string",
+      "description": "type of dialog: alert, prompt, ..."
+    },
+    "status": {
+      "type": "string",
+      "description": "Status of the alert/prompt: info, warning, success, danger, ..."
+    },
+    "message": {
+      "type": "string",
+      "description": "Alert message",
+      "required": true
+    },
+    "actions": {
+      "type": "object",
+      "description": "Define user actions on the prompt dialog box",
+      "required": true
+    },
+    "ns": {
+      "type": "string",
+      "description": "HTML classes to assign on Normal Workspace"
+    },
+    "fs": {
+      "type": "string",
+      "description": "HTML classes to assign on Fullscreen Workspace"
+    },
+    "qs": {
+      "type": "string",
+      "description": "HTML classes to assign on Quater Workspace"
+    },
+    "hs": {
+      "type": "string",
+      "description": "HTML classes to assign on Half Workspace"
+    }
+  }
+}

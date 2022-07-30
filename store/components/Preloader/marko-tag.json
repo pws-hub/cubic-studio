@@ -1,0 +1,18 @@
+{
+  "open-tag-only": true,
+  "attributes": {
+    "class": {
+      "type": "string",
+      "description": "HTML class attribute"
+    },
+    "style": {
+      "type": "string",
+      "description": "HTML style attribute"
+    },
+    "active": {
+      "type": "string",
+      "description": "Display preloading icon or not",
+      "required": true
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "open-tag-only": false,
+  "attributes": {
+    "id": {
+      "type": "string",
+      "description": "HTML id attribute"
+    },
+    "class": {
+      "type": "string",
+      "description": "HTML class attribute"
+    },
+    "style": {
+      "type": "string",
+      "description": "HTML style attribute"
+    },
+    "ns": {
+      "type": "string",
+      "description": "HTML classes to assign on Normal Workspace"
+    },
+    "fs": {
+      "type": "string",
+      "description": "HTML classes to assign on Fullscreen Workspace"
+    },
+    "qs": {
+      "type": "string",
+      "description": "HTML classes to assign on Quater Workspace"
+    },
+    "hs": {
+      "type": "string",
+      "description": "HTML classes to assign on Half Workspace"
+    }
+  }
+}

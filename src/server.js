@@ -20,6 +20,7 @@ getInitialScope = async ( req, res ) => {
   let initStr = JSON.stringify({
     env: process.env.NODE_ENV,
     mode: process.env.MODE,
+    asm: String( process.env.LOCALHOST_API ) === 'true' ? 'local' : 'cloud', // api server mode
     provider: Configs.INSTANCE_PROVIDER,
     namespaces: {
       CAR: process.env.CAR_NAMESPACE, // Cubic API Request namespace

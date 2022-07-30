@@ -1,0 +1,157 @@
+
+import iro from '@jaames/iro'
+
+class {
+  onCreate(){
+    // Default Pre-selected Colors
+    this.initialColors = [
+      'inherit',
+      '#000000', // black
+      '#ffffff', // white
+      '#8f8f8f', // grey
+      '#ff0000', // red
+      '#3ec300', // green
+      '#000fff', // blue
+      '#fff000' // yellow
+    ]
+
+    this.state = {
+      active: 'preselected',
+      color: '#ffffff',
+      preselected: uiStore.get('me-color-preselected') || this.initialColors || []
+    }
+
+    this.pickerBox = 'color-picker-'+ random( 10, 999999 )
+    this.Layouts = {
+      // Normal picker layout required
+      normal: [
+        {
+          component: iro.ui.Box,
+          options: {}
+        },
+        {
+          component: iro.ui.Slider,
+          options: {
+            padding: 3,
+            handleRadius: 8,
+            sliderType: 'hue'
+          }
+        }
+      ],
+      // Advanced for more color settings required
+      advanced: [
+        {
+          component: iro.ui.Wheel,
+          options: {}
+        },
+        {
+          component: iro.ui.Slider,
+          options: {
+            padding: 3,
+            handleRadius: 8
+          }
+        },
+        {
+          component: iro.ui.Slider,
+          options: {
+            padding: 3,
+            handleRadius: 8,
+            sliderType: 'alpha'
+          }
+        }
+      ]
+    }
+  }
+  onInput({ value }){ value && this.setState('color', value ) }
+  onMount(){ this.initialize() }
+  
+  initialize(){
+
+    const options = {
+      width: this.input.width || 120, // Set the size of the color picker
+      layoutDirection: this.input.layoutDirection || 'horizontal',
+      borderWidth: this.input.borderWidth || 0,
+      borderColor: this.input.borderColor || '#fff',
+      layout: this.Layouts[ this.input.advanced ? 'advanced' : 'normal' ]
+    }
+    let dragEndTracker = 0
+
+    this.cp = new iro.ColorPicker('#'+ this.pickerBox, options )
+    this.cp.on( 'color:change', color => {
+      // First color not changed
+      if( color.index !== 0 ) return
+
+      clearTimeout( dragEndTracker )
+      dragEndTracker = setTimeout( () => {
+        // Emit the color change
+        const hex = color.hexString
+        // console.log( 'color:', hex )
+
+        // Color already pre-selected
+        if( this.state.preselected.includes( hex ) ) return
+
+        // Save for easy pick pre-selected list list
+        if( this.state.preselected.length >= ( this.input.maxSelect || 54 ) )
+          this.state.preselected.pop()
+        
+        this.state.preselected.unshift( hex )
+        uiStore.set( 'me-color-preselected', this.state.preselected )
+      }, 500 )
+    } )
+  }
+  onClear(){
+    this.state.preselected = this.initialColors
+    uiStore.clear('me-color-preselected')
+  }
+  onPick( type ){ this.state.active = type }
+  onSelect( color, e ){
+    this.state.color = color
+    this.emit( 'change', color, e )
+  }
+}
+
+<div class="me-color-picker">
+  <!-- Color Picker Box -->
+  <div class=(state.active != 'picker' ? 'd-none' : '')>
+    <div no-update id=component.pickerBox></div>
+    <br>
+    <div class="text-right">
+      <button class="btn btn-light btn-icon"
+              title="See Color Panel"
+              on-click('onPick', 'preselected')>
+        <String value="Done"/>
+      </button>
+    </div>
+  </div>
+
+  <!-- Pre-selected colors list -->
+  <div class=` ${state.active != 'preselected' ? 'd-none' : ''}`>
+    <if( state.preselected.length )>
+      <ul class="list-inline mb-0">
+        <for|color, index| of=state.preselected>
+          <li key=index class="m-25" on-click( 'onSelect', color )>
+            <div class=`cursor-pointer border ${state.color == color ? 'rounded' : 'round'}`
+                  title=`Pick -${color}-`
+                  style=`width:20px;height:20px;background-color:${color}`></div>
+          </li>
+        </for>
+      </ul>
+      <br>
+      <div class="text-right">
+        <!-- Pick new color button -->
+        <button class="btn btn-secondary btn-icon mx-25"
+                title="Add more colors"
+                on-click('onPick', 'picker')>
+          <Bx.white-text type="plus"/>
+        </button>
+
+        <!-- Clear pre-selected color button -->
+        <button class="btn btn-primary btn-icon mx-25"
+                title="Clear All Colors"
+                on-click('onClear')>
+          <String value="Clear"/>
+        </button>
+      </div>
+    </if>
+  </div>
+</div>

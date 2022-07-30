@@ -1,0 +1,21 @@
+{
+  "open-tag-only": false,
+  "attributes": {
+    "class": {
+      "type": "string",
+      "description": "HTML class attribute"
+    },
+    "style": {
+      "type": "string",
+      "description": "HTML style attribute"
+    },
+    "value": {
+      "type": "string",
+      "description": "Text content to translate"
+    },
+    "notrack": {
+      "type": "boolean",
+      "description": "Whether to record this during dictionary collector or not"
+    }
+  }
+}

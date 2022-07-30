@@ -173,7 +173,9 @@ async function fetchWorkspaces(){
 async function Client(){
 	// Init client
 	const { 
-		env, mode,
+		env,
+		asm,
+		mode,
 		provider,
 		namespaces,
 		isConnected,
@@ -181,6 +183,7 @@ async function Client(){
 	} = await getInitialScope()
 	
 	window.env = env
+	window.asm = asm
 	window.mode = mode
 	window.provider = provider
 

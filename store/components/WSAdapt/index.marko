@@ -1,0 +1,40 @@
+
+// generate random number at a range
+static const random = window.random || function( min, max ){
+  return Math.floor( Math.random() * ( max - min + 1 )+( min + 1 ) )
+}
+
+class {
+  onCreate( input ){
+    this.state = { wsClass: ' ', previousMode: 'auto' }
+    this.uidx = 'ws-'+ random(0, 10000)
+
+    GState.bind( this, ['workspace'] )
+    GState.on('workspace', value => this.adaptView( input ) )
+    this.adaptView( input )
+  }
+  adaptView( viewSet ){
+
+    if( this.state.workspace.mode == this.state.previousMode
+        && this.state.wsClass == viewSet[ this.state.workspace.mode ] )
+      return
+      
+    switch( this.state.workspace.mode ){
+      case 'fs': this.state.wsClass = viewSet.fs; break
+      case 'hs': this.state.wsClass = viewSet.hs; break
+      case 'qs': this.state.wsClass = viewSet.qs; break
+      case 'ns':
+      default: this.state.wsClass = viewSet.ns
+    }
+
+    this.state.previousMode = this.state.workspace.mode
+  }
+}
+
+<div key=component.uidx
+      id=input.id
+      class=`${input.class || '' } ${state.wsClass} ws--${state.previousMode}`
+      style=input.style
+      on-click( () => component.emit('click') )>
+  <${input.renderBody}/>
+</div>

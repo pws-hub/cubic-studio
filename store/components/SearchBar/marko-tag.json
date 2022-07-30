@@ -1,0 +1,41 @@
+{
+  "open-tag-only": true,
+  "attributes": {
+    "target": {
+      "type": "string",
+      "description": "Search targets (-) separated"
+    },
+    "filters": {
+      "type": "object",
+      "description": "List of query filters"
+    },
+    "size": {
+      "type": "string",
+      "description": "Size of the search input: xl, lg, md, sm"
+    },
+    "minLength": {
+      "type": "boolean",
+      "description": "Minimum length of input query to trigger the search"
+    },
+    "suggestions": {
+      "type": "array",
+      "description": "Formated suggestions result list"
+    },
+    "alternatives": {
+      "type": "array",
+      "description": "Formated alternative result list at initialization or when no result"
+    },
+    "facultative": {
+      "type": "boolean",
+      "description": "Allow to trigger select events"
+    },
+    "placeholder": {
+      "type": "string",
+      "description": "Description of the search"
+    },
+    "icon": {
+      "type": "string",
+      "description": "Illustration icon of search target"
+    }
+  }
+}

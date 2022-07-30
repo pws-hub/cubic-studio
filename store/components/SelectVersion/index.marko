@@ -1,0 +1,92 @@
+
+class {
+  onCreate(){ 
+    this.state = {
+      list: [],
+      versions: [],
+      selected: 0,
+      dropdown: false,
+      loading: false
+    } 
+  }
+  onInput({ list, selected }){
+
+    if( !Array.isArray( list ) || list.length <= 1 ) return
+
+    this.state.list = list
+    this.state.loading = false
+    this.state.versions = []
+
+    let
+    a = 1, b = 0, c = 0,
+    count = 0
+    
+    list.map( timestamp => {
+      // Initialize with selected version
+      if( timestamp == selected )
+        this.state.selected = list.length - count - 1
+
+      // Generate versioning nommenclature for timestamps
+      c++
+      count++
+
+      if( b > 9 ){
+        a++
+        b = 0
+      }
+      if( c > 9 ){
+        b++
+        c = 0
+      }
+
+      this.state.versions.unshift({ 
+        timestamp, 
+        version: count == list.length ? 'Latest Version' : `${a}.${b}.${c}` 
+      })
+    } )
+  }
+  onDropdown(){ this.state.dropdown = !this.state.dropdown }
+  onSelect( timestamp, index ){
+
+    this.state.selected = index
+    this.state.loading = true
+
+    this.emit( 'select', timestamp )
+  }
+  onDismiss( e ){
+    if( $(e.target).closest('.btn-select-version').length ) return
+    this.state.dropdown = false
+  }
+}
+
+<if( state.list.length > 1 )>
+  <button class="btn-select-version btn btn-outline-secondary border mx-25 position-relative"
+          title=Locale('Select Version')
+          on-click('onDropdown')>
+    <if( state.versions.length )>
+      <String value=(state.selected > 0 ?
+                  'Version '+ state.versions[ state.selected ].version 
+                  : state.versions[ state.selected ].version)/>
+    </if>
+    <else><String value="Draft"/></else>
+    <Preloader active=state.loading class="font-medium-4 px-50"/>
+
+    <!-- Dropdown menu -->
+    <if( state.dropdown && state.versions.length )>
+      <AutoScroll class="as-versions position-absolute left-0 zindex-3 only-dark-bg-lighten shadow-lg w-auto rounded overflow-hidden my-1 animated fadeIn faster"
+                  height="auto"
+                  style="max-height:275px">
+        <ul class="list-unstyled " 
+            style="min-width:50px">
+          <for|{ version, timestamp }, index| of=state.versions>
+            <li key=index
+                class=`nav-item cursor-pointer px-2 py-75 d-flex align-items-center ${state.selected == index ? 'text-primary' : ''}` 
+                on-click('onSelect', timestamp, index )>${version}</li>
+          </for>
+        </ul>
+      </AutoScroll>
+    </if>
+  </button>
+
+  <subscribe to=document on-click('onDismiss')/>
+</if>

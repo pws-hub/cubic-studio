@@ -3,7 +3,7 @@
     "name": "String",
     "version": "1.0.0",
     "description": "Display and Auto-translate text into the app's current user language",
-    "package": "String.marko"
+    "package": "String"
   },
   {
     "name": "Switch",
@@ -33,37 +33,37 @@
     "name": "Bx",
     "version": "1.0.0",
     "description": "Boxicons custom support tag",
-    "package": "Bx.marko"
+    "package": "Bx"
   },
   {
     "name": "Image",
     "version": "1.0.0",
     "description": "Image with lazy load and effect as marko-tag",
-    "package": "Image.marko"
+    "package": "Image"
   },
   {
     "name": "WSAdapt",
     "version": "1.0.0",
     "description": "Component to handle responsiveness base on multipple's workspace dynanism",
-    "package": "WSAdapt.marko"
+    "package": "WSAdapt"
   },
   {
     "name": "Preloader",
     "version": "1.0.0",
     "description": "Display loading icon during an ongoing process",
-    "package": "Preloader.marko"
+    "package": "Preloader"
   },
   {
     "name": "RouterWrapper",
     "version": "1.0.0",
     "description": "Handle routing component as navigation pages",
-    "package": "RouterWrapper.marko"
+    "package": "RouterWrapper"
   },
   {
     "name": "DialogModal",
     "version": "1.0.0",
     "description": "Nice popup dialog to alert or for confirmation process. Depend on `WSAdapt` component to work.",
-    "package": "DialogModal.marko"
+    "package": "DialogModal"
   },
   {
     "name": "PosterPlus",
@@ -75,24 +75,66 @@
     "name": "Button",
     "version": "1.0.0",
     "description": "Nice shape bootstrap button with active, sort, ... functions",
-    "package": "Button.marko"
+    "package": "Button"
   },
   {
     "name": "FormAlert",
     "version": "1.0.0",
     "description": "Nice form alert display base on bootstrap alert style and variations",
-    "package": "FormAlert.marko"
+    "package": "FormAlert"
   },
   {
     "name": "Plugin",
     "version": "1.0.0",
     "description": "Run plugins in your app/plugin",
-    "package": "Plugin.marko"
+    "package": "Plugin"
   },
   {
     "name": "MiniRouter",
     "version": "1.0.0",
     "description": "Simple and Smooth marko-component level routing",
     "package": "MiniRouter"
+  },
+  {
+    "name": "Dropzone",
+    "version": "1.0.0",
+    "description": "Upload file drop zone marko-component",
+    "package": "Dropzone"
+  },
+  {
+    "name": "Draggable",
+    "version": "1.0.0",
+    "description": "Make HTML element draggable with cursor",
+    "package": "Draggable"
+  },
+  {
+    "name": "Fonts",
+    "version": "1.0.0",
+    "description": "Load and display selectable list of Web Fonts",
+    "package": "Fonts"
+  },
+  {
+    "name": "ColorPicker",
+    "version": "1.0.0",
+    "description": "Marko-component color picker",
+    "package": "ColorPicker"
+  },
+  {
+    "name": "MediaByMime",
+    "version": "1.0.0",
+    "description": "Display all web supported media types by mime or respective thumbnail or icon: Eg. Image, Video, Audio, ...",
+    "package": "MediaByMime"
+  },
+  {
+    "name": "SelectVersion",
+    "version": "1.0.0",
+    "description": "Multiple versions list select input",
+    "package": "SelectVersion"
+  },
+  {
+    "name": "Swiper",
+    "version": "1.0.0",
+    "description": "Marko-component of Swiper library",
+    "package": "Swiper"
   }
 ]

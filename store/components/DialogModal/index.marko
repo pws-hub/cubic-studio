@@ -7,13 +7,8 @@ static const TypeIcons = {
 }
 
 class {
-  onInput( input ){
-
-    if( input.actions ) return
-
-    // Auto-dismiss alert after 10seconds
-    setTimeout( () => this.emit('dismiss'), 15000 )
-  }
+  // Auto-dismiss alert after 10 seconds
+  onMount(){ setTimeout( () => this.emit('dismiss'), 15000 ) }
   onYes(){
     // Yes Confirmation or validation action
     this.input.actions.yes
@@ -82,8 +77,8 @@ class {
 
               <@col>
                 <!-- Dialog content message -->
-                <if( input.status )><h6.text-primary.mt-0><Locale>${input.status}</Locale></h6></if>
-                <p><Locale>$!{input.message || 'Dialog message is required'}</Locale></p>
+                <if( input.status )><h6.text-primary.mt-0><String value=input.status/></h6></if>
+                <p><String value=(input.message || 'Dialog message is required')/></p>
                 
                 <!-- Todo actions buttons -->
                 <if( input.actions )>
@@ -91,7 +86,7 @@ class {
                   <if( input.actions.passive )>
                     <strong.d-inline-block.mb-2.text-primary.cursor-pointer 
                             on-click('onPassive', input.actions.passive )>
-                      ${input.actions.passive.label}
+                      <String value=input.actions.passive.label/>
                     </strong>
                   </if>
                   <else>
@@ -99,13 +94,13 @@ class {
                       <!-- No Confirmation action button -->
                       <button class=`btn btn-${input.actions.no && input.actions.no.active ? 'primary' : 'light' } m-25` 
                               on-click('onNo')>
-                        <Locale text=( ( input.actions.no && input.actions.no.label ) || 'No' )/>
+                        <String value=( ( input.actions.no && input.actions.no.label ) || 'No' )/>
                       </button>
 
                       <!-- Yes Confirmation action button -->
                       <button class=`btn btn-${!input.actions.no || !input.actions.no.active ? 'primary' : 'light' } m-25` 
                               on-click('onYes')>
-                        <Locale text=( ( input.actions.yes && input.actions.yes.label ) || 'Yes' )/>
+                        <String value=( ( input.actions.yes && input.actions.yes.label ) || 'Yes' )/>
                       </button>
                     </div>
                   </else>

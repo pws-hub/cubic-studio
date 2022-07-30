@@ -1,0 +1,174 @@
+
+
+import Swiper, { Manipulation, Navigation, Scrollbar, Flip } from 'swiper'
+<!-- import '~/../node_modules/swiper/swiper.scss' -->
+import '~/../node_modules/swiper/swiper-bundle.min.css'
+
+static const DefaultOptions = {
+  enabled: true,
+  width: null,
+  height: null,
+  effect: "slide",
+  direction: "horizontal",
+  rewind: false,
+  autoplay: {
+    delay: 5000,
+  },
+  allowSlideNext: true,
+  allowSlidePrev: true,
+  allowTouchMove: true,
+  autoHeight: false,
+  breakpoints: undefined,
+  breakpointsBase: "window",
+  centerInsufficientSlides: false,
+  centeredSlides: false,
+  centeredSlidesBounds: false,
+  containerModifierClass: "swiper-",
+  createElements: false,
+  cssMode: false,
+  edgeSwipeDetection: false,
+  edgeSwipeThreshold: 20,
+  followFinger: true,
+  grabCursor: false,
+  initialSlide: 1,
+  longSwipes: true,
+  longSwipesMs: 300,
+  longSwipesRatio: 0.5,
+  loop: false,
+  loopAdditionalSlides: 0,
+  loopFillGroupWithBlank: false,
+  loopPreventsSlide: true,
+  loopedSlides: null,
+  noSwiping: true,
+  noSwipingSelector: null,
+  normalizeSlideIndex: true,
+  observeParents: false,
+  observeSlideChildren: false,
+  observer: false,
+  passiveListeners: true,
+  preloadImages: true,
+  preventClicks: false,
+  preventClicksPropagation: true,
+  preventInteractionOnTransition: false,
+  resistance: true,
+  resistanceRatio: 0.85,
+  resizeObserver: true,
+  roundLengths: false,
+  runCallbacksOnInit: true,
+  setWrapperSize: false,
+  shortSwipes: true,
+  simulateTouch: true,
+  slideActiveClass: "swiper-slide-active",
+  slideBlankClass: "swiper-slide-invisible-blank",
+  slideClass: "swiper-slide",
+  slideDuplicateActiveClass: "swiper-slide-duplicate-active",
+  slideDuplicateClass: "swiper-slide-duplicate",
+  slideDuplicateNextClass: "swiper-slide-duplicate-next",
+  slideDuplicatePrevClass: "swiper-slide-duplicate-prev",
+  slideNextClass: "swiper-slide-next",
+  slidePrevClass: "swiper-slide-prev",
+  slideToClickedSlide: false,
+  slideVisibleClass: "swiper-slide-visible",
+  slidesOffsetAfter: 0,
+  slidesOffsetBefore: 0,
+  slidesPerGroup: 1,
+  slidesPerGroupAuto: false,
+  slidesPerGroupSkip: 0,
+  slidesPerView: 'auto',
+  spaceBetween: 0,
+  speed: 400,
+  swipeHandler: null,
+  threshold: 0,
+  touchAngle: 45,
+  touchEventsTarget: "wrapper",
+  touchMoveStopPropagation: false,
+  touchRatio: 1,
+  touchReleaseOnEdges: false,
+  touchStartForcePreventDefault: false,
+  touchStartPreventDefault: false,
+  uniqueNavElements: true,
+  updateOnImagesReady: true,
+  updateOnWindowResize: true,
+  url: null,
+  virtualTranslate: false,
+  watchOverflow: true,
+  watchSlidesProgress: false
+}
+
+class {
+  onCreate({ id }){
+    // Unique index of this swiper component's element in the DOM
+    this.uIndex = id || 'swiper--'+ random( 10, 999999 )
+  }
+  /*
+  onInput({ options }){
+    if( !this.sw ) return
+
+    this.sw.params = { ...(this.sw.params), ...options }
+    this.sw.update()
+  }
+  */
+  onMount(){ this.initialize() }
+  
+  initialize(){
+    
+    if( this.input.navigation )
+      DefaultOptions.navigation = {
+        prevEl: `#${this.uIndex} .swiper-button-prev`, 
+        nextEl: `#${this.uIndex} .swiper-button-next` 
+      }
+
+    if( this.input.pagination )
+      DefaultOptions.pagination = {
+        el: `#${this.uIndex} .swiper-pagination`,
+        type: 'bullets',
+      }
+
+    if( this.input.scrollbar )
+      DefaultOptions.scrollbar = {
+        el: `#${this.uIndex} .swiper-scrollbar`,
+        draggable: true,
+      }
+
+    if( this.input.keyboard )
+      DefaultOptions.keyboard = {
+        enabled: true,
+        onlyInViewport: false,
+      }
+
+    Swiper.use([ Manipulation, Navigation, Scrollbar, Flip ])
+    this.sw = new Swiper( `#${this.uIndex}`, { ...DefaultOptions, ...(this.input.options || {}) } )
+  }
+}
+  
+<div.swiper-container.w-100 id=component.uIndex>
+  <!-- Scrollbar: At the top -->
+  <if( input.scrollbar === 'top' )>
+    <div.swiper-scrollbar></div>
+  </if>
+  
+  <!-- Slides -->
+  <div.swiper-wrapper>
+    <for|slide, index| of=input.slide>
+      <div.swiper-slide class=slide.class style=slide.style key=index>
+        <${slide.renderBody}/>
+      </div>
+    </for>
+  </div>
+  
+  <!-- Navigation -->
+  <if( input.navigation )>
+    <div.swiper-button-prev></div>
+    <div.swiper-button-next></div>
+  </if>
+
+  <!-- Pagination -->
+  <if( input.pagination )>
+    <div.swiper-pagination></div>
+  </if>
+
+  <!-- Scrollbar: At the bottom -->
+  <if( input.scrollbar === true || input.scrollbar === 'bottom' )>
+    <div.swiper-scrollbar></div>
+  </if>
+</div>

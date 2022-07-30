@@ -1,0 +1,9 @@
+{
+  "open-tag-only": false,
+  "attributes": {
+    "data": {
+      "type": "object",
+      "description": "Draggable media data"
+    }
+  }
+}

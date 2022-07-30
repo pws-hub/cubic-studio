@@ -5,7 +5,7 @@ export default function Connect( utils, { name, token, isHost } ){
     throw new Error('Undefined Session Token')
 
   const 
-  baseURL = 'http://api.cubic.studio:7777',
+  baseURL = window.asm === 'cloud' ? 'https://cubic.webmicros.com' : 'http://api.cubic.studio:7777',
   options = {
     query: { name, isHost },
     reconnectionDelayMax: 20000,
@@ -38,16 +38,16 @@ export default function Connect( utils, { name, token, isHost } ){
     })
   }
 
-  function StreamScreen(){
-    interval = setInterval( () => {
-      const image = await screenshot()
+  // function StreamScreen(){
+  //   interval = setInterval( () => {
+  //     const image = await screenshot()
       
-      socket.emit('STREAM_SCREEN', { 
-        image: new Buffer.from( image ).toString('base64'), 
-        dimension: sizeOf( image )
-      })
-    }, 500)
-  }
+  //     socket.emit('STREAM_SCREEN', { 
+  //       image: new Buffer.from( image ).toString('base64'), 
+  //       dimension: sizeOf( image )
+  //     })
+  //   }, 500)
+  // }
 
   if( !isHost )
     return channel.on('JOIN_GRANTED', JoinGranted )

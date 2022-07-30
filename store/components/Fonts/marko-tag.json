@@ -1,0 +1,25 @@
+{
+  "open-tag-only": true,
+  "attributes": {
+    "class": {
+      "type": "string",
+      "description": "HTML class attribute"
+    },
+    "style": {
+      "type": "string",
+      "description": "HTML style attribute"
+    },
+    "value": {
+      "type": "string",
+      "description": "Selected font value or name"
+    },
+    "name": {
+      "type": "string",
+      "description": "HTML input name attribute"
+    },
+    "loadOnly": {
+      "type": "boolean",
+      "description": "Whether to load Fonts styles in the browser without display"
+    }
+  }
+}

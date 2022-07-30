@@ -1,0 +1,9 @@
+{
+  "open-tag-only": false,
+  "attributes": {
+    "type": {
+      "type": "string",
+      "description": "Targeted type of media"
+    }
+  }
+}

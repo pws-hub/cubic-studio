@@ -1,0 +1,33 @@
+{
+  "open-tag-only": false,
+  "attributes": {
+    "class": {
+      "type": "string",
+      "description": "HTML class attribute"
+    },
+    "style": {
+      "type": "string",
+      "description": "HTML style attribute"
+    },
+    "title": {
+      "type": "string",
+      "description": "Title description on mouse hover"
+    },
+    "state": {
+      "type": "boolean",
+      "description": "Active status of the button"
+    },
+    "activeClass": {
+      "type": "string",
+      "description": "Active state classes"
+    },
+    "icon": {
+      "type": "string",
+      "description": "Default state icon to display"
+    },
+    "activeIcon": {
+      "type": "string",
+      "description": "Active state icon to display"
+    }
+  }
+}

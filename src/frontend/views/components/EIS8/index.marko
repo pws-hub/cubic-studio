@@ -58,10 +58,10 @@ class {
   <if( state.canLoad )>
     $ const { name, hostname, pid } = input.meta
     
-    <iframe.w-100.h-100 
+    <iframe.rounded-lg
             src=`${hostname}?wp=iframe&base=${pid}`
+            style="width:calc(100% - 2rem);height:calc(100% - 2rem);margin:1rem;border:none"
             title=name
-            style="border:none"
             importance="high"
             referrerpolicy="origin"
             allow=REQUIRED_FEATURES.join()

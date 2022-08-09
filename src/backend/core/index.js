@@ -8,7 +8,6 @@ import Synchronizer from '../lib/Synchronizer'
 import '../../../test'
 
 export const init = server => {
-
   // Use Socket.io Connection between Backend and Frontend in local environment
   const io = socketServer( server )
 

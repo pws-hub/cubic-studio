@@ -83,7 +83,6 @@ export default $ => {
       // Init Socket related project's section
       $.hasSocketSection() && await initSocketSection()
 
-
       // Close active ResetProject modal
       $.onShowResetProjectToggle( false )
     }
@@ -147,36 +146,32 @@ export default $ => {
 
   async function initCodeWS(){
     // Declare filesystem I/O handler at the project's current working directory
-    if( State.project.specs.code ){
-      const cwd = State.project.specs.code.directory
+    if( !State.project.specs.code ) return
+    const cwd = State.project.specs.code.directory
 
-      $.fs = await window.FileSystem.init( 'project', { cwd, debug: true } )
-      // Declare Project's background Process Manager
-      $.pm = await window.IProcess.create({ debug: true })
+    $.fs = await window.FileSystem.init( 'project', { cwd, debug: true } )
+    // Declare Project's background Process Manager
+    $.pm = await window.IProcess.create({ debug: true })
 
-      // Watch external/background operations on this directory
-      let wait = 0
-      $.fs.watch( async ( event, path, stats ) => {
-        debugLog(`[DIRECTORY Event] ${event}: ${path}`, stats )
+    // Watch external/background operations on this directory
+    let wait = 0
+    $.fs.watch( async ( event, path, stats ) => {
+      debugLog(`[DIRECTORY Event] ${event}: ${path}`, stats )
 
-        switch( event ){
-          // New file/dir added: Refresh directory tree
-          case 'add':
-          case 'addDir': wait && clearTimeout( wait )
-                          await $.getDirectory()
-              break
-          /** Wait for `add` event to conclude file/dir moved: 
-              In that case `add event` will refresh the directory.
-              otherwise, conclude `delete`
-          */
-          case 'unlink': wait = setTimeout( async () => await $.getDirectory(), 2000 ); break
-                          
-        }
-      } )
-    }
-
-    // Console to previous show/hide state
-    State.showConsole = $.pstore.get('active-console')
+      switch( event ){
+        // New file/dir added: Refresh directory tree
+        case 'add':
+        case 'addDir': wait && clearTimeout( wait )
+                        await $.getDirectory()
+            break
+        /** Wait for `add` event to conclude file/dir moved: 
+            In that case `add event` will refresh the directory.
+            otherwise, conclude `delete`
+        */
+        case 'unlink': wait = setTimeout( async () => await $.getDirectory(), 2000 ); break
+                        
+      }
+    } )
   }
   async function initCodeSection(){
     // Initialize project's coding section
@@ -234,12 +229,8 @@ export default $ => {
       $.ongoing( false )
       AUTORUN && $.RunEmulator( true )
     }
+    // Reload cached emulator state of this project
     else {
-      // Mount project's last states
-      State.tabs = $.pstore.get('tabs') || []
-      State.activeElement = $.pstore.get('active-element') || null
-      
-      // Reload cached emulator state of this project
       const cachedEMImage = $.pstore.get('emulator')
       if( AUTORUN && cachedEMImage )
         window.env == 'production' ? 
@@ -247,15 +238,17 @@ export default $ => {
                       : $.RunEmulator() // Connect frontend to process or run process if not available
     }
 
+    // Mount project's last states of the active section
+    $.initSection('tabs', [] )
+    $.initSection('activeConsole', [] )
+    $.initSection('activeElement', null )
+
     // Load project dependencies
     await $.getDependencies()
   }
 
   async function initAPIWS(){
     
-    
-    // Console to previous show/hide state
-    State.showConsole = $.pstore.get('active-console')
   }
   async function initAPISection(){
     // Initialize project's API Test section
@@ -269,13 +262,15 @@ export default $ => {
 
     State.API.collections = [{ name: 'Wigo' }, { name: 'Multipple' }]
     State.API.environments = [{ name: 'Wigo Dev' }, { name: 'Wigo Pro' }]
+    
+    // Mount project's last states of the active section
+    $.initSection('tabs', [] )
+    $.initSection('activeConsole', [] )
+    $.initSection('activeElement', null )
   }
 
   async function initSocketWS(){
     
-    
-    // Console to previous show/hide state
-    State.showConsole = $.pstore.get('active-console')
   }
   async function initSocketSection(){
     // Initialize project's Sockets Test section
@@ -285,5 +280,9 @@ export default $ => {
     // Socket Test workspace
     await initSocketWS()
 
+    // Mount project's last states of the active section
+    $.initSection('tabs', [] )
+    $.initSection('activeConsole', [] )
+    $.initSection('activeElement', null )
   }
 }

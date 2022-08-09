@@ -25,13 +25,16 @@ class {
       }
     ]
   }
-  onInput({ tabs }){ this.setState( 'tabs', tabs ) }
+  onInput({ tabs }){ this.setState('tabs', tabs ) }
 
   onToggle( element ){ this.emit( 'open', element ) }
   onClose( index ){
     // Close tab
+    if( !this.state.tabs[ index ] ) return
+
     const { active, hasChanges } = this.state.tabs[ index ]
     this.state.tabs.splice( index, 1 )
+    this.setStateDirty('tabs')
     
     // When closing an active tab, automatically activate closest tab
     if( active ){
@@ -49,7 +52,7 @@ class {
         this.emit( 'open', this.state.tabs[ index ] )
 
       // Signal all tabs closed
-      else this.emit( 'open', null )
+      else this.emit('open', null)
     }
     
     this.emit( 'update', this.state.tabs )

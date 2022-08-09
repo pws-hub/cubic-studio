@@ -274,7 +274,7 @@ async function Client(){
 		// FileSystem Manager
 		window.FileSystem = await FileSystemClient( namespaces.FST )
 		// Init Global FileSystem Explorer Interface
-		window.FSExplorer = await FileSystem.init( 'explorer', { ignore: false, debug: true } )
+		window.FSExplorer = await FileSystem.init('explorer', { ignore: false, debug: true })
 	}
 	
 	/*----------------------------------------------------------------*/

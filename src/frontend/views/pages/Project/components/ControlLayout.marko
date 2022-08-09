@@ -1,30 +1,32 @@
 
 static const Tabs = [
   { name: 'menu', color: 'danger' },
-  { name: 'sidebar' }
+  { name: 'sidebar', color: 'black' }
 ]
 
 class {
-  onCreate(){ this.actives = uiStore.get('active-layouts') || [ 'menu', 'sidebar' ] }
-  onMount(){ this.actives.length && this.emit( 'change', this.actives ) }
+  onCreate(){ this.state = { actives: uiStore.get('active-layouts') || [ 'menu', 'sidebar' ] }}
+  onMount(){ this.state.actives.length && this.emit( 'change', this.state.actives ) }
   onToggle( name ){
-    !this.actives.includes( name ) ? 
-                    this.actives.push( name )
-                    : this.actives = this.actives.filter( each => { return each != name } )
+    !this.state.actives.includes( name ) ? 
+                    this.state.actives.push( name )
+                    : this.state.actives = this.state.actives.filter( each => { return each != name } )
 
-    this.emit( 'change', this.actives )
-    this.actives.length ?
-            uiStore.set('active-layouts', this.actives )
+    this.setStateDirty('actives')
+    this.emit( 'change', this.state.actives )
+
+    this.state.actives.length ?
+            uiStore.set('active-layouts', this.state.actives )
             : uiStore.clear('active-layouts')
   }
 }
 
 <div.position-relative.theme-bg-lighten.h-100 style="width:2rem">
-  <div.position-absolute.w-100.h-100.d-flex.flex-column-reverse.text-center style="transform:rotate(180deg);margin-left:1px">
+  <div.position-absolute.w-100.h-100.d-flex.flex-column-reverse.text-center style="transform:rotate(180deg)">
     <for|{ name, color }, index| of=Tabs>
       <div.w-100.cursor-pointer 
           key=index
-          class=`bg-${color || 'inherit'}`
+          class=(state.actives.includes( name ) ? `bg-${color || 'inherit'}` : false)
           style="padding:1.5rem .3rem;writing-mode:tb-rl"
           on-click('onToggle', name )>
         <Locale text=name.toCapitalCase()/>

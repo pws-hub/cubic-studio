@@ -1,7 +1,7 @@
 
 import Utils from './extends/utils'
 import Operators from './extends/operators'
-import ProjectManager from './extends/project'
+import Initializer from './extends/initializer'
 import EmulatorManager from './extends/emulator'
 
 static const APITabs = [
@@ -57,7 +57,6 @@ class {
       // Active indications
       sections: [],
       activeSection: null,
-      activeElement: null,
       
       emulator: false,
       emulatorError: false,
@@ -65,13 +64,11 @@ class {
       
       showAddon: false,
       showSearch: false,
-      showConsole: false,
       showExplorer: false,
       showSettings: false,
       showResetProject: false,
       showDeleteProject: false,
-
-      tabs: [],
+      
       layouts: [],
       ongoingSetup: false,
       ongoingProcess: false,
@@ -81,7 +78,7 @@ class {
 
     new Utils( this )
     new Operators( this )
-    new ProjectManager( this )
+    new Initializer( this )
     new EmulatorManager( this )
 
     // Inherit flag from precedent page
@@ -93,23 +90,18 @@ class {
   }
   onOpen( element ){
     // Open file, request, ...
-    if( !element ){
-      this.state.activeElement = null
-      this.pstore.clear('active-element')
-
-      return
-    }
-
-    this.state.activeElement = { ...element, active: true }
-    this.pstore.set('active-element', this.state.activeElement )
+    if( !element )
+      return this.clearSection('activeElement')
+    
+    const activeElement = { ...element, active: true }
+    this.setSection('activeElement', activeElement)
 
     let
-    activeSection = this.state.activeSection,
     isActive = false,
     focusIndex,
     counter = 0
-
-    this.state[ activeSection ].tabs = (this.state[ activeSection ].tabs || []).map( tab => {
+    
+    const tabs = (this.getSection('tabs') || []).map( tab => {
       // Tab already exist
       if( tab.path === element.path ){
         // Make tab active
@@ -128,18 +120,15 @@ class {
       
       counter++
       return tab
-    } )
+    })
     
     // Add new active tab
     if( !isActive )
       focusIndex === undefined ?
-                // At the end of the chain
-                this.state[ activeSection ].tabs.push( this.state.activeElement )
-                // Insert right after the last active tab
-                : this.state[ activeSection ].tabs.splice( focusIndex + 1, 0, this.state.activeElement )
+                tabs.push( activeElement ) // At the end of the chain
+                : tabs.splice( focusIndex + 1, 0, activeElement ) // Insert right after the last active tab
 
-    this.setStateDirty('tabs')
-    this.pstore.set('tabs', this.state[ activeSection ].tabs )
+    this.setSection('tabs', tabs )
   }
   onAction( action, ...args ){
     switch( action ){
@@ -163,9 +152,10 @@ class {
       case 'delete-project': this.DeleteProject(); break
     }
   }
-  onSearchToggle( args ){ this.state.showSearch = args }
   onAddonToggle( args ){ this.state.showAddon = args }
+  onSearchToggle( args ){ this.state.showSearch = args }
   onSettingsToggle( type ){ this.state.showSettings = type }
+  onConsoleToggle( status ){ this.setSection('activeConsole', status ) }
   onShowResetProjectToggle( type ){ this.state.showResetProject = type }
   onShowDeleteProjectToggle( type ){ this.state.showDeleteProject = type }
   onExplorerToggle( status, fn ){ this.state.showExplorer = status ? { fn } : false }
@@ -186,13 +176,12 @@ class {
     this.onAddonToggle( false )
   }
   onChangeOccurance( element, changes ){
-    // Awarness of changes occured on this activeElement
-    if( !this.state.activeElement
-        || this.state.activeElement.path !== element.path ) return
+    // Awarness of changes occured on this active element
+    const activeElement = this.getSection('activeElement')
+    if( !activeElement || activeElement.path !== element.path ) return
     
-    this.state.activeElement = element // Has changes or revert to initial content
-    this.setStateDirty('activeElement')
-
+    // Has changes or revert to initial content
+    this.setSection('activeElement', element )
     // Show changes on tabs
     this.applyTabsChange( element )
     
@@ -201,18 +190,10 @@ class {
     */
 
 
-
-  }
-  onConsoleToggle( status ){
-    this.state.showConsole = status
-
-    status !== false ? 
-            this.pstore.set('active-console', true )
-            : this.pstore.clear('active-console')
   }
   
   async onSave( element, changes, confirmCallback ){
-    // Awarness of changes occured on this activeElement
+    // Awarness of changes occured on this active element
     if( typeof element != 'object'
         || !element.path
         || !element.hasChanges ) return
@@ -253,7 +234,7 @@ class {
 }
 
 <div.vh-100>
-  <div style="width:calc(100% - 4rem)">
+  <div style="width:calc(100% - 3rem)">
     <Row.no-gutters>
       <!-- Main Block -->
       <div.col.px-0.overflow-hidden.d-flex.align-items-strech>
@@ -271,7 +252,7 @@ class {
                 on-select('onMenuSelect')
                 on-search('onSearchToggle', true )/>
 
-          <main.main-block.section-block.col.px-0.border-left.overflow-hidden>
+          <main.main-block.section-block.col.px-0.overflow-hidden>
             <if( state.sections.length )>
               <for|section, index| of=state.sections>
                 <!-- Superposed Active Sections -->
@@ -280,8 +261,8 @@ class {
                     <!-- SideBar -->
                     <SideBar show=state.layouts.includes('sidebar')
                               type=state.activeSection
-                              dataset=state[ state.activeSection ]
-                              active=state.activeElement
+                              dataset=component.getSection()
+                              active=component.getSection('activeElement')
                               status={
                                 emulator: state.emulatorStatus
                               }
@@ -289,19 +270,23 @@ class {
                               on-show-settings('onSettingsToggle')/>
 
                     <!-- Main Block -->
-                    <div.section-block.col.px-0.border-left.overflow-hidden>
+                    <div.section-block.col.px-0.overflow-hidden>
                       <!-- Tabs Bar -->
+                      $ const tabs = component.getSection('tabs') || []
                       <TabBar type=state.activeSection
-                              tabs=(state[ state.activeSection ] && state[ state.activeSection ].tabs)
+                              tabs=tabs
                               on-open('onOpen')
                               on-update('applyTabsChange')/>
                       
+                      <!-- Body Container -->
                       <div style="height:calc(100% - 3rem)">
-                        <div.overflow-hidden class=(state.showConsole ? 'h-75' : 'h-100')>
+                        $ const activeConsole = component.getSection('activeConsole')
+
+                        <div.overflow-hidden class=(activeConsole ? 'h-75' : 'h-100')>
                           <Switch by=section>
                             <@case is="Code">
-                              <CodeEditor file=state.activeElement
-                                          paths=(state.Code.tabs && state.Code.tabs.map( ({ path }) => { return path } ))
+                              <CodeEditor file=component.getSection('activeElement')
+                                          paths=tabs.map( ({ path }) => { return path } )
                                           language=null
                                           fs=component.fs
                                           on-save('onSave')
@@ -315,7 +300,7 @@ class {
                           </Switch>
                         </div>
 
-                        <if( state.showConsole )>
+                        <if( activeConsole )>
                           <div.h-25.border-top>
                             <Console project=state.project
                                       on-dismiss('onConsoleToggle', false )/>

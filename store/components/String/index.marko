@@ -1,6 +1,23 @@
 
-class {
-	onCreate(){ GState.bind( this, ['locale'] ) }
+class { 
+	onCreate(){ this.state = { locale: '', text: '' } }
+	onMount(){
+		// Pipe to context component in <Extension/>
+		const 
+		context = this.___context[1],
+		translate = () => {
+			const originalText = this.input.value || (typeof this.input.renderBody == 'function' ? this.innerBody() : '')
+			this.setState({
+				locale: context.data.locale,
+				text: context.data.RenderLocale( originalText )
+			})
+		}
+		
+		// Put value into initial language translation
+		translate()
+		// Re-apply translation to value
+		context.on('update', translate )
+	}
 	innerBody(){
 		return this.input
 								.renderBody
@@ -10,8 +27,8 @@ class {
 	}
 }
 
-<span data-lang=( state.locale.language +( state.locale.variant ? '-'+ state.locale.variant : '' ) )
+<span data-lang=state.locale
 			class=input.class
 			style=`color:inherit;${input.style}`>
-	$!{Locale( input.value || (typeof input.renderBody == 'function' ? component.innerBody() : ''), input.notrack )}
+	${state.text}
 </span>

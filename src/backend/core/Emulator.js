@@ -104,7 +104,10 @@ export default class Emulator {
                   this.disconnect()
                   return reject( error )
                 }
-                
+
+                if( !Array.isArray( metadata ) || !metadata[0] )
+                  return reject('Process Not Found')
+
                 const
                 { pid } = metadata[0],
                 { name, cwd, env } = this.process,
@@ -174,9 +177,11 @@ export default class Emulator {
                   this.disconnect()
                   return reject( error )
                 }
+                
+                if( !Array.isArray( metadata ) || !metadata[0] )
+                  return reject('Process Not Found')
 
                 const config = await this.getConfig()
-
                 if( isValidEnv( config.env ) )
                   this.process.env = {
                     ...this.process.env, // Default or previous `env`

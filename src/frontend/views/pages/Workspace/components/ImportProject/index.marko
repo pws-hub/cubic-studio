@@ -1,5 +1,5 @@
 
-static const Tabs = [ 'link', 'directory', 'exportFile', 'invitation' ]
+static const Tabs = [ 'link', 'exportFile', 'directory', 'repository', 'invitation' ]
 
 class {
   onCreate(){ this.state = { active: Tabs[0] } }
@@ -41,6 +41,9 @@ class {
           </@case>
           <@case is="directory">
             <ByDirectory />
+          </@case>
+          <@case is="repository">
+            <ByRepository />
           </@case>
         </Switch>
       </div>

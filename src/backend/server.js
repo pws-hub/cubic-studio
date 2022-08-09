@@ -11,8 +11,8 @@ import redisConnect from 'connect-redis'
 import cookieParser from 'cookie-parser'
 import markoMiddleware from '@marko/express'
 import * as Core from './core'
-import WWW from 'front/views/www.marko'
-import ErrorPage from 'front/views/pages/error.marko'
+import WWW from 'frontend/views/www.marko'
+import ErrorPage from 'frontend/views/pages/error.marko'
 
 const 
 getInitialScope = async ( req, res ) => {

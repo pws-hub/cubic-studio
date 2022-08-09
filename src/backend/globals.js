@@ -17,10 +17,10 @@ String.prototype.toCapitalCase = function(){
   return First.toUpperCase() + this.split( new RegExp( '^'+ First ) )[1]
 }
 
-global.Configs = require('./../cubic.json')
+global.Configs = require('../../cubic.json')
 
 global.clc = require('colors')
-global.serverVersion = Configs.APPVERSION || require('../package.json').version
+global.serverVersion = Configs.APPVERSION || require('../../package.json').version
 
 global.isOncloud = () => { process.env.MODE === 'cloud' }
 global.isApp = dataset => { return true }

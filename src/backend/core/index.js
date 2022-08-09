@@ -5,7 +5,7 @@ import FSTConnect from '../lib/Connect/FST'
 import IPTConnect from '../lib/Connect/IPT'
 import Synchronizer from '../lib/Synchronizer'
 
-import '../../test'
+import '../../../test'
 
 export const init = server => {
 

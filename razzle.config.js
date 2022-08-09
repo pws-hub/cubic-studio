@@ -19,19 +19,19 @@ module.exports = {
   },
   modifyWebpackConfig({ webpackConfig }){
     
-    // client.js moved to `/src/front` folder
+    // client.js moved to `/src/frontend` folder
     if( webpackConfig.entry.client ) 
-      webpackConfig.entry.client[1] = path.join( __dirname, '/src/front/client' )
+      webpackConfig.entry.client[1] = path.join( __dirname, '/src/frontend/client' )
     
     webpackConfig.resolve.extensions = [ ...webpackConfig.resolve.extensions, '.css', '.scss', '.marko' ]
     webpackConfig.resolve.alias = {
       ...webpackConfig.resolve.alias,
       ['~']: path.resolve(__dirname, './public'),
-      'front': path.resolve(__dirname, './src/front'),
+      'frontend': path.resolve(__dirname, './src/frontend'),
       // Important modules
       'vscode': require.resolve('@codingame/monaco-languageclient/lib/vscode-compatibility'),
-      'fs-inter': require.resolve('./src/lib/Inter/fs'),
-      'path-inter': require.resolve('./src/lib/Inter/path'),
+      'fs-inter': require.resolve('./src/backend/lib/Inter/fs'),
+      'path-inter': require.resolve('./src/backend/lib/Inter/path'),
 
       // Important project 
       'handlers': path.resolve(__dirname, './custom/handlers'),

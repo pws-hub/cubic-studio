@@ -42,7 +42,6 @@ async function ProcessOAuth2( req, extensionId ){
                   ( error, response, body ) => {
                     if( error ) return reject( error )
                     
-                    // console.log('Get Token: ', body )
                     resolve({
                       accessToken: body,
                       // authorize_url: `https://zoom.us/oauth/authorize?response_type=code&client_id=${id}&redirect_uri=${encodeURIComponent( form.redirect_uri )}`
@@ -67,8 +66,6 @@ async function ProcessOAuth2( req, extensionId ){
                   { headers, method: 'POST', form, json: true },
                   ( error, response, body ) => {
                     if( error ) return reject( error )
-                    
-                    // console.log( body )
                     resolve( body )
                   } )
       } )
@@ -80,9 +77,7 @@ async function ProcessOAuth2( req, extensionId ){
               async ( error, response, body ) => {
 
                 if( error || body.error ) return reject( error || body.message )
-
-                console.log('Process OAuth: ', body )
-
+                
                 const { provider, client, scope } = body.config
                 const { accessToken } = await getToken( provider.baseURL, client.id, client.secret, scope.join() )
                 
@@ -95,7 +90,6 @@ async function ProcessJWT( req, extensionId ){
   try {
     const 
     { baseURL, APIKey, APISecret } = await getAuthConfig( req, 'jwt', extensionId ),
-    // console.log('Process OAuth: ', body )
     payload = {
       iss: APIKey,
       exp: ( ( new Date() ).getTime() + 5000 )
@@ -289,8 +283,6 @@ export default async ( req, res ) => {
     
     res.status( error.statusCode || 400 ).send( error.message )
   }
-
-  console.log('options: ', options )
   
   switch( responseType ){
     // Blob content

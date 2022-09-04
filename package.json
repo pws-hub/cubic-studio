@@ -46,6 +46,7 @@
     "monaco-textmate": "^3.0.1",
     "morgan": "^1.10.0",
     "node-fetch": "2.6.1",
+    "numeral": "^2.0.6",
     "onigasm": "^2.2.5",
     "path-browserify": "^1.0.1",
     "pm2": "^5.1.2",

@@ -34,24 +34,28 @@ export default class PackageManager {
     this.rsOptions = { cwd: this.cwd, stdio: 'pipe', shell: true }
   }
 
-  async init( packageJson ){
-    // Write initial package.json
-    const filepath = this.cwd +'/package.json'
-    
-    // Check & Fetch existing package.json content
+  async init( configs ){
+    // Default is CPM config file.
+    let filepath = this.cwd +'/config.json'
+
+    // Generate 3rd party CLI package managers (npm, yarn) package.json
+    if( ['npm', 'yarn'].includes( this.manager ) )
+      filepath = this.cwd +'/package.json'
+      
+    // Check & Fetch existing config.json/package.json content
     try {
       const existing = await fs.readJson( filepath )
       
       /** Merge new information with exising
-       *  package.json content.
+       *  config.json/package.json content.
        */
       if( typeof existing == 'object' )
-        packageJson = { ...existing, ...packageJson }
+        configs = { ...existing, ...configs }
     }
     catch( error ){}
 
     // Generate a new package.json file
-    await fs.outputJSON( filepath, packageJson, { spaces: '\t' } )
+    await fs.outputJSON( filepath, configs, { spaces: '\t' } )
   }
 
   CLIManager( verb, packages, params, progress ){
@@ -108,18 +112,26 @@ export default class PackageManager {
     const 
     _this = this,
     plist = packages.split(/\s+/),
-    downloadPackage = ( dtoken, directory ) => {
+    downloadPackage = ({ type, namespace, name }, { metadata, dtoken } ) => {
       return new Promise( ( resolve, reject ) => {
         // Create directory if doesn't exist
+        const directory = `${_this.cwd}/${type}s/${namespace}/${name}~${metadata.version}`
+        progress( false, null, `Installation directory: ${directory}`)
         fs.ensureDir( directory )
 
         // .gz format unzipping stream
         const unzipStream = zlib.createGunzip()
-        unzipStream.on( 'error', reject )
+        let unzipSize = 0
+
+        unzipStream
+        .on('data', chunk => {
+          unzipSize += chunk.length
+          progress( false, unzipSize, `Unpacking ...`)
+        })
+        .on( 'error', reject )
 
         // .tar format extracting stream
-        const extractStream = tar.extract( directory )
-        extractStream.on( 'error', reject )
+        const unpackStream = tar.extract( directory ).on( 'error', reject )
 
         request
         .get({ url: `${_this.cpr}/package/download?dtoken=${dtoken}`, json: true }, 
@@ -127,23 +139,25 @@ export default class PackageManager {
               if( error || body.error ) 
                 return reject( error || body.message )
 
+              progress( false, null, `Completed`)
               resolve()
             })
         .pipe( unzipStream ) // Unzip package archive
-        .pipe( extractStream ) // Extract package content
+        .pipe( unpackStream ) // Extract/Unpack package content
       } )
     },
     eachPackage = async pkg => {
-      const 
-      { type, namespace, name, version } = parsePackageReference( pkg ),
-      directory = `${_this.cwd}/${type}s/${namespace}${version ? '~'+ version : ''}`
+      const refs = parsePackageReference( pkg )
+      if( !refs ) 
+        throw new Error(`Invalid <${pkg}> package reference`)
       
+      progress( false, null, `Resolving ${pkg}`)
       const response = await prequest.get({ url: `${_this.cpr}/install/${pkg}`, json: true })
       if( response.error ) throw new Error( response.message )
 
       // Download packages
       params.includes('-d')
-      && await downloadPackage( response.dtoken, directory )
+      && await downloadPackage( refs, response )
 
       // Install next package if there is. Otherwise resolve
       return plist.length ? await eachPackage( plist.shift() ) : response
@@ -175,6 +189,41 @@ export default class PackageManager {
     
       return await this.CLIManager( verb, packages, params, progress )
     }
+
+    // Remove package installed with cpm
+    const 
+    _this = this,
+    plist = packages.split(/\s+/),
+    eachPackage = async pkg => {
+      const refs = parsePackageReference( pkg )
+      if( !refs ) throw new Error(`Invalid <${pkg}> package reference`)
+      
+      const 
+      { type, namespace, name, version } = refs,
+      nspDir = `${_this.cwd}/${type}s/${namespace}`
+
+      // Check whether installation namespace exists
+      if( !await fs.pathExists( nspDir ) )
+        throw new Error(`No installation of <${pkg}> found`)
+
+      /** Clear all different installed versions of this 
+       * package, if no version specified 
+       */
+      if( !version ){
+        const dir = await fs.readdir( nspDir )
+        await Promise.all( dir.map( dirname => {
+          if( dirname.includes( name ) )
+            return fs.remove(`${nspDir}/${dirname}`)
+        } ) )
+      }
+      // Clear only specified version directory
+      else await fs.remove(`${nspDir}/${name}~${version}`)
+
+      // Install next package if there is. Otherwise resolve
+      return plist.length ? await eachPackage( plist.shift() ) : `<${packages.replace(/\s+/, ', ')}> removed`
+    }
+
+    return await eachPackage( plist.shift() )
   }
 
   async update( packages, params = '', progress ){
@@ -201,10 +250,14 @@ export default class PackageManager {
 
       return await this.CLIManager( verb, packages, params, progress )
     }
-      
+    
+    // Update: Reinstall packages to their latest versions
+    packages = packages.split(/\s+/).map( each => { return each.replace(/~(([0-9]\.?){2,3})/, '') }).join(' ')
+
+    return await this.install( packages, params, progress )
   }
 
-  async publish(){
+  async publish( progress ){
     // Check whether a package repository is defined
     if( !this.cpr )
       throw new Error('Undefined Cubic Package Repository')
@@ -212,12 +265,19 @@ export default class PackageManager {
     // TODO: Preliminary checks of packagable configurations
 
 
+    progress = progress || this.watcher
 
     let metadata
-    try { metadata = await fs.readJson( this.cwd +'/config.json' ) }
+    try {
+      progress( false, null, 'Checking metadata in config.json')
+      metadata = await fs.readJson( this.cwd +'/config.json' ) 
+    }
     catch( error ){
       console.error( error )
-      throw new Error('Undefined Metadata. Expected config.json file in project root') 
+      const explicitError = new Error('Undefined Metadata. Expected config.json file in project root')
+
+      progress( explicitError )
+      throw explicitError
     }
 
     if( !isValidMetadata( metadata ) )
@@ -227,8 +287,15 @@ export default class PackageManager {
      * to temporary hold generated package files 
      */
     const tmpPath = path.dirname( this.cwd ) +'/.tmp'
-    await fs.ensureDir( tmpPath )
+    progress( false, null, `Creating .tmp directory at ${tmpPath}`)
 
+    try { await fs.ensureDir( tmpPath ) }
+    catch( error ){
+      progress( error )
+      throw new Error('Installation failed. Check progress logs for more details')
+    }
+    
+    // Prepack Generate CUP & Upload to repositories
     const
     _this = this,
     filepath = `${tmpPath}/${metadata.name}.cup`, // (.cup) Cubic Universal Package
@@ -264,7 +331,7 @@ export default class PackageManager {
 
         // Generate package files
         const 
-        IGNORE_DIRECTORIES = ['.git', '.DS_Store', 'node_modules', 'build', 'dist', 'cache', 'plugins', 'lib'],
+        IGNORE_DIRECTORIES = ['.git', '.DS_Store', 'node_modules', 'build', 'dist', 'cache', 'plugins', 'applications', 'lib'],
         IGNORE_FILES = ['.gitignore'],
         options = {
           ignore: pathname => {
@@ -275,23 +342,37 @@ export default class PackageManager {
           // readable: true, // all dirs and files should be readable
           // writable: true // all dirs and files should be writable
         }
+
+        const prepackStream = tar.pack( _this.cwd, options )
         
-        tar.pack( _this.cwd, options )
-            .pipe( zlib.createGzip() )
-            .pipe( writeStream )
+        prepackStream
+        .on('data', chunk => {
+          prepackSize += chunk.length
+          progress( false, prepackSize, 'Prepacking ...' )
+        } )
+        .on('error', reject )
+
+        const zipStream = zlib.createGzip().on('error', reject )
+        
+        prepackStream
+        .pipe( zipStream )
+        .pipe( writeStream )
       } )
     }
     
     // Generate .cup (Cubic Universal Package) files
+    progress( false, null, 'Prepacking & Generating the CUP file')
+    let prepackSize = 0
     await generateCUP()
 
     // Add package stages sizes to metadata
     const fileStat = await fs.stat( filepath )
     metadata.sizes = {
       download: fileStat.size,
-      installation: fileStat.blksize
+      installation: prepackSize
     }
-
+    
+    progress( false, null, 'Publishing package ...')
     // Upload package to the given CPR (Cubic Package Repositories)
     return await uploadPackage()
   }

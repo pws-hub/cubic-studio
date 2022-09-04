@@ -89,10 +89,9 @@ async function getSession( type, req ){
                     return { isConnected, user, authError }
                   }
                   catch( error ){
-                    console.log('Failed fetching cached session: ', error )
+                    console.log('Failed fetching cached session: ', error.message )
                     return {}
-                  }
-                    
+                  }                 
   }
 }
 

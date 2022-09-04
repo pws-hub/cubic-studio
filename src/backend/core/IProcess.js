@@ -96,7 +96,7 @@ async function PackageProcess( action, dataset, directory, source, _process ){
 }
 
 export default class IProcess {
-
+  
   constructor( options = {} ){
     // Debuging mode
     this.debugMode = options.debug

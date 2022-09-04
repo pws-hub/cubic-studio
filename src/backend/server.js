@@ -13,6 +13,8 @@ import markoMiddleware from '@marko/express'
 import * as Core from './core'
 import WWW from 'frontend/views/www.marko'
 import ErrorPage from 'frontend/views/pages/error.marko'
+import LPSServer from './lib/LPS.server'
+import path from 'path'
 
 const 
 getInitialScope = async ( req, res ) => {
@@ -128,6 +130,10 @@ if( process.env.NODE_ENV == 'production' ){
 else app.use( cookieParser( process.env.COOKIE_ENCRYPT_SECRET ) )
 
 app.use( session( sessionConfig ) )
+
+/*-------------------------------------------------------------------*/
+// Initialize LPS (Locale Package Store) Server
+LPSServer().express( app )
 
 /*-------------------------------------------------------------------*/
 // Application Assets Manifest

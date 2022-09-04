@@ -64,8 +64,8 @@ async function PackageProcess( action, dataset, directory, source, _process ){
                       })
 
     const
-    pm = new PackageManager({ cwd: directory, manager: Configs.PACKAGE_MANAGER, debug: _process.debugMode }),
-    packages = dataset.map( ({ name, version }) => { return name +( action == 'add' && version ? '@'+ version : '' ) } )
+    pm = new PackageManager({ cwd: directory, manager: Configs.NODE_PACKAGE_MANAGER, debug: _process.debugMode }),
+    packages = dataset.map( ({ name, version }) => { return name +( action == 'install' && version ? '@'+ version : '' ) } )
     
     await pm[ action ]( packages, '-W', ( error, message, bytes ) => {
       // Installation progress tracking
@@ -115,7 +115,7 @@ export default class IProcess {
       { type, name, description, specs } = dataset,
       { language, directory, repository } = specs.code,
       
-      pm = new PackageManager({ cwd: directory, manager: Configs.PACKAGE_MANAGER, debug: this.debugMode }),
+      pm = new PackageManager({ cwd: directory, manager: Configs.NODE_PACKAGE_MANAGER, debug: this.debugMode }),
       git = new GitManager({ debug: this.debugMode, repository }),
       fs = new FileSystem({ cwd: false, debug: this.debugMode })
 
@@ -220,7 +220,7 @@ export default class IProcess {
         await pm.init( packageJson )
 
         /*-------------------------------------------------------------------------*/
-        // Install dependencies
+        // Install dependencies packages
         this.watcher( 'setup',
                       false,
                       {
@@ -228,7 +228,7 @@ export default class IProcess {
                         processor: 'cpm',
                         message: 'Installing project dependencies'
                       })
-        await pm.install( ( error, message, bytes ) => {
+        await pm.installPackages( ( error, message, bytes ) => {
           // Installation progress tracking
           error ?
             this.watcher( 'setup', error )
@@ -279,7 +279,7 @@ export default class IProcess {
       { type, name, description, specs } = dataset,
       { language, directory, repository } = specs.code,
       
-      pm = new PackageManager({ cwd: directory, manager: Configs.PACKAGE_MANAGER, debug: this.debugMode }),
+      pm = new PackageManager({ cwd: directory, manager: Configs.NODE_PACKAGE_MANAGER, debug: this.debugMode }),
       git = new GitManager({ debug: this.debugMode, repository }),
       fs = new FileSystem({ cwd: false, debug: this.debugMode })
 
@@ -400,7 +400,7 @@ export default class IProcess {
         await pm.init( packageJson )
 
         /*-------------------------------------------------------------------------*/
-        // Install dependencies
+        // Install dependency packages
         this.watcher( 'import',
                       false,
                       {
@@ -408,7 +408,7 @@ export default class IProcess {
                         processor: 'cpm',
                         message: 'Installing project dependencies'
                       })
-        await pm.install( ( error, message, bytes ) => {
+        await pm.installPackages( ( error, message, bytes ) => {
           // Installation progress tracking
           error ?
             this.watcher( 'import', error )
@@ -549,9 +549,9 @@ export default class IProcess {
                   })
   }
 
-  async addPackages( dataset, directory, source ){
+  async installPackages( dataset, directory, source ){
     // Install/Add dependency packages from MPM, CPM, ...
-    await PackageProcess( 'add', dataset, directory, source, this )
+    await PackageProcess( 'install', dataset, directory, source, this )
   }
   async removePackages( dataset, directory, source ){
     // Remove dependency packages
@@ -577,8 +577,8 @@ export default class IProcess {
                         message: 'Refreshing dependency packages'
                       })
 
-      const pm = new PackageManager({ cwd: directory, manager: Configs.PACKAGE_MANAGER, debug: this.debugMode })
-      await pm.install( ( error, message, bytes ) => {
+      const pm = new PackageManager({ cwd: directory, manager: Configs.NODE_PACKAGE_MANAGER, debug: this.debugMode })
+      await pm.installPackages( ( error, message, bytes ) => {
         // Installation progress tracking
         error ?
           this.watcher( 'refresh-packages', error )
@@ -592,13 +592,13 @@ export default class IProcess {
       } )
 
       // Completed
-    this.watcher( 'refresh-packages',
-                  false,
-                  {
-                    percent: 100,
-                    processor: source,
-                    message: 'Dependency packages refreshed'
-                  })
+      this.watcher( 'refresh-packages',
+                    false,
+                    {
+                      percent: 100,
+                      processor: source,
+                      message: 'Dependency packages refreshed'
+                    })
     }
     catch( error ){
       this.debug('Error occured: ', error )

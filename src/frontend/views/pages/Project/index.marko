@@ -221,9 +221,9 @@ class {
                                 progress('Unexpected error occured')
                                 : progress( false, 'DONE' )
           break
-      // Add dependency package to project
-      case 'package': await this.PackageOperator( 'add', element )
-                      
+      // Install dependency package to project
+      case 'package': await this.PackageOperator( 'install', element )
+        
                       // GlobalSearch callback to confirm process done
                       typeof progress == 'function' && progress()
                       // Wait for global search to clear memory

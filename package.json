@@ -64,6 +64,7 @@
     "shelljs": "^0.8.5",
     "simple-git": "^3.1.0",
     "socket.io": "^4.4.1",
+    "tar-fs": "^2.1.1",
     "tinify": "^1.6.1",
     "typescript-language-server": "^0.9.6",
     "worker-loader": "2.0.0"

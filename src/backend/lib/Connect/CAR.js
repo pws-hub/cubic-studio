@@ -16,7 +16,7 @@ function initChannel( socket ){
       else {
         options = {
           ...options,
-          url: toOrigin( process.env.API_SERVER, String( process.env.LOCALHOST_API ) === 'true' ) + url,
+          url: toOrigin( process.env.WORKSPACE_API_SERVER, String( process.env.LOCALHOST_API ) === 'true' ) + url,
           headers: {
             'Authorization': 'Bearer '+ socket.data.AccessToken,
             'Content-Type': 'application/json'

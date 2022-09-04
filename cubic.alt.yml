@@ -1,0 +1,25 @@
+APPNAME: CubicStudio
+APPVERSION: 1.0
+
+INSTANCE_PROVIDER: multipple
+  
+AUTH_HANDLERS:
+  multipple: multipple.auth.js
+
+REQUEST_HANDLERS:
+  multipple: multipple.request.js
+
+# Prefered NodeJS package manager
+NODE_PACKAGE_MANAGER: yarn
+
+# Access Credentials to Git Repositories 
+GIT_ACCESS:
+- provider: github
+  username: multipple-dev
+  password: XVycGhhbDIwMTJAZY29t1h
+
+# Access credentials to Cubic Package Repositories
+CPR_ACCESS:
+- source: cpr.webmicros.com
+  username:
+  token:

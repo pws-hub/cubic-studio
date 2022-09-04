@@ -5,7 +5,7 @@ export default function Connect( utils, { name, token, isHost } ){
     throw new Error('Undefined Session Token')
 
   const 
-  baseURL = window.asm === 'cloud' ? 'https://cubic.webmicros.com' : 'http://api.cubic.studio:7777',
+  baseURL = window.asm === 'cloud' ? 'https://cws.webmicros.com' : 'http://api.cubic.studio:7777',
   options = {
     query: { name, isHost },
     reconnectionDelayMax: 20000,

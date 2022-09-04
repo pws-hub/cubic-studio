@@ -1,12 +1,14 @@
 
-import PackageManager from '../src/core/PackageManager'
+import path from 'path'
+import PackageManager from '../src/backend/core/PackageManager'
 
+/*
 ;( async () => {
   try {
     const
     options = {
       manager: 'yarn',
-      cwd: './../projects/TestApp',
+      cwd: path.resolve( process.cwd(), '../projects/TestApp' ),
       debug: true
     },
     pm = new PackageManager( options )
@@ -28,8 +30,28 @@ import PackageManager from '../src/core/PackageManager'
     //   licence: false
     // })
 
-    // console.log( await pm.install( ( _, length, message ) => console.log(`[${length}] -- ${message}`) )
+    // Install Node packages
+    // console.log( await pm.installPackages( ( _, length, message ) => console.log(`[${length}] -- ${message}`) ) )
     console.log( await pm.remove('express') )
+  }
+  catch( error ){ 
+    console.log( error )
+  }
+} )()
+*/
+
+;( async () => {
+  try {
+    const
+    options = {
+      cpr: 'http://cpr.micros.io:60777/v1',
+      cwd: path.resolve( process.cwd(), '../projects/TestApp' ),
+      debug: true
+    },
+    pm = new PackageManager( options )
+    
+    console.log( await pm.install( 'application:multipple.SampleApp', '-d', ( _, length, message ) => console.log(`[${length}] -- ${message}`) ) )
+    // console.log( await pm.publish() )
   }
   catch( error ){ 
     console.log( error )

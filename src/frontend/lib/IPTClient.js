@@ -10,7 +10,7 @@ function ProcessHandler( client ){
       if( !client || !isConnected )
         return reject('[IPT-Client] No connection to server')
       
-      client.emit( 'IPROCESS::RUN', ...args, resolve )
+      client.emit('IPROCESS::RUN', ...args, resolve )
     } )
   }
 
@@ -114,13 +114,13 @@ function ProcessHandler( client ){
 
   this.Packager = ( dataset, directory ) => {
     return {
-      add: async tracker => {
+      install: async tracker => {
         try {
-          // Register `add-packages` tracker
+          // Register `install-packages` tracker
           if( typeof tracker == 'function' )
-            this.trackers['add-packages'] = tracker
+            this.trackers['install-packages'] = tracker
 
-          const { error, message, response } = await run( 'addPackages', dataset, directory, 'npm' )
+          const { error, message, response } = await run('installPackages', dataset, directory, 'npm' )
           if( error ) throw new Error( message )
 
           return response || true

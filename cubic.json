@@ -2,7 +2,7 @@
   "APPNAME": "CubicStudio",
   "APPVERSION": "1.0",
 
-  "INSTANCE_PROVIDER": "multipple",
+  "INSTANCE_PROVIDERS": ["multipple", "one-profile"],
   
   "AUTH_HANDLERS": {
     "multipple": "multipple.auth.js"

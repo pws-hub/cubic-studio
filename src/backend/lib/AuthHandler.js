@@ -28,6 +28,8 @@ async function _callback( provider, handler, req, res ){
       [ provider ]: req.query
     }
     
+    user.provider = provider
+    
     req.session.user = user
     req.session.authError = false
     req.session.isConnected = true

@@ -14,7 +14,6 @@ import * as Core from './core'
 import WWW from 'frontend/views/www.marko'
 import ErrorPage from 'frontend/views/pages/error.marko'
 import LPSServer from './lib/LPS.server'
-import path from 'path'
 
 const 
 getInitialScope = async ( req, res ) => {
@@ -23,7 +22,7 @@ getInitialScope = async ( req, res ) => {
     env: process.env.NODE_ENV,
     mode: process.env.MODE,
     asm: String( process.env.LOCALHOST_API ) === 'true' ? 'local' : 'cloud', // api server mode
-    provider: Configs.INSTANCE_PROVIDER,
+    providers: Configs.INSTANCE_PROVIDERS,
     namespaces: {
       CAR: process.env.CAR_NAMESPACE, // Cubic API Request namespace
       FST: process.env.FST_NAMESPACE, // File System Transaction namespace

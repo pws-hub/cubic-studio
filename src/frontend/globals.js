@@ -88,6 +88,11 @@ window.corsProxy = ( url, type ) => {
           || !/^http(s?):\/\//.test( url ) ? 
                         url : `/proxy?url=${encodeURIComponent( url )}&responseType=${type || 'blob'}` 
 }
+window.proName = str => {
+  return str.split(/-|\s+/)
+            .map( each => { return each.toCapitalCase() } )
+            .join(' ')
+}
 
 window.CreateRequest = provider => {
   return ( url, method, body ) => {

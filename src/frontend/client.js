@@ -176,7 +176,7 @@ async function Client(){
 		env,
 		asm,
 		mode,
-		provider,
+		providers,
 		namespaces,
 		isConnected,
 		user
@@ -185,7 +185,7 @@ async function Client(){
 	window.env = env
 	window.asm = asm
 	window.mode = mode
-	window.provider = provider
+	window.providers = providers
 
 	/*----------------------------------------------------------------*/
 	// Set of overwridden process functions

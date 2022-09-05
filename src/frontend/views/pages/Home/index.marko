@@ -20,7 +20,7 @@ class {
     <div.text-center>
       <Bx.font-large-5 type="cube-alt"/>
       <h4.mb-1><strong>Cubic Studio</strong></h4>
-      <div.text-right.font-small-2 style="margin-right:4.5rem">${(window.provider || '').toCapitalCase()}</div>
+      <div.text-right.font-small-2 style="margin-right:4.5rem">${(window.providers[0] || '').toCapitalCase()}</div>
     </div>
 
     <!-- Workspaces -->
@@ -60,26 +60,28 @@ class {
     <h4.px-1.font-small-3>
       <Locale text="Sign-In"/>
     </h4>
-    <div.cursor-pointer.nav-item.border.round-sm.overflow-hidden.my-75>
-      <!-- Show connected user info -->
-      <if( state.isConnected )>
-        <div.d-flex.align-items-center.px-0.py-1>
-          <Image.mx-2.round-xs src=( state.user.photo || DefaultAvatar ) style="width:26px;height:26px"/>
-          <span.font-medium-2.px-2>${state.user.name}</span><br>
-          <span.font-small-1.px-2.text-muted>${(window.provider || '').toCapitalCase()}</span>
-        </div>
-      </if>
+    <for|provider, index| of=window.providers>
+      <div.cursor-pointer.nav-item.border.round-sm.overflow-hidden.my-75>
+        <!-- Show connected user info -->
+        <if( state.isConnected && state.user.provider == provider )>
+          <div.d-flex.align-items-center.px-0.py-1>
+            <Image.mx-2.round-xs src=( state.user.photo || DefaultAvatar ) style="width:26px;height:26px"/>
+            <span.font-medium-2.px-2>${state.user.name}</span><br>
+            <span.font-small-1.px-2.text-muted>${proName( provider )}</span>
+          </div>
+        </if>
 
-      <!-- Redirect to sign-in -->
-      <else>
-        <a.d-block.d-flex.align-items-center.px-0.py-1 
-            class=(!state.isConnected ? 'theme-bg-transparent' : false) 
-            href=`/auth/initiate?provider=${window.provider}`>
-          <Image.mx-2 src=`/images/logo/${window.provider}.png` style="width:26px;height:26px"/>
-          <span.font-medium-2.px-2>${(window.provider || '').toCapitalCase()}</span>
-        </a>
-      </else>
-    </div>
+        <!-- Redirect to sign-in -->
+        <else>
+          <a.d-block.d-flex.align-items-center.px-0.py-1 
+              class=(!state.isConnected ? 'theme-bg-transparent' : false) 
+              href=`/auth/initiate?provider=${provider}`>
+            <Image.mx-2 src=`/images/logo/${provider}.png` style="width:26px;height:26px"/>
+            <span.font-medium-2.px-2>${proName( provider )}</span>
+          </a>
+        </else>
+      </div>
+    </for>
   </div>
 </div>
 

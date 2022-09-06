@@ -41,6 +41,7 @@ import PackageManager from '../src/backend/core/PackageManager'
 } )()
 */
 
+
 ;( async () => {
   try {
     const
@@ -55,13 +56,11 @@ import PackageManager from '../src/backend/core/PackageManager'
       }
     },
     pm = new PackageManager( options )
-    
-    // console.log( await pm.install('application:multipple.SampleApp', '-d') )
+
+    // console.log( await pm.install('application:multipple.sample-app', '-f -d') )
     // console.log( await pm.publish() )
-    // console.log( await pm.update('application:multipple.SampleApp', '-d') )
-    console.log( await pm.remove('application:multipple.SampleApp') )
+    // console.log( await pm.update('application:multipple.SampleApp', '-f') )
+    // console.log( await pm.remove('application:multipple.SampleApp') )
   }
-  catch( error ){ 
-    console.log( error )
-  }
+  catch( error ){ console.log( error ) }
 } )()

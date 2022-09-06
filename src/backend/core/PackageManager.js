@@ -33,7 +33,13 @@ export default class PackageManager {
     // Script runner options
     this.rsOptions = { cwd: this.cwd, stdio: 'pipe', shell: true }
   }
-
+  
+  /** Generate initial `package.json` and `config.json`
+   *  requirement files at project root.
+   * 
+   * @configs Custom configurations
+   * 
+   */
   async init( configs ){
     // Default is CPM config file.
     let filepath = this.cwd +'/config.json'
@@ -58,6 +64,14 @@ export default class PackageManager {
     await fs.outputJSON( filepath, configs, { spaces: '\t' } )
   }
 
+  /** `npm` or `yarn` CLI command runner
+   * 
+   * @verb Package managemet action: install, remove, update, ...
+   * @packages Space separated list of NodeJS packages/libraries
+   * @params Check `npm` or `yarn` command parameters documentation
+   * @progress  Process tracking report function. (optional) Default to `this.watcher`
+   * 
+   */
   CLIManager( verb, packages, params, progress ){
     return new Promise( ( resolve, reject ) => {
       // Specified packages to uninstall
@@ -69,6 +83,18 @@ export default class PackageManager {
     } )
   }
 
+  /** Install dependency package requirements listed 
+   *  in `config.json` or `package.json` files
+   * 
+   * Use `npm` or `yarn` for NodeJS packages & `cpm`
+   * for Cubic Package
+   * 
+   * @params
+   *    [-f]  Full installation process (Retrieve metadata & download packages)
+   *    [-d]  Is dependency package installation
+   * @progress  Process tracking report function. (optional) Default to `this.watcher`
+   * 
+   */
   async installPackages( params = '', progress ){
   
     if( typeof params == 'function' ){
@@ -84,6 +110,20 @@ export default class PackageManager {
     
   }
 
+  /** Install one or a list of packages
+   * 
+   * Use `npm` or `yarn` for NodeJS packages & `cpm`
+   * for Cubic Package
+   * 
+   * @packages  Space separated list of package references
+   *            Eg. `application:namespace.name~version plugin:...`
+   * @params
+   *    [-f]      Full installation process (Retrieve metadata & download packages)
+   *    [-d]      Is dependency package installation
+   *    [--force] Override directory of existing installations of same packages
+   * @progress  Process tracking report function. (optional) Default to `this.watcher`
+   * 
+   */
   async install( packages, params = '', progress ){
   
     if( typeof params == 'function' ){
@@ -112,43 +152,90 @@ export default class PackageManager {
     const 
     _this = this,
     plist = packages.split(/\s+/),
-    downloadPackage = ({ type, namespace, name }, { metadata, dtoken } ) => {
+    downloadPackage = ( { type, namespace, name }, { metadata, dtoken }, isDep ) => {
       return new Promise( ( resolve, reject ) => {
-        // Create directory if doesn't exist
-        const directory = `${_this.cwd}/${type}s/${namespace}/${name}~${metadata.version}`
+        /** Define installation directory
+         * 
+         * NOTE: Packages are extracted
+         *   - Directly into `cwd` by namespace folder (Main package)
+         *   - Or into respective dependency type folders (Dependency package: by `isDep` flag)
+         */
+        const 
+        directory = `${_this.cwd}/${isDep ? `.${type}/` : ''}${namespace}/${name}~${metadata.version}`,
+        proceed = () => {
+          // .gz format unzipping stream
+          const unzipStream = zlib.createGunzip()
+          let unzipSize = 0
+
+          unzipStream
+          .on('data', chunk => {
+            unzipSize += chunk.length
+            progress( false, unzipSize, `Unpacking ...`)
+          })
+          .on('error', reject )
+
+          // .tar format extracting stream
+          const unpackStream = tar.extract( directory ).on( 'error', reject )
+
+          request
+          .get({ url: `${_this.cpr}/package/download?dtoken=${dtoken}`, json: true }, 
+                async ( error, response, body ) => {
+                  if( error || body.error ) 
+                    return reject( error || body.message )
+
+                  progress( false, null, `Completed`)
+                  resolve()
+                })
+          .pipe( unzipStream ) // Unzip package archive
+          .pipe( unpackStream ) // Extract/Unpack package content
+        },
+        ensureDirectory = async () => {
+          try {
+            await fs.ensureDir( directory )
+            proceed()
+          }
+          catch( error ){ reject( error ) }
+        }
+
         progress( false, null, `Installation directory: ${directory}`)
-        fs.ensureDir( directory )
-
-        // .gz format unzipping stream
-        const unzipStream = zlib.createGunzip()
-        let unzipSize = 0
-
-        unzipStream
-        .on('data', chunk => {
-          unzipSize += chunk.length
-          progress( false, unzipSize, `Unpacking ...`)
-        })
-        .on( 'error', reject )
-
-        // .tar format extracting stream
-        const unpackStream = tar.extract( directory ).on( 'error', reject )
-
-        request
-        .get({ url: `${_this.cpr}/package/download?dtoken=${dtoken}`, json: true }, 
-            async ( error, response, body ) => {
-              if( error || body.error ) 
-                return reject( error || body.message )
-
-              progress( false, null, `Completed`)
-              resolve()
-            })
-        .pipe( unzipStream ) // Unzip package archive
-        .pipe( unpackStream ) // Extract/Unpack package content
+        /** Do not override existing installation directory
+         * unless --force flag is set in params
+         */
+        params.includes('--force') ?
+                          ensureDirectory()
+                          : fs.pathExists( directory )
+                              .then( yes => yes ? resolve() : ensureDirectory() )
+                              .catch( reject )
       } )
     },
-    eachPackage = async pkg => {
+    installDependencies = async metadata => {
+      // Check and load an application/plugin dependencies
+      const
+      depRegex = /^(plugin|library):(.+)$/,
+      deps = metadata.resource
+              && metadata.resource.dependencies
+              && metadata.resource.dependencies.length
+              && metadata.resource.dependencies.filter( each => { return depRegex.test( each ) } )
+      
+      if( !Array.isArray( deps ) || !deps.length ) return metadata
+
+      for( const x in deps ){
+        const [ _, depType ] = deps[x].match( depRegex ) || []
+
+        let response = await eachPackage( deps[x], depType )
+        if( !response ) throw new Error(`<${deps[x]}> not found`)
+        
+        const category = depType === 'plugin' ? 'plugins' : 'libraries' // plugins or libraries
+        
+        if( !metadata[ category ] ) metadata[ category ] = {}
+        metadata[ category ][ response.metadata.nsi ] = response.metadata
+      }
+
+      return metadata
+    },
+    eachPackage = async ( pkg, isDep = false ) => {
       const refs = parsePackageReference( pkg )
-      if( !refs ) 
+      if( !refs )
         throw new Error(`Invalid <${pkg}> package reference`)
       
       progress( false, null, `Resolving ${pkg}`)
@@ -156,16 +243,37 @@ export default class PackageManager {
       if( response.error ) throw new Error( response.message )
 
       // Download packages
-      params.includes('-d')
-      && await downloadPackage( refs, response )
+      params.includes('-f')
+      && await downloadPackage( refs, response, isDep )
+
+      /**
+       * Install all required dependencies (plugin/library)
+       *
+       * NOTE: Regular mode only. Plugin are directly added to
+       *       `config.json` file in sandbox mode.
+       */
+      response.metadata = await installDependencies( response.metadata )
 
       // Install next package if there is. Otherwise resolve
       return plist.length ? await eachPackage( plist.shift() ) : response
     }
 
-    return await eachPackage( plist.shift() )
+    return await eachPackage( plist.shift(), params.includes('-d') )
   }
 
+  /** Remove/Uninstall one or a list of packages
+   * 
+   * Use `npm` or `yarn` for NodeJS packages & `cpm`
+   * for Cubic Package
+   * 
+   * @packages  Space separated list of package references
+   *            Eg. `application:namespace.name~version plugin:...`
+   * @params
+   *    [-f]  Full installation process (Retrieve metadata & download packages)
+   *    [-d]  Is dependency package installation
+   * @progress  Process tracking report function. (optional) Default to `this.watcher`
+   * 
+   */
   async remove( packages, params = '', progress ){
 
     if( !packages )
@@ -226,6 +334,19 @@ export default class PackageManager {
     return await eachPackage( plist.shift() )
   }
 
+  /** Update one or a list of packages
+   * 
+   * Use `npm` or `yarn` for NodeJS packages & `cpm`
+   * for Cubic Package
+   * 
+   * @packages  Space separated list of package references
+   *            Eg. `application:namespace.name~version plugin:...`
+   * @params
+   *    [-f]  Full installation process (Retrieve metadata & download packages)
+   *    [-d]  Is dependency package installation
+   * @progress  Process tracking report function. (optional) Default to `this.watcher`
+   * 
+   */
   async update( packages, params = '', progress ){
 
     if( !packages )
@@ -257,6 +378,11 @@ export default class PackageManager {
     return await this.install( packages, params, progress )
   }
 
+  /** Publish current working directory as package
+   * 
+   * @progress  Process tracking report function. (optional) Default to `this.watcher`
+   * 
+   */
   async publish( progress ){
     // Check whether a package repository is defined
     if( !this.cpr )
@@ -331,7 +457,7 @@ export default class PackageManager {
 
         // Generate package files
         const 
-        IGNORE_DIRECTORIES = ['.git', '.DS_Store', 'node_modules', 'build', 'dist', 'cache', 'plugins', 'applications', 'lib'],
+        IGNORE_DIRECTORIES = ['node_modules', 'build', 'dist', 'cache', '.git', '.DS_Store', '.plugin', '.application', '.lib'],
         IGNORE_FILES = ['.gitignore'],
         options = {
           ignore: pathname => {

@@ -1,5 +1,6 @@
 
 import fs from 'fs-extra'
+import { Router } from 'express'
 import { decrypt, encrypt } from './DTCrypt'
 
 function ruuid(){
@@ -13,11 +14,10 @@ const INTERFACES = {
   filesystem: configs => {
 
     const storePath = configs.path
-    fs.ensureDir( storePath )
-
+    
     async function getCollection(){
       try {
-        let content = await fs.readFile(`${storePath}/.cps`, 'UTF-8')
+        let content = await fs.readFile(`${storePath}/data`, 'UTF-8')
         if( content ) content = decrypt( content )
 
         return content || []
@@ -25,7 +25,8 @@ const INTERFACES = {
       catch( error ){ return [] }
     }
     async function storeCollection( list ){
-      await fs.writeFile(`${storePath}/.cps`, encrypt( list ), 'UTF-8')
+      await fs.ensureDir( storePath )
+      await fs.writeFile(`${storePath}/data`, encrypt( list ), 'UTF-8')
     }
     
     return {
@@ -35,7 +36,7 @@ const INTERFACES = {
 
         const 
         list = await getCollection(),
-        mids = [],
+        sids = [],
         each = metadata => {
           for( const x in list ){
             const { type, nsi, name, namespace, version } = list[x]
@@ -48,9 +49,9 @@ const INTERFACES = {
             throw new Error('Already exists')
           }
           
-          const mid = ruuid()
-          list.push({ mid, ...metadata })
-          mids.push( mid )
+          const sid = ruuid()
+          list.push({ sid, ...metadata })
+          sids.push( sid )
         }
         
         Array.isArray( input ) ? input.map( each ) : each( input )
@@ -58,27 +59,32 @@ const INTERFACES = {
         // Store update
         await storeCollection( list )
 
-        return Array.isArray( input ) ? mids : mids[0]
+        return Array.isArray( input ) ? sids : sids[0]
       },
       get: async conditions => {
         const list = await getCollection()
 
         for( const x in list ){
           const each = list[x]
+          let nomatch = false
 
           for( const key in conditions )
-            if( each[ key ] != conditions[ key ] ) continue
-          
-          return each
+            if( each[ key ] != conditions[ key ] ){
+              nomatch = true
+              break
+            }
+
+          if( nomatch ) continue
+          else return each
         }
 
         return null
       },
-      delete: async mid => {
+      delete: async sid => {
         const list = await getCollection()
 
         for( const x in list )
-          if( mid == list[x].mid ){
+          if( sid == list[x].sid ){
             list.splice(x, 1)
 
             // Store update
@@ -88,19 +94,25 @@ const INTERFACES = {
 
         throw new Error('Not Found')
       },
-      update: async ( mid, updates ) => {
+      update: async ( sid, updates ) => {
         const list = await getCollection()
+        let updated = false
+
+        delete updates.sid // Cannot override sid (unique store id)
 
         for( const x in list )
-          if( mid == list[x].mid ){
+          if( sid == list[x].sid ){
             list[x] = { ...list[x], ...updates }
-
-            // Store update
-            await storeCollection( list )
-            return 'Updated'
+            updated = true
+            break
           }
 
-        throw new Error('Not Found')
+        // Store updated list
+        if( updated ){
+          await storeCollection( list )
+          return 'Updated'
+        }
+        else throw new Error('Not Found')
       },
       fetch: async filters => {
         const list = await getCollection()
@@ -127,33 +139,33 @@ const INTERFACES = {
           throw new Error('Invalid method call. Expected 1 argument')
         
         if( Array.isArray( input ) ){
-          const mids = []
+          const sids = []
           input = input.map( each => {
-            mids.push( each.mid = ruuid() )
+            sids.push( each.sid = ruuid() )
             return each
           } )
           
           await collection.insertMany( input )
-          return mids
+          return sids
         }
         else {
-          input.mid = ruuid()
+          input.sid = ruuid()
           await collection.insert( input )
 
-          return input.mid
+          return input.sid
         }
       },
       get: async conditions => { return await collection.findOne( conditions ) },
       fetch: async filters => { return await collection.find( filters || {} ).toArray() },
-      update: async ( mid, updates ) => {
+      update: async ( sid, updates ) => {
 
-        const { acknowledged } = await collection.updateOne({ mid }, { $set: updates })
+        const { acknowledged } = await collection.updateOne({ sid }, { $set: updates })
         if( !acknowledged ) throw new Error('Not Found')
 
         return 'Updated'
       },
-      delete: async mid => {
-        const { acknowledged } = await collection.deleteOne({ mid })
+      delete: async sid => {
+        const { acknowledged } = await collection.deleteOne({ sid })
         if( !acknowledged ) throw new Error('Not Found')
 
         return 'Deleted'
@@ -171,49 +183,74 @@ export default ( configs = {} ) => {
     collection: null,
     ...configs
   }
-
+  
   if( !INTERFACES[ configs.type ] )
     throw new Error(`LSP does not support <${configs.type}> interface`)
-
+    
   const
   Interface = INTERFACES[ configs.type ]( configs ),
   express = app => {
-    app
-    .post('/lpstore', async ( req, res ) => {
+    const route = Router()
+    .use( ( req, res, next ) => {
+      if( req.headers['lps-user-agent'] !== 'LPS/RM'
+          || req.headers['lps-client-id'] !== 'OPAC-12-09HH--$0' )
+        return res.status(403).send('Access Denied')
+      
+      next()
+    } )
+    .post('/', async ( req, res ) => {
       try {
+        if( !Object.keys( req.body ).length )
+          throw new Error('Invalid Request Body')
+
         const result = await Interface.insert( req.body )
         res.json({ error: false, result })
       }
       catch( error ){ res.json({ error: true, message: error.message }) }
     })
-    .get('/lpstore', async ( req, res ) => {
+    .get('/', async ( req, res ) => {
       try {
+        if( !Object.keys( req.query ).length )
+          throw new Error('Undefined Request Query')
+
         const result = await Interface.get( req.query )
         res.json({ error: false, result })
       }
       catch( error ){ res.json({ error: true, message: error.message }) }
     })
-    .get('/lpstore/fetch', async ( req, res ) => {
+    .get('/fetch', async ( req, res ) => {
       try {
-        const result = await Interface.fetch( req.query )
+        const result = await Interface.fetch( req.query || {} )
         res.json({ error: false, result })
       }
       catch( error ){ res.json({ error: true, message: error.message }) }
     })
-    .patch('/lpstore', async ( req, res ) => {
+    .patch('/', async ( req, res ) => {
       try {
-        const result = await Interface.update( req.body.id, req.body.updates )
+        const { sid, updates } = req.body
+        if( !sid || typeof updates !== 'object' )
+          throw new Error('Invalid Request Parameters')
+
+        if( !Object.keys( updates ).length )
+          throw new Error('Undefined Update Fields')
+
+        const result = await Interface.update( sid, updates )
         res.json({ error: false, result })
       }
       catch( error ){ res.json({ error: true, message: error.message }) }
     })
-    .delete('/lpstore', async ( req, res ) => {
+    .delete('/', async ( req, res ) => {
       try {
-        const result = await Interface.delete( req.query.id )
+        if( !req.query.sid )
+          throw new Error('Invalid Request Parameters')
+
+        const result = await Interface.delete( req.query.sid )
         res.json({ error: false, result })
       }
       catch( error ){ res.json({ error: true, message: error.message }) }
     })
+
+    app.use('/lpstore', route )
   }
 
   return { Interface, express }

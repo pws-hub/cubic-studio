@@ -1,5 +1,5 @@
 
-import Store from '../src/backend/lib/LPS.server'
+import Store from '../src/backend/lib/LPSServer'
 
 ;( async () => {
   try {

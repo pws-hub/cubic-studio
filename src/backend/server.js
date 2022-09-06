@@ -13,7 +13,7 @@ import markoMiddleware from '@marko/express'
 import * as Core from './core'
 import WWW from 'frontend/views/www.marko'
 import ErrorPage from 'frontend/views/pages/error.marko'
-import LPSServer from './lib/LPS.server'
+import LPSServer from './lib/LPSServer'
 
 const 
 getInitialScope = async ( req, res ) => {

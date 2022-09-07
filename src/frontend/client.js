@@ -12,6 +12,9 @@ import RequestClient from './lib/CARClient'
 import FileSystemClient from './lib/FSTClient'
 import IProcessClient from './lib/IPTClient'
 
+import LPSTest from '../../test/lps.client.test'
+import ProcessManagerTest from '../../test/fpm.test'
+
 function getInitialScope(){
 
 	function resolveScope( initStr ){
@@ -323,6 +326,10 @@ async function Client(){
 		await Sync()
 		// Initailize Client
 		await Client()
+
+		// Test Scripts
+		// await LPSTest()
+		// await ProcessManagerTest()
   }
   catch( error ){ console.error('[CLIENT] - App Initialization Failed: ', error ) }
 } )()

@@ -4,11 +4,13 @@ import { dotCubic, dotGitignore, configJson } from '../../src/core/GenericFile'
 
 ;( async () => {
   try {
-    // console.log( await dotCubic( dataset ) )
+    const dataset = {}
+    
+    console.log( await dotCubic( dataset ) )
     console.log( await dotGitignore( path.resolve('.') ) )
-    // console.log( await configJson( dataset ) )
+    console.log( await configJson( dataset ) )
   }
-  catch( error ){ 
+  catch( error ) {
     console.log( error )
   }
 } )()

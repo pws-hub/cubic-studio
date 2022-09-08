@@ -5,11 +5,11 @@ export default $ => {
 
   $.ongoing = labels => {
 
-    if( labels === false ){
+    if( labels === false ) {
       State.ongoingSetup = false
       return
     }
-    
+
     State.ongoingSetup = { ...(State.ongoingSetup || {}), ...labels }
   }
   $.progression = stats => {
@@ -22,14 +22,14 @@ export default $ => {
 
       State.ongoingProcess = {
         status: percent == 100 ? 'COMPLETED' : 'ONGOING',
-        message: `[${percent}%] ${processor ? processor +': ' : ''}${message}`
+        message: `[${percent}%] ${processor ? `${processor }: ` : ''}${message}`
       }
     }
   }
   $.applyTabsChange = arg => {
     // Apply and reflect changes on tabs
     if( typeof arg !== 'object' ) return
-    
+
     let tabs = []
     Array.isArray( arg ) ?
             tabs = newObject( arg ) // Update the whole tabs list
@@ -41,10 +41,10 @@ export default $ => {
 
               return tab
             } )
-    
+
     $.setSection('tabs', tabs )
   }
-  
+
   $.hasCodeSection = () => { return State.project && State.project.specs.code && !isEmpty( State.project.specs.code ) }
   $.hasAPISection = () => { return State.project && Array.isArray( State.project.specs.API ) }
   $.hasSocketSection = () => { return State.project && Array.isArray( State.project.specs.sockets ) }
@@ -65,8 +65,8 @@ export default $ => {
   }
   $.clearSection = key => {
     // Specific field of the section
-    if( key ){
-      State[ State.activeSection ][ key ] = null 
+    if( key ) {
+      State[ State.activeSection ][ key ] = null
       $.pstore.clear( key )
     }
     else State[ State.activeSection ] = {}

@@ -14,12 +14,12 @@ import GitManager from '../src/core/GitManager'
       repository: 'https://gitlab.com/multipple/applications/test-app.git'
     },
     gp = new GitManager( options )
-    
-    // await gp.initProject( false, true )
-    // await gp.cloneProject( 'https://github.com/multipple/create-app-marko', '../TestApp', true ) 
-    console.log('clear: ', await gp.clear()  )
+
+    await gp.initProject( false, true )
+    await gp.cloneProject( 'https://github.com/multipple/create-app-marko', '../TestApp', true )
+    console.log('clear: ', await gp.clear() )
   }
-  catch( error ){ 
+  catch( error ) {
     console.log( error )
   }
 } )()

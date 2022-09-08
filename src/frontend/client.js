@@ -30,22 +30,22 @@ function getInitialScope(){
 									.split('').reverse().join('')
 
 		do {
-			let
+			const
 			b1 = b64.indexOf( initStr.charAt(i++) ),
 			b2 = b64.indexOf( initStr.charAt(i++) ),
 			b3 = b64.indexOf( initStr.charAt(i++) ),
 			b4 = b64.indexOf( initStr.charAt(i++) ),
 
 			a = ( ( b1 & 0x3F ) << 2 ) | ( ( b2 >> 4 ) & 0x3 ),
-			b = ( ( b2 & 0xF  ) << 4 ) | ( ( b3 >> 2 ) & 0xF ),
-			c = ( ( b3 & 0x3  ) << 6 ) | ( b4 & 0x3F )
+			b = ( ( b2 & 0xF ) << 4 ) | ( ( b3 >> 2 ) & 0xF ),
+			c = ( ( b3 & 0x3 ) << 6 ) | ( b4 & 0x3F )
 
 			result += String.fromCharCode( a )+( b ? String.fromCharCode( b ) : '' )+( c ? String.fromCharCode( c ) : '' )
 		}
 		while( i < initStr.length )
 
 		try { return JSON.parse( result ) }
-		catch( error ){
+		catch( error ) {
 			console.log('Failed Parsing Init Scope String: ', error )
 			return false
 		}
@@ -53,7 +53,7 @@ function getInitialScope(){
 
 	return new Promise( ( resolve, reject ) => {
 			// Scope set at www. page rendereing
-			let data = uiStore.get('init')
+			const data = uiStore.get('init')
 			if( data ) return resolve( resolveScope( data ) )
 
 			// Explicitly fetch the scope
@@ -66,7 +66,7 @@ function getInitialScope(){
 function initScreenSet( e ){
 
   const
-  $window =  $( e && e.target ? this : document ),
+  $window = $( e && e.target ? this : document ),
   width = $window.width(),
   height = $window.height()
 
@@ -76,7 +76,7 @@ function initScreenSet( e ){
   if( width >= 768 ) media = 'md'
   if( width >= 992 ) media = 'lg'
   if( width >= 1200 ) media = 'xl'
-  
+
   GState.set( 'screen', { media, width, height } )
 }
 
@@ -87,50 +87,53 @@ async function handleLocale(){
 				const [ language, variant ] = locale.split('-')
 				// Fetch another dictionary
 				try {
-					const dictionary = require('./json/locales/'+ language +'.json')
+					const dictionary = require(`./json/locales/${ language }.json`)
 					GState.set( 'locale', { language, variant, dictionary } )
 					resolve()
 				}
-				catch( error ){ reject( error ) }
+				catch( error ) { reject( error ) }
 		} )
 	}
 
 	try { await initLocale( navigator.language ) }
-	catch( error ){
+	catch( error ) {
 		console.error('[CLIENT-LOAD]- Failed to init Locale language: ', error )
 		// Fetch en-US dictionary by default
 		await initLocale('en-US')
 	}
-		
-	/* Locale text translation method from
-		JS script. Helps when the need of transation
-		is out of a component
-	*/
+
+	/*
+	 * Locale text translation method from
+	 * JS script. Helps when the need of transation
+	 * is out of a component
+	 */
 	GState.set( 'locales', Locales )
 	window.Locale = text => {
-		/* Static translation
-			{
-				...
-				"User account": "Compte utilisateur",
-				...
-			}
-		*/
+		/*
+		 * Static translation
+		 * {
+		 * ...
+		 * "User account": "Compte utilisateur",
+		 * ...
+		 * }
+		 */
 		const { language, variant, dictionary } = GState.get('locale')
 
 		let translation = dictionary[ text ] || text
 
-		/* Select defined variance
-			{
-				...
-				"Buy now": {
-						"US": "Buy now",
-						"UK": "Purchase now",
-						"default": "US"
-				}
-				...
-			}
-		*/
-		if( typeof translation == 'object' ){
+		/*
+		 * Select defined variance
+		 * {
+		 * ...
+		 * "Buy now": {
+		 *	 "US": "Buy now",
+		 *	 "UK": "Purchase now",
+		 *	 "default": "US"
+		 * }
+		 * ...
+		 * }
+		 */
+		if( typeof translation == 'object' ) {
 			// Specified variant defined
 			if( variant
 					&& translation.hasOwnProperty( variant ) )
@@ -162,12 +165,12 @@ async function fetchWorkspaces(){
 	try {
 		const { error, message, workspaces } = await RGet('/workspaces')
 		if( error ) throw new Error( message )
-		
+
 		GState.set('workspaces', workspaces )
 		return
 	}
-	catch( error ){ 
-		console.log('Failed fetching workspaces: ', error ) 
+	catch( error ) {
+		console.log('Failed fetching workspaces: ', error )
 		GState.set('workspaces', [] )
 		return false
 	}
@@ -175,7 +178,7 @@ async function fetchWorkspaces(){
 
 async function Client(){
 	// Init client
-	const { 
+	const {
 		env,
 		asm,
 		mode,
@@ -184,38 +187,39 @@ async function Client(){
 		isConnected,
 		user
 	} = await getInitialScope()
-	
+
 	window.env = env
 	window.asm = asm
 	window.mode = mode
 	window.providers = providers
 
-	/*----------------------------------------------------------------*/
+	/* ----------------------------------------------------------------*/
 	// Set of overwridden process functions
 	window.___ = Overwride({ env })
 
-	/*----------------------------------------------------------------*/
+	/* ----------------------------------------------------------------*/
 	// Default global states
 	GState.set('theme', 'dark')
 	GState.set('isConnected', isConnected )
 	GState.set('user', user )
 
-	/*----------------------------------------------------------------*/
-	/* Initial Workspace State: 
-		- Context: Use for extensions & user activities tracking by page
-								@params: 
-									- accountType(Admin, Instructor, Learner)
-									- page( route name )
-									- event( name, ID )
-		- Layout: Display or main blocks of the workspace
-					@params:
-						- mode: UI segmentation mode
-								- qs (Quater state)
-								- hs (Half section)
-								- ns (No-section)
-	*/
+	/* ----------------------------------------------------------------*/
+	/*
+	 * Initial Workspace State:
+	 * - Context: Use for extensions & user activities tracking by page
+	 *				 @params:
+	 *					 - accountType(Admin, Instructor, Learner)
+	 *					 - page( route name )
+	 *					 - event( name, ID )
+	 * - Layout: Display or main blocks of the workspace
+	 *	 @params:
+	 *		 - mode: UI segmentation mode
+	 *				 - qs (Quater state)
+	 *				 - hs (Half section)
+	 *				 - ns (No-section)
+	 */
 	const wsStoreAttr = 'ws-studio'
-	
+
 	GState.set('ws', { mode: 'ns', ...(uiStore.get( wsStoreAttr ) || {}) })
 	GState
 	.define('ws')
@@ -228,7 +232,7 @@ async function Client(){
 
 		else if( newState.mode == 'auto' )
 			newState.mode = recentState.previousMode || 'qs'
-		
+
 		newState = Object.assign( {}, recentState, newState )
 
 		GState.dirty( 'ws', newState )
@@ -243,7 +247,7 @@ async function Client(){
 		GState.dirty( 'ws', wsState )
 	} )
 
-	/*----------------------------------------------------------------*/
+	/* ----------------------------------------------------------------*/
 	// Initial Console State
 	GState.set( 'logs', [] )
 	GState
@@ -255,19 +259,19 @@ async function Client(){
 	} )
 	.action( 'clear', () => GState.dirty( 'logs', [] ) )
 
-	/*----------------------------------------------------------------*/
+	/* ----------------------------------------------------------------*/
 	// Initial media window sizes
 	initScreenSet()
 	// Watch screen resize for responsiveness updates
 	$(window).on( 'resize', initScreenSet )
 
-	/*----------------------------------------------------------------*/
+	/* ----------------------------------------------------------------*/
 	// Locale translation
 	handleLocale()
 
-	/*----------------------------------------------------------------*/
+	/* ----------------------------------------------------------------*/
 	// Init Fontend - Backend communication channels
-	if( isConnected ){
+	if( isConnected ) {
 		// Request Handler
 		await RequestClient( namespaces.CAR, user )
 
@@ -279,12 +283,12 @@ async function Client(){
 		// Init Global FileSystem Explorer Interface
 		window.FSExplorer = await FileSystem.init('explorer', { ignore: false, debug: true })
 	}
-	
-	/*----------------------------------------------------------------*/
+
+	/* ----------------------------------------------------------------*/
 	// Initialize workspaces
 	GState.set('workspaces', null )
 
-	if( isConnected ){
+	if( isConnected ) {
 		GState
 		.define('workspaces')
 		.action( 'refresh', async () => await fetchWorkspaces() )
@@ -300,11 +304,11 @@ async function Client(){
 
 		fetchWorkspaces()
 	}
-	
-	/*----------------------------------------------------------------*/
+
+	/* ----------------------------------------------------------------*/
 	// Define routes
 	let Routes = [
-		{ name: 'home', path: '/', component: Home } 
+		{ name: 'home', path: '/', component: Home }
 	]
 
 	if( isConnected )
@@ -314,7 +318,7 @@ async function Client(){
 			{ name: 'project', path: '/workspace/:id/:project', component: Project }
 		]
 
-	/*----------------------------------------------------------------*/
+	/* ----------------------------------------------------------------*/
 	// Initialize application
 	App.renderSync({ Routes })
 			.replace( document.querySelector('#root') )
@@ -327,9 +331,11 @@ async function Client(){
 		// Initailize Client
 		await Client()
 
-		// Test Scripts
-		// await LPSTest()
-		// await ProcessManagerTest()
+		/*
+		 * Test Scripts
+		 * await LPSTest()
+		 * await ProcessManagerTest()
+		 */
   }
-  catch( error ){ console.error('[CLIENT] - App Initialization Failed: ', error ) }
+  catch( error ) { console.error('[CLIENT] - App Initialization Failed: ', error ) }
 } )()

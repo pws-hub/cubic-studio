@@ -25,13 +25,13 @@ function FSHandler( mode, client ){
     try {
       // Do not collect subdirs in explorer mode
       if( mode === 'explorer' ) options.subdir = false
-      
+
       const { error, message, response } = await execute( 'directory', path, options )
       if( error ) throw new Error( message )
 
       return response || {}
     }
-    catch( error ){
+    catch( error ) {
       console.log( error )
       return {}
     }
@@ -41,10 +41,10 @@ function FSHandler( mode, client ){
     try {
       const { error, message, response } = await execute( 'newDir', path, options )
       if( error ) throw new Error( message )
-      
+
       return response || true
     }
-    catch( error ){
+    catch( error ) {
       console.log( error )
       return false
     }
@@ -54,10 +54,10 @@ function FSHandler( mode, client ){
     try {
       const { error, message, response } = await execute( 'newFile', path, content, options )
       if( error ) throw new Error( message )
-      
+
       return response || true
     }
-    catch( error ){
+    catch( error ) {
       console.log( error )
       return false
     }
@@ -67,10 +67,10 @@ function FSHandler( mode, client ){
     try {
       const { error, message, response } = await execute( 'readFile', path, options )
       if( error ) throw new Error( message )
-      
+
       return response
     }
-    catch( error ){
+    catch( error ) {
       console.log( error )
       return null
     }
@@ -80,10 +80,10 @@ function FSHandler( mode, client ){
     try {
       const { error, message, response } = await execute( 'rename', path, newname, options )
       if( error ) throw new Error( message )
-      
+
       return response
     }
-    catch( error ){
+    catch( error ) {
       console.log( error )
       return false
     }
@@ -93,10 +93,10 @@ function FSHandler( mode, client ){
     try {
       const { error, message, response } = await execute( 'remove', path )
       if( error ) throw new Error( message )
-      
+
       return response
     }
-    catch( error ){
+    catch( error ) {
       console.log( error )
       return false
     }
@@ -106,10 +106,10 @@ function FSHandler( mode, client ){
     try {
       const { error, message, response } = await execute( 'move', source, destination )
       if( error ) throw new Error( message )
-      
+
       return response
     }
-    catch( error ){
+    catch( error ) {
       console.log( error )
       return false
     }
@@ -119,10 +119,10 @@ function FSHandler( mode, client ){
     try {
       const { error, message, response } = await execute( 'copy', source, destination )
       if( error ) throw new Error( message )
-      
+
       return response
     }
-    catch( error ){
+    catch( error ) {
       console.log( error )
       return false
     }
@@ -142,17 +142,17 @@ function FSHandler( mode, client ){
 }
 
 function Manager( client ){
-  
+
   this.init = ( mode, options ) => {
     return new Promise( ( resolve, reject ) => {
 
       if( !client || !isConnected )
         return reject('[FST-Client] No connection to server')
-      
+
       client.emit( 'FS::INIT', mode, options, ({ error, message }) => {
-        if( error ) 
+        if( error )
           return reject( message )
-          
+
         resolve( new FSHandler( mode, client ) )
       })
     } )
@@ -162,12 +162,12 @@ function Manager( client ){
 export default namespace => {
   return new Promise( ( resolve, reject ) => {
     // Establish socket connection channel
-    const 
+    const
     options = {
       extraHeaders: { 'X-User-Agent': 'Cubic.socket~001/1.0' },
       reconnectionDelayMax: 20000
     },
-    FSTClient = io('/'+( namespace || ''), options )
+    FSTClient = io(`/${ namespace || ''}`, options )
     .on( 'connect', () => {
       debugLog('[FST-Client] Connection established')
 

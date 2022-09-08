@@ -9,13 +9,14 @@ function ProcessHandler( client ){
     return new Promise( ( resolve, reject ) => {
       if( !client || !isConnected )
         return reject('[IPT-Client] No connection to server')
-      
+
       client.emit('IPROCESS::RUN', ...args, resolve )
     } )
   }
 
-  /** Initated process progression trackers and listeners
-   * 
+  /**
+   * Initated process progression trackers and listeners
+   *
    */
   this.trackers = {}
   client
@@ -24,8 +25,8 @@ function ProcessHandler( client ){
     typeof this.trackers[ process ] == 'function'
     && this.trackers[ process ]( error, stats )
   })
-  
-  // Process 
+
+  // Process
 
   this.setup = async ( dataset, tracker ) => {
     try {
@@ -38,7 +39,7 @@ function ProcessHandler( client ){
 
       return response || {}
     }
-    catch( error ){
+    catch( error ) {
       console.log( error )
       return {}
     }
@@ -54,7 +55,7 @@ function ProcessHandler( client ){
 
       return response || {}
     }
-    catch( error ){
+    catch( error ) {
       console.log( error )
       return {}
     }
@@ -63,7 +64,7 @@ function ProcessHandler( client ){
   this.Emulator = ( dataset, tracker ) => {
     // Unique ID of emulator control instance
     const emulatorId = `${dataset.type}:${dataset.name}`
-    
+
     return {
       run: async () => {
         try {
@@ -76,7 +77,7 @@ function ProcessHandler( client ){
 
           return response
         }
-        catch( error ){
+        catch( error ) {
           console.log( error )
           return false
         }
@@ -85,10 +86,10 @@ function ProcessHandler( client ){
         try {
           const { error, message, response } = await run( 'reloadEM', emulatorId, dataset )
           if( error ) throw new Error( message )
-          
+
           return response
         }
-        catch( error ){
+        catch( error ) {
           console.log( error )
           return false
         }
@@ -104,7 +105,7 @@ function ProcessHandler( client ){
 
           return response
         }
-        catch( error ){
+        catch( error ) {
           console.log( error )
           return false
         }
@@ -125,7 +126,7 @@ function ProcessHandler( client ){
 
           return response || true
         }
-        catch( error ){
+        catch( error ) {
           console.log( error )
           return false
         }
@@ -141,7 +142,7 @@ function ProcessHandler( client ){
 
           return response || true
         }
-        catch( error ){
+        catch( error ) {
           console.log( error )
           return false
         }
@@ -157,7 +158,7 @@ function ProcessHandler( client ){
 
           return response || true
         }
-        catch( error ){
+        catch( error ) {
           console.log( error )
           return false
         }
@@ -173,7 +174,7 @@ function ProcessHandler( client ){
 
           return response || true
         }
-        catch( error ){
+        catch( error ) {
           console.log( error )
           return false
         }
@@ -192,7 +193,7 @@ function ProcessHandler( client ){
 
       return response || true
     }
-    catch( error ){
+    catch( error ) {
       console.log( error )
       return false
     }
@@ -209,7 +210,7 @@ function ProcessHandler( client ){
 
       return response
     }
-    catch( error ){
+    catch( error ) {
       console.log( error )
       return false
     }
@@ -225,12 +226,12 @@ function ProcessHandler( client ){
 
       return response
     }
-    catch( error ){
+    catch( error ) {
       console.log( error )
       return false
     }
   }
-  
+
   // Exist initiated process channel
   this.close = () => {
     isConnected = false
@@ -239,7 +240,7 @@ function ProcessHandler( client ){
 }
 
 function Manager( client ){
-  
+
   this.create = options => {
     return new Promise( ( resolve, reject ) => {
 
@@ -248,7 +249,7 @@ function Manager( client ){
 
       client
       .emit( 'IPROCESS::CREATE', options, ({ error, message }) => {
-        if( error ) 
+        if( error )
           return reject( message )
 
         resolve( new ProcessHandler( client ) )
@@ -260,12 +261,12 @@ function Manager( client ){
 export default namespace => {
   return new Promise( ( resolve, reject ) => {
     // Establish socket connection channel
-    const 
+    const
     options = {
       extraHeaders: { 'X-User-Agent': 'Cubic.socket~001/1.0' },
       reconnectionDelayMax: 20000
     },
-    IPTClient = io('/'+( namespace || ''), options )
+    IPTClient = io(`/${ namespace || ''}`, options )
     .on( 'connect', () => {
       debugLog('[IPT-Client] Connection established')
 

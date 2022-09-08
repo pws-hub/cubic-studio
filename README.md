@@ -32,8 +32,8 @@ Full documentation of how to use it is upcoming, for now, enjoy playing with it.
 Feedback & Contribution
 -------
 
-Feedbacks are all welcome. Kindly report any encounted [Issues here][] and I'll be glad to work on it right away. Thank you.
-for those who would like to contribute, do not esitate. Send a PR and we'll get along from there. A code of conduct for CONTRIBUTORS will be publish soon.
+Feedbacks are all welcome. Kindly report any encounted [Issues here][] and we'll be glad to work on it right away. Thank you.
+for those who would like to contribute, do not esitate. Create a fork of the project, send a PR and we'll get along from there. Guidelines and code of conduct for CONTRIBUTORS will be publish soon.
 
 
 License

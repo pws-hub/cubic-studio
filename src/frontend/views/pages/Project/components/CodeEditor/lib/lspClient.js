@@ -1,8 +1,8 @@
 
 import ReconnectingWebSocket from 'reconnecting-websocket'
 import {
-	MonacoLanguageClient, 
-	CloseAction, 
+	MonacoLanguageClient,
+	CloseAction,
 	ErrorAction,
 	MonacoServices,
 	createConnection
@@ -13,17 +13,17 @@ export default ( monaco, language ) => {
 
   function createLanguageClient( connection ){
 		return new MonacoLanguageClient({
-			name: language.id.toCapitalCase() +' LSP Client',
+			name: `${language.id.toCapitalCase() } LSP Client`,
 			clientOptions: {
-				// use a language id as a document selector
+				// Use a language id as a document selector
 				documentSelector: [ language.id ],
-				// disable the default error handler
+				// Disable the default error handler
 				errorHandler: {
 					error: () => ErrorAction.Continue,
 					closed: () => CloseAction.DoNotRestart
 				}
 			},
-			// create a language client connection from the JSON RPC connection on demand
+			// Create a language client connection from the JSON RPC connection on demand
 			connectionProvider: {
 				get: ( errorHandler, closeHandler ) => {
 					return Promise.resolve( createConnection( connection, errorHandler, closeHandler ) )
@@ -31,7 +31,7 @@ export default ( monaco, language ) => {
 			}
 		})
   }
-	
+
   function createWebSocket(){
 		const
 		socketOptions = {
@@ -43,7 +43,7 @@ export default ( monaco, language ) => {
 			debug: false
 		},
 		protocol = location.protocol === 'https:' ? 'wss' : 'ws'
-		
+
 		return new ReconnectingWebSocket( `${protocol}://localhost:3000/${language.id}-lsp`, [], socketOptions )
   }
 
@@ -57,12 +57,12 @@ export default ( monaco, language ) => {
 	webSocket = createWebSocket(),
 	onConnection = connection => {
 		// Start language client
-		const 
+		const
 		languageClient = createLanguageClient( connection ),
 		disposable = languageClient.start()
-		
+
 		connection.onClose( () => disposable.dispose() )
 	}
-	
+
   listen({ webSocket, onConnection })
 }

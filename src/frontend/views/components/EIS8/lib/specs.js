@@ -16,7 +16,7 @@ export const ACCOUNT_TYPES = {
   }
 }
 export const ACTIVITY_CONTEXTS = {
-  'Explore Courses': { 
+  'Explore Courses': {
     page: 'course',
     event: { id: 'course-id' },
     keywords: [ 'course', 'program', 'activity' ]

@@ -1,6 +1,6 @@
 
 function fullname( profile ){
-  return profile.first_name +' '+ profile.last_name
+  return `${profile.first_name } ${ profile.last_name}`
 }
 
 export default ({ env }) => {
@@ -20,12 +20,12 @@ export default ({ env }) => {
     // Format multipple's user data to CubicStudio like user data format
     SearchMemberToAdd: ({ profile, account }, members ) => {
       /*
-      if( !account.roles.includes('DEVELOPER') ){
-        this.state.suggestions = false
-        this.fhandler.alert( fullname( profile ) +' is not a Developer', 'warning' )
-        return
-      }
-      */
+       *If( !account.roles.includes('DEVELOPER') ){
+       *  this.state.suggestions = false
+       *  this.fhandler.alert( fullname( profile ) +' is not a Developer', 'warning' )
+       *  return
+       *}
+       */
 
       if( !members.filter( ({ name }) => { return fullname( profile ) == name } ).length )
         return {

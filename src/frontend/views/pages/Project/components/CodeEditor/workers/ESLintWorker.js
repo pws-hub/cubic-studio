@@ -5,7 +5,7 @@ self.addEventListener( 'message', event => {
   const { code, version } = event.data
 
   try {
-    const 
+    const
     ESLintConfig = {}
     markers = ESLint.verify( code, ESLintConfig )
                     .map( ({ line, column, message, ruleId }) => ({
@@ -20,5 +20,5 @@ self.addEventListener( 'message', event => {
 
     self.postMessage({ markers, version })
   }
-  catch( error ){}
+  catch( error ) {}
 })

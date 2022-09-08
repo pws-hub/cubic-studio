@@ -1,7 +1,7 @@
 
 async function _initiate( provider, handler, req, res ){
 
-  const 
+  const
   origin = toOrigin( req.headers.host, !isOncloud() ),
   authURL = await handler( origin )
   if( !authURL )
@@ -13,8 +13,8 @@ async function _initiate( provider, handler, req, res ){
 async function _callback( provider, handler, req, res ){
   // Handle auth callback process
   const { error, message, user } = await handler( req.query )
-  
-  if( error ){
+
+  if( error ) {
     // Delete existing user session data
     delete req.session.user
 
@@ -27,48 +27,48 @@ async function _callback( provider, handler, req, res ){
       ...(req.session.credentials || {}),
       [ provider ]: req.query
     }
-    
+
     user.provider = provider
-    
+
     req.session.user = user
     req.session.authError = false
     req.session.isConnected = true
     req.session.credentials = credentials
-    
+
     // Store locally updated user session
     await Sync.setSession({ credentials, isConnected: true, user, authError: false })
   }
-    
+
   // Back to home: Make request from there to check session status
   res.redirect('/')
 }
 
 export default async ( req, res ) => {
   try {
-    const 
-    phase = req.params.phase,
-    provider = req.query.provider
+    const
+    {phase} = req.params,
+    {provider} = req.query
 
     if( !['initiate', 'callback'].includes( phase ) || !provider )
-      throw new Error(`Invalide Auth Parameters`)
-    
+      throw new Error('Invalide Auth Parameters')
+
     // Check whether request handler is defined
     if( !Configs.AUTH_HANDLERS[ provider ] )
       throw new Error(`Undefined <${provider}> Auth Handler`)
-      
+
     // Get auth handler module for this provider
-    const { initiate, callback } = require('handlers/'+ Configs.AUTH_HANDLERS[ provider ] )
+    const { initiate, callback } = require(`handlers/${ Configs.AUTH_HANDLERS[ provider ]}` )
 
     if( typeof initiate !== 'function'
         || typeof callback !== 'function' )
       throw new Error(`Invalid <${provider}> Auth Handler Methods. Expected <initiate> and <callback> method functions`)
 
-    switch( phase ){
+    switch( phase ) {
       case 'initiate': await _initiate( provider, initiate, req, res ); break
       case 'callback': await _callback( provider, callback, req, res ); break
     }
   }
-  catch( error ){
+  catch( error ) {
     console.log(`[${clc.red('ERROR')}] Unexpected Error Occured:`, error )
 
     req.session.authError = 'Unexpected Error Occured'

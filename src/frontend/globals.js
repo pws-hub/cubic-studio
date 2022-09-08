@@ -12,21 +12,21 @@ String.prototype.toCapitalCase = function(){
 
   const
   First = this.charAt(0),
-  regex = new RegExp('^'+ First )
+  regex = new RegExp(`^${ First}` )
 
   return First.toUpperCase() + this.split( regex )[1]
 }
 
-/*--------------------------------------------------------------------------*/
+/* --------------------------------------------------------------------------*/
 // Init JS plugins
 window.$ =
 window.jQuery = jQuery
 window.navigate = navigate // To navigate routers by function call
 window.uiStore = new UIStore({ prefix: 'CSUS-70', encrypt: true })
 
-/*--------------------------------------------------------------------------*/
+/* --------------------------------------------------------------------------*/
 // Add to shared-state library an easy DX API
-const 
+const
 shareState = SS(),
 GState = shareState
 GState.bind = shareState.bind
@@ -38,7 +38,7 @@ GState.define = shareState.defineAPI
 
 window.GState = GState
 
-/*--------------------------------------------------------------------------*/
+/* --------------------------------------------------------------------------*/
 // Util functions
 window.isEmpty = entry => {
   // Test empty array or object
@@ -52,16 +52,16 @@ window.Obj2Params = ( obj, excludes ) => {
   return Object.entries( obj )
                 .map( ([ key, value ]) => {
                   if( !Array.isArray( excludes ) || !excludes.includes( key ) )
-                    return key +'='+ value
+                    return `${key }=${ value}`
                 }).join('&')
 }
 window.Params2Obj = ( str, excludes ) => {
 
-  let obj = {},
+  const obj = {},
       array = str.split('&')
 
   array.map( each => {
-          let [ key, value ] = each.split('=')
+          const [ key, value ] = each.split('=')
 
           if( !Array.isArray( excludes ) || !excludes.includes( key ) )
             obj[ key ] = value
@@ -70,7 +70,7 @@ window.Params2Obj = ( str, excludes ) => {
   return obj
 }
 window.random = ( min, max ) => {
-  // generate random number at a range
+  // Generate random number at a range
   return Math.floor( Math.random() * ( max - min + 1 )+( min + 1 ) )
 }
 window.debugLog = ( ...args ) => {
@@ -84,9 +84,9 @@ window.deepAssign = ( obj1, obj2 ) => { return Object.assign( newObject( obj1 ),
 
 window.corsProxy = ( url, type ) => {
   // Ignore wrapping same origin URL
-  return new RegExp( location.origin ).test( url ) 
-          || !/^http(s?):\/\//.test( url ) ? 
-                        url : `/proxy?url=${encodeURIComponent( url )}&responseType=${type || 'blob'}` 
+  return new RegExp( location.origin ).test( url )
+          || !/^http(s?):\/\//.test( url ) ?
+                        url : `/proxy?url=${encodeURIComponent( url )}&responseType=${type || 'blob'}`
 }
 window.proName = str => {
   return str.split(/-|\s+/)
@@ -97,13 +97,13 @@ window.proName = str => {
 window.CreateRequest = provider => {
   return ( url, method, body ) => {
     return new Promise( ( resolve, reject ) => {
-      
+
       const options = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url, method: method || 'GET', body })
       }
-      
+
       fetch( `/api/${provider}`, options )
           .then( res => { return !res.ok ? reject( res.status ) : res.json() } )
           .then( resolve )

@@ -8,30 +8,30 @@ function initChannel( socket ){
   console.log('FST New Connection: ', socket.id )
 
   function init( type, options = {}, callback ){
-    
-    if( options && typeof options !== 'object' ){
-      typeof callback == 'function' 
+
+    if( options && typeof options !== 'object' ) {
+      typeof callback == 'function'
       && callback({ error: true, message: 'Invalid FS Initialization Options'})
       return
     }
 
-    switch( type ){
+    switch( type ) {
       case 'explorer': if( !options.cwd ) // Current OS user's home directory. Eg. /Users/myname
                           options.cwd = os.homedir()
-                          
+
                       socket.data.FS = new FileSystem( options )
           break
       case 'project':
-      default: if( !options.cwd ){
-                  typeof callback == 'function' 
+      default: if( !options.cwd ) {
+                  typeof callback == 'function'
                   && callback({ error: true, message: 'Undefined FS options <cwd>' })
                   return
                 }
-      
+
                 socket.data.FS = new FileSystem( options )
-                
+
                 // Report watch event to client
-                const 
+                const
                 ignore = [
                   '**/.git/**',
                   '**/dist/**',
@@ -50,26 +50,26 @@ function initChannel( socket ){
                 ACTIVE_CWD_WATCHERS[ options.cwd ] = socket.data.FS.watch( { ignore }, listener )
     }
 
-    typeof callback == 'function' 
+    typeof callback == 'function'
     && callback({ error: false })
   }
 
   async function execute( method, ...args ){
-    
+
     let callback = () => {}
     // Extract callback function
     if( typeof args.slice(-1)[0] === 'function' )
       callback = args.pop()
 
-    // console.log( method, ...args, callback )
+    // Console.log( method, ...args, callback )
     try {
       // Call targeted FileSystem method
       const response = await socket.data.FS[ method ]( ...args )
       callback({ error: false, response })
     }
-    catch( error ){
+    catch( error ) {
       console.log( error )
-      callback({ error: true, message: error.message }) 
+      callback({ error: true, message: error.message })
     }
   }
 
@@ -79,7 +79,7 @@ function initChannel( socket ){
     socket.disconnect( true )
 
     typeof callback == 'function'
-    && callback({ error: false, message: 'Closed' }) 
+    && callback({ error: false, message: 'Closed' })
   }
 
   socket
@@ -90,6 +90,6 @@ function initChannel( socket ){
 
 export default ioServer => {
   ioServer
-  .of('/'+ process.env.FST_NAMESPACE )
+  .of(`/${ process.env.FST_NAMESPACE}` )
   .on( 'connection', initChannel )
 }

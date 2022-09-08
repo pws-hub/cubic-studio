@@ -8,7 +8,7 @@ function isValidEnv( env ){
   return typeof env == 'object' && !isEmpty( env )
 }
 export default class Emulator {
-  
+
   constructor( options = {} ){
     // Process config
     this.process = {
@@ -37,12 +37,12 @@ export default class Emulator {
   async getConfig(){
     // Fetch emulator config in .cubic
     let config
-    try { config = JSON.parse( await fs.readFile( this.process.cwd +'/.cubic', 'UTF-8' ) ) }
-    catch( error ){ throw new Error('Not found or Invalid .cubic file at the project root') }
+    try { config = JSON.parse( await fs.readFile( `${this.process.cwd }/.cubic`, 'UTF-8' ) ) }
+    catch( error ) { throw new Error('Not found or Invalid .cubic file at the project root') }
 
     if( !config.emulator )
       throw new Error('No emulator configuration found in .cubic file')
-      
+
     return config.emulator
   }
 
@@ -51,9 +51,9 @@ export default class Emulator {
     return new Promise( ( resolve, reject ) => {
       // Connected
       if( this.esm ) return resolve()
-      
+
       pm2.connect( error => {
-        if( error ) 
+        if( error )
           return reject( error )
 
         this.esm = pm2
@@ -75,7 +75,7 @@ export default class Emulator {
     return new Promise( ( resolve, reject ) => {
       // Existing connection
       if( !this.esm ) return reject()
-      
+
       this.esm.disconnect()
       this.esm = false
 
@@ -97,8 +97,8 @@ export default class Emulator {
           // Set development server PORT
           PORT_DEV: Number( config.env.PORT || this.process.env.PORT ) + 1
         }
-      
-      const 
+
+      const
       { name, cwd, env } = this.process,
       rsOptions = {
         cwd,
@@ -110,23 +110,23 @@ export default class Emulator {
 
       console.log( rsOptions )
 
-      rs( `chmod +x ./.sandbox/start.sh`, rsOptions, ( ...args ) => console.log('watcher: ', ...args ) )
+      rs( 'chmod +x ./.sandbox/start.sh', rsOptions, ( ...args ) => console.log('watcher: ', ...args ) )
         .then( async ( ...args ) => {
           try {
             const hostname = toOrigin( `${env.HOST}:${env.PORT}`, !isOncloud() )
 
-            /** 
+            /**
              * TODO: Handle this with PM2 process.send & process.launchBus event manager
              * ISSUE: Razzle spawn the sandbox server process so PM2
              *        only run a script to start the process without
              *        managing it. Therefore process.send(...) & bus.on(...)
              *        between started sandbox-server and Emulator doen't work
-             * 
+             *
              * HACK: Check frequently whether the started
              *        process (server) has finished compiling
              *        and now listen.
              */
-            let 
+            let
             MAX_ATTEMPT = 45, // 45 seconds
             untilServerUp = setInterval( async () => {
               try {
@@ -135,12 +135,12 @@ export default class Emulator {
                 clearInterval( untilServerUp )
                 resolve({ pid, cwd, name, hostname })
               }
-              catch( error ){
+              catch( error ) {
                 MAX_ATTEMPT--
                 this.debug(`Failed [${45 - MAX_ATTEMPT}]: `, error.message )
 
                 // Maximum attempt reached
-                if( MAX_ATTEMPT == 0 ){
+                if( MAX_ATTEMPT == 0 ) {
                   // Emulator server still not available: exit
                   clearInterval( untilServerUp )
 
@@ -151,7 +151,7 @@ export default class Emulator {
               }
             }, 1000 )
           }
-          catch( error ){ reject( error ) }
+          catch( error ) { reject( error ) }
         } )
         .catch( reject )
     } )
@@ -172,9 +172,9 @@ export default class Emulator {
                   // Set development server PORT
                   PORT_DEV: Number( config.env.PORT || this.process.env.PORT ) + 1
                 }
-                
+
               this.esm.reload( this.process.name, async ( error, metadata ) => {
-                if( error ){
+                if( error ) {
                   this.disconnect()
                   return reject( error )
                 }
@@ -189,24 +189,24 @@ export default class Emulator {
                     // Set development server PORT
                     PORT_DEV: Number( config.env || this.process.env.PORT ) + 1
                   }
-                
+
                 const
                 { pid } = metadata[0],
                 { name, cwd, env } = this.process,
                 hostname = toOrigin( `${env.HOST}:${env.PORT}`, !isOncloud() )
 
-                /** 
+                /**
                  * TODO: Handle this with PM2 process.send & process.launchBus event manager
                  * ISSUE: Razzle spawn the sandbox server process so PM2
                  *        only run a script to start the process without
                  *        managing it. Therefore process.send(...) & bus.on(...)
                  *        between started sandbox-server and Emulator doen't work
-                 * 
+                 *
                  * HACK: Check frequently whether the started
                  *        process (server) has finished compiling
                  *        and now listen.
                  */
-                let 
+                let
                 MAX_ATTEMPT = 45, // 45 seconds
                 untilServerUp = setInterval( async () => {
                   try {
@@ -215,12 +215,12 @@ export default class Emulator {
                     clearInterval( untilServerUp )
                     resolve({ pid, cwd, name, hostname })
                   }
-                  catch( error ){
+                  catch( error ) {
                     MAX_ATTEMPT--
                     this.debug(`Failed [${45 - MAX_ATTEMPT}]: `, error.message )
 
                     // Maximum attempt reached
-                    if( MAX_ATTEMPT == 0 ){
+                    if( MAX_ATTEMPT == 0 ) {
                       // Emulator server still not available: exit
                       clearInterval( untilServerUp )
 
@@ -232,7 +232,7 @@ export default class Emulator {
                 }, 1000 )
               } )
             }
-            catch( error ){ reject( error ) }
+            catch( error ) { reject( error ) }
           } )
           .catch( reject )
     } )
@@ -244,7 +244,7 @@ export default class Emulator {
       this.connect()
           .then( () => {
             this.esm.stop( this.process.name, ( error, _process ) => {
-              if( error ){
+              if( error ) {
                 this.disconnect()
                 return reject( error )
               }
@@ -277,7 +277,7 @@ export default class Emulator {
       this.connect()
           .then( () => {
             this.esm.delete( this.process.name, error => {
-              if( error ){
+              if( error ) {
                 this.disconnect()
                 return reject( error )
               }

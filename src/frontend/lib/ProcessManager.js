@@ -2,15 +2,17 @@
 import EventEmitter from 'events'
 import CacheStorage from 'all-localstorage'
 
-/** Check metadata schema
- * 
+/**
+ * Check metadata schema
+ *
  */
 function isValidMetadata( metadata ){
   return true
 }
 
-/** Check process data schema
- * 
+/**
+ * Check process data schema
+ *
  */
 function isValidProcess( process ){
   return true
@@ -19,11 +21,12 @@ function isValidProcess( process ){
 class EventHanlder extends EventEmitter {}
 
 export default class ProcessManager extends EventHanlder {
-  
-  /** Initialize process manager state
+
+  /**
+   * Initialize process manager state
    * variables, cache, fetch & load installed
    * packages.
-   * 
+   *
    * @configs
    *    - CPR   Access configuration to Cubic Package Repository
    *    - LPS   Locale Package Store client
@@ -42,16 +45,17 @@ export default class ProcessManager extends EventHanlder {
 
     // In-browser environment cache
     this.cache = new CacheStorage({ prefix: 'pm-cache', encrypt: true })
-    this.cacheName = this.UAT.toLowerCase() +'-process'
+    this.cacheName = `${this.UAT.toLowerCase() }-process`
 
     this.__PROCESS_THREADS = this.cache.get( this.cacheName ) || {}
     this.__ACTIVE_APPLICATIONS = {}
-    this.__FLASH_APPLICATIONS = this.cache.get( this.cacheName +'-temp') || {}
+    this.__FLASH_APPLICATIONS = this.cache.get( `${this.cacheName }-temp`) || {}
     this.__MIMETYPE_SUPPORT = {}
   }
 
 
-  /** Fetch and register all installed packages 
+  /**
+   * Fetch and register all installed packages
    * to process threads list
    */
   async load(){
@@ -61,57 +65,62 @@ export default class ProcessManager extends EventHanlder {
     && await Promise.all( list.map( metadata => {
       const process = {
         loaded: false,
-        status: 'LATENT', 
+        status: 'LATENT',
         metadata,
         argv: {},
         stats: {}
       }
-      
+
       this.register.bind(this)( process )
     } ) )
-    
+
     // Close all temporary loaded apps
     Object.keys( this.__FLASH_APPLICATIONS ).map( this.quit.bind(this) )
-    
+
     this.emit('ready')
   }
 
 
-  /** Return all existing process threads
+  /**
+   * Return all existing process threads
    * state details
    */
   threads(){ return Object.values( this.__PROCESS_THREADS ) }
-  
 
-  /** Return all loaded process theads
+
+  /**
+   * Return all loaded process theads
    * state details
    */
   loaded(){ return Object.values( this.__PROCESS_THREADS ).filter( ({ loaded }) => { return loaded } ) }
-  
 
-  /** Return a list of process theads
+
+  /**
+   * Return a list of process theads
    * state details by their current status
-   * 
+   *
    * @status   Process status: `LATENT`, `ACTIVE`, `STALLED`
-   * 
+   *
    */
   filter( status ){ return Object.values( this.__PROCESS_THREADS ).filter( each => { return each.status == status } ) }
 
 
-  /** Check whether a given process thread
+  /**
+   * Check whether a given process thread
    * exists
-   * 
+   *
    * @sid   Store id of installed package
-   * 
+   *
    */
   exists( sid ){ return !!this.__PROCESS_THREADS.hasOwnProperty( sid ) }
-  
 
-  /** Check whether an application requires 
+
+  /**
+   * Check whether an application requires
    * or have a missing permissions
-   * 
+   *
    * @metadata
-   * 
+   *
    */
   requirePermission({ resource }){
     return resource
@@ -125,13 +134,14 @@ export default class ProcessManager extends EventHanlder {
   }
 
 
-  /** Make an external request to get
+  /**
+   * Make an external request to get
    * authorization for mandatory permissions
-   * 
+   *
    * @type        Type of permission: `scope`, `feat`, `context`, ...
    * @requestor   Metadata of package requesting permissions
    * @list        List of mandatory permissions
-   * 
+   *
    */
   askPermission( type, requestor, list ){
     return new Promise( resolve => {
@@ -140,11 +150,12 @@ export default class ProcessManager extends EventHanlder {
   }
 
 
-  /** Generate public access URL of a favicon
+  /**
+   * Generate public access URL of a favicon
    * asset deployed on a CPR
-   * 
+   *
    * @metadata
-   * 
+   *
    */
   favicon( metadata ){
     if( !isValidMetadata( metadata ) ) return ''
@@ -154,11 +165,12 @@ export default class ProcessManager extends EventHanlder {
   }
 
 
-  /** Register new process thread
-   * 
+  /**
+   * Register new process thread
+   *
    * @process
-   * 
-   * NOTE: Requires & await for mandatory 
+   *
+   * NOTE: Requires & await for mandatory
    *       permissions to complete the registration
    */
   async register( process ){
@@ -166,33 +178,34 @@ export default class ProcessManager extends EventHanlder {
     if( !isValidProcess( process ) ) return
 
     const { sid, type, name, runscript, resource } = process.metadata
-    if( this.__ACTIVE_APPLICATIONS.hasOwnProperty( name ) ){
+    if( this.__ACTIVE_APPLICATIONS.hasOwnProperty( name ) ) {
       // Throw process already exist alert
       this.emit('alert', 'PROCESS_EXIST', process.metadata )
       return false
     }
 
-    /** Send out mandatory permission request
-     * 
+    /**
+     * Send out mandatory permission request
+     *
      * IMPORTANT: Wait for feedback to continue the
      * registration.
      */
-    if( this.requirePermission( process.metadata ) ){
+    if( this.requirePermission( process.metadata ) ) {
       const list = await this.askPermission( 'scope', process.metadata, resource.permissions.scope )
-      
-      if( Array.isArray( list ) ){
+
+      if( Array.isArray( list ) ) {
         resource.permissions.scope = list
         await this.LPS.update( sid, { resource })
       }
     }
-    
+
     this.__PROCESS_THREADS[ sid ] = process
 
     // Maintain a dedicated list of applications process ids: Auto-loadable or not
-    if( type == 'application' ){
+    if( type == 'application' ) {
       this.__ACTIVE_APPLICATIONS[ name ] = sid
 
-      if( resource && resource.services && !isEmpty( resource.services ) ){
+      if( resource && resource.services && !isEmpty( resource.services ) ) {
         // Application that can `EDIT` file or data
         Array.isArray( resource.services.editor )
         && resource.services.editor.map( mime => {
@@ -209,31 +222,33 @@ export default class ProcessManager extends EventHanlder {
       }
     }
 
-    /** Register globally all auto-loadable processes
+    /**
+     * Register globally all auto-loadable processes
      * define by "runscript" configurations.
      */
     if( runscript
         && ( ( runscript[ this.UAT ] && runscript[ this.UAT ].autoload ) // Specific account
-              || ( runscript['*'] && runscript['*'].autoload ) ) ){ // All account
+              || ( runscript['*'] && runscript['*'].autoload ) ) ) { // All account
       this.__PROCESS_THREADS[ sid ].loaded = true
       this.emit('refresh', { loaded: this.loaded(), actives: this.filter('ACTIVE') })
     }
   }
-  
 
-  /** Unregister a process
-   * 
-   * @sid   Store id of installed package 
+
+  /**
+   * Unregister a process
+   *
+   * @sid   Store id of installed package
    *        Use as process ID as well
-   * 
+   *
    */
   unregister( sid ){
-    
+
     if( !this.__PROCESS_THREADS[ sid ] ) return
 
     const { loaded, metadata } = this.__PROCESS_THREADS[ sid ]
     delete this.__PROCESS_THREADS[ sid ]
-    
+
     // Close auto-loaded application if running
     if( !loaded || !this.quit( metadata.name ) ) return
     delete this.__ACTIVE_APPLICATIONS[ metadata.name ]
@@ -242,43 +257,45 @@ export default class ProcessManager extends EventHanlder {
   }
 
 
-  /** Return a given process metadata
-   * 
+  /**
+   * Return a given process metadata
+   *
    * @query   Match metadata `sid`, `name` or `nsi`
-   * 
+   *
    */
   metadata( query ){
     // Retreive a given process metadata by sid or name or nsi
-    for( let sid in this.__PROCESS_THREADS ){
+    for( const sid in this.__PROCESS_THREADS ) {
       const { metadata } = this.__PROCESS_THREADS[ sid ]
 
-      if( query == sid 
+      if( query == sid
           || metadata.nsi == query
           || metadata.name == query )
         return { ...metadata, favicon: this.favicon( metadata ) }
     }
-    
+
     // Workspace alert message
     this.emit('alert', 'PROCESS_NOT_FOUND', query )
     return null
   }
 
 
-  /** Unregister a process
-   * 
+  /**
+   * Unregister a process
+   *
    * @type   Opening data or file MIME type
    * @argv   Input argument variables to run the process
-   * 
+   *
    */
   open( type, argv = {} ){
-   
-    if( !Array.isArray( this.__MIMETYPE_SUPPORT.hasOwnProperty( type ) ) ){
+
+    if( !Array.isArray( this.__MIMETYPE_SUPPORT.hasOwnProperty( type ) ) ) {
       console.log('[EXT]: No process to read this datatype found')
       return false
     }
 
     for( let o = 0; o < this.__MIMETYPE_SUPPORT[ type ].length; o++ )
-      if( this.__MIMETYPE_SUPPORT[ type ][ o ].defaultHandler ){
+      if( this.__MIMETYPE_SUPPORT[ type ][ o ].defaultHandler ) {
         this.run( this.__MIMETYPE_SUPPORT[ type ][ o ].name, argv )
         return true
       }
@@ -289,11 +306,12 @@ export default class ProcessManager extends EventHanlder {
   }
 
 
-  /** Spawn a new process
-   * 
+  /**
+   * Spawn a new process
+   *
    * @sid    User installed package store ID as process ID
    * @argv   Input argument variables to run the process
-   * 
+   *
    */
   spawn( sid, argv = {} ){
 
@@ -305,15 +323,15 @@ export default class ProcessManager extends EventHanlder {
     hightIndex = ActiveProcesses.length > 1 ?
                     Math.max( ...( ActiveProcesses.map( ({ index }) => { return index } ) ) )
                     : ActiveProcesses.length
-                    
+
     // Clear notification badge event
     this.emit('notification-clear', sid )
-    
+
     // Default workspace view mode
     let WSMode = false
 
     // Activate a new process
-    if( this.__PROCESS_THREADS[ sid ].status !== 'ACTIVE' ){
+    if( this.__PROCESS_THREADS[ sid ].status !== 'ACTIVE' ) {
       this.__PROCESS_THREADS[ sid ] = { ...this.__PROCESS_THREADS[ sid ], status: 'ACTIVE', argv }
 
       // Process has a default workspace view mode
@@ -324,33 +342,34 @@ export default class ProcessManager extends EventHanlder {
                     || ( runscript['*'] && runscript['*'].workspace ) )
     }
     // No re-indexing required when 0 or only 1 process thread is active
-    else if( hightIndex <= 1 ){
+    else if( hightIndex <= 1 ) {
       // Update the `argv` of this active process
-      if( argv ){
+      if( argv ) {
         this.__PROCESS_THREADS[ sid ].argv = argv
 
         this.cache.set( this.cacheName, this.__PROCESS_THREADS )
         this.emit( 'refresh', { loaded: this.loaded(), actives: this.filter('ACTIVE') })
       }
 
-      return 
+      return
     }
-    
+
     this.__PROCESS_THREADS[ sid ].index = hightIndex + 1 // Position targeted view block to the top
 
     this.cache.set( this.cacheName, this.__PROCESS_THREADS )
     this.emit( 'refresh', { loaded: this.loaded(), actives: this.filter('ACTIVE') })
-    
+
     // Show Aside in default/auto mode
     ;( !ActiveProcesses.length || WSMode ) && this.emit( 'ws-mode', WSMode || 'auto' )
   }
 
 
-  /** Refresh a running process in-memory
+  /**
+   * Refresh a running process in-memory
    * metadata with LPS metadata
-   * 
+   *
    * @sid    Installed package store ID used as process ID
-   * 
+   *
    */
   async refresh( sid ){
     try {
@@ -360,25 +379,26 @@ export default class ProcessManager extends EventHanlder {
 
       // Replace process metadata
       this.__PROCESS_THREADS[ sid ].metadata = metadata
-      
+
       // Re-run the process with current argv if active
       this.__PROCESS_THREADS[ sid ].status == 'ACTIVE'
       && this.spawn( sid, this.__PROCESS_THREADS[ sid ].argv )
 
       this.emit( 'refresh', { loaded: this.loaded(), actives: this.filter('ACTIVE') })
     }
-    catch( error ){ console.log('Failed Refreshing Process: ', error ) }
+    catch( error ) { console.log('Failed Refreshing Process: ', error ) }
   }
 
 
-  /** Kill a running process
-   * 
+  /**
+   * Kill a running process
+   *
    * @sid    Installed package store ID used as process ID
-   * 
+   *
    */
   kill( sid ){
     // Is not active
-    if( this.__PROCESS_THREADS[ sid ].status !== 'ACTIVE' ) 
+    if( this.__PROCESS_THREADS[ sid ].status !== 'ACTIVE' )
       return false
 
     // Send quit signal to the application
@@ -386,44 +406,45 @@ export default class ProcessManager extends EventHanlder {
 
     this.__PROCESS_THREADS[ sid ] = { ...this.__PROCESS_THREADS[ sid ], status: 'LATENT', argv: {} }
     this.cache.set( this.cacheName, this.__PROCESS_THREADS )
-    
+
     // Delete process in case it has flash flag
-    if( this.__FLASH_APPLICATIONS[ sid ] ){
+    if( this.__FLASH_APPLICATIONS[ sid ] ) {
       this.__PROCESS_THREADS[ sid ].loaded = false
       delete this.__FLASH_APPLICATIONS[ sid ]
-      
-      this.cache.set( this.cacheName +'-temp', this.__FLASH_APPLICATIONS )
+
+      this.cache.set( `${this.cacheName }-temp`, this.__FLASH_APPLICATIONS )
     }
-    
+
     this.emit('refresh', { loaded: this.loaded(), actives: this.filter('ACTIVE') })
     this.emit('ws-mode', { mode: !this.filter('ACTIVE').length ? 'ns' : 'auto' })
   }
 
 
-  /** Run an application
-   * 
+  /**
+   * Run an application
+   *
    * @name    App name
    * @argv    Input argument variables to run the app
-   * 
+   *
    */
   run( name, argv = {} ){
 
-    if( !this.__ACTIVE_APPLICATIONS[ name ] ){
+    if( !this.__ACTIVE_APPLICATIONS[ name ] ) {
       this.emit('alert', 'APPLICATION_NOT_FOUND', name )
       return false
     }
 
     const sid = this.__ACTIVE_APPLICATIONS[ name ]
-    
+
     // Start new process
     this.spawn( sid, argv )
-    
+
     // Temporary load application to loaded list: Get removed when quit
-    if( !this.__PROCESS_THREADS[ sid ].loaded ){
+    if( !this.__PROCESS_THREADS[ sid ].loaded ) {
       this.__PROCESS_THREADS[ sid ].loaded = true
 
       this.__FLASH_APPLICATIONS[ sid ] = this.__PROCESS_THREADS[ sid ].metadata.name
-      this.cache.set( this.cacheName +'-temp', this.__FLASH_APPLICATIONS )
+      this.cache.set( `${this.cacheName }-temp`, this.__FLASH_APPLICATIONS )
 
       this.cache.set( this.cacheName, this.__PROCESS_THREADS )
       this.emit( 'refresh', { loaded: this.loaded(), actives: this.filter('ACTIVE') })
@@ -437,19 +458,20 @@ export default class ProcessManager extends EventHanlder {
   }
 
 
-  /** Quit an application
-   * 
+  /**
+   * Quit an application
+   *
    * @name    App name
-   * 
+   *
    */
   quit( name ){
 
-    if( !this.__ACTIVE_APPLICATIONS[ name ] ){
+    if( !this.__ACTIVE_APPLICATIONS[ name ] ) {
       // Throw no found process alert
       this.emit('alert', 'APPLICATION_NOT_FOUND', name )
       return false
     }
-    
+
     this.kill( this.__ACTIVE_APPLICATIONS[ name ] )
     return true
   }

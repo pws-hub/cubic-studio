@@ -33,44 +33,47 @@ export default class PackageManager {
     // Script runner options
     this.rsOptions = { cwd: this.cwd, stdio: 'pipe', shell: true }
   }
-  
-  /** Generate initial `package.json` and `config.json`
+
+  /**
+   * Generate initial `package.json` and `config.json`
    *  requirement files at project root.
-   * 
+   *
    * @configs Custom configurations
-   * 
+   *
    */
   async init( configs ){
     // Default is CPM config file.
-    let filepath = this.cwd +'/config.json'
+    let filepath = `${this.cwd }/config.json`
 
     // Generate 3rd party CLI package managers (npm, yarn) package.json
     if( ['npm', 'yarn'].includes( this.manager ) )
-      filepath = this.cwd +'/package.json'
-      
+      filepath = `${this.cwd }/package.json`
+
     // Check & Fetch existing config.json/package.json content
     try {
       const existing = await fs.readJson( filepath )
-      
-      /** Merge new information with exising
+
+      /**
+       * Merge new information with exising
        *  config.json/package.json content.
        */
       if( typeof existing == 'object' )
         configs = { ...existing, ...configs }
     }
-    catch( error ){}
+    catch( error ) {}
 
     // Generate a new package.json file
     await fs.outputJSON( filepath, configs, { spaces: '\t' } )
   }
 
-  /** `npm` or `yarn` CLI command runner
-   * 
+  /**
+   * `npm` or `yarn` CLI command runner
+   *
    * @verb Package managemet action: install, remove, update, ...
    * @packages Space separated list of NodeJS packages/libraries
    * @params Check `npm` or `yarn` command parameters documentation
    * @progress  Process tracking report function. (optional) Default to `this.watcher`
-   * 
+   *
    */
   CLIManager( verb, packages, params, progress ){
     return new Promise( ( resolve, reject ) => {
@@ -83,21 +86,22 @@ export default class PackageManager {
     } )
   }
 
-  /** Install dependency package requirements listed 
+  /**
+   * Install dependency package requirements listed
    *  in `config.json` or `package.json` files
-   * 
+   *
    * Use `npm` or `yarn` for NodeJS packages & `cpm`
    * for Cubic Package
-   * 
+   *
    * @params
    *    [-f]  Full installation process (Retrieve metadata & download packages)
    *    [-d]  Is dependency package installation
    * @progress  Process tracking report function. (optional) Default to `this.watcher`
-   * 
+   *
    */
   async installPackages( params = '', progress ){
-  
-    if( typeof params == 'function' ){
+
+    if( typeof params == 'function' ) {
       progress = params,
       params = ''
     }
@@ -107,14 +111,15 @@ export default class PackageManager {
     // Handle by 3rd party CLI package managers like: npm
     if( ['npm', 'yarn'].includes( this.manager ) )
       return await this.CLIManager( 'install', null, params, progress )
-    
+
   }
 
-  /** Install one or a list of packages
-   * 
+  /**
+   * Install one or a list of packages
+   *
    * Use `npm` or `yarn` for NodeJS packages & `cpm`
    * for Cubic Package
-   * 
+   *
    * @packages  Space separated list of package references
    *            Eg. `application:namespace.name~version plugin:...`
    * @params
@@ -122,11 +127,11 @@ export default class PackageManager {
    *    [-d]      Is dependency package installation
    *    [--force] Override directory of existing installations of same packages
    * @progress  Process tracking report function. (optional) Default to `this.watcher`
-   * 
+   *
    */
   async install( packages, params = '', progress ){
-  
-    if( typeof params == 'function' ){
+
+    if( typeof params == 'function' ) {
       progress = params,
       params = ''
     }
@@ -134,33 +139,34 @@ export default class PackageManager {
     progress = progress || this.watcher
 
     // Handle by 3rd party CLI package managers like: npm
-    if( ['npm', 'yarn'].includes( this.manager ) ){
+    if( ['npm', 'yarn'].includes( this.manager ) ) {
       let verb
-      switch( this.manager ){
+      switch( this.manager ) {
         case 'npm': verb = 'install'; break
         case 'yarn': // Yarn is use by default
-        default: verb = 'add' 
+        default: verb = 'add'
       }
-    
+
       return await this.CLIManager( verb, packages, params, progress )
     }
 
     // Check whether a package repository is defined
     if( !this.cpr )
       throw new Error('Undefined Cubic Package Repository')
-    
-    const 
+
+    const
     _this = this,
     plist = packages.split(/\s+/),
     downloadPackage = ( { type, namespace, name }, { metadata, dtoken }, isDep ) => {
       return new Promise( ( resolve, reject ) => {
-        /** Define installation directory
-         * 
+        /**
+         * Define installation directory
+         *
          * NOTE: Packages are extracted
          *   - Directly into `cwd` by namespace folder (Main package)
          *   - Or into respective dependency type folders (Dependency package: by `isDep` flag)
          */
-        const 
+        const
         directory = `${_this.cwd}/${isDep ? `.${type}/` : ''}${namespace}/${name}~${metadata.version}`,
         proceed = () => {
           // .gz format unzipping stream
@@ -170,7 +176,7 @@ export default class PackageManager {
           unzipStream
           .on('data', chunk => {
             unzipSize += chunk.length
-            progress( false, unzipSize, `Unpacking ...`)
+            progress( false, unzipSize, 'Unpacking ...')
           })
           .on('error', reject )
 
@@ -178,12 +184,12 @@ export default class PackageManager {
           const unpackStream = tar.extract( directory ).on( 'error', reject )
 
           request
-          .get({ url: `${_this.cpr}/package/download?dtoken=${dtoken}`, json: true }, 
+          .get({ url: `${_this.cpr}/package/download?dtoken=${dtoken}`, json: true },
                 async ( error, response, body ) => {
-                  if( error || body.error ) 
+                  if( error || body.error )
                     return reject( error || body.message )
 
-                  progress( false, null, `Completed`)
+                  progress( false, null, 'Completed')
                   resolve()
                 })
           .pipe( unzipStream ) // Unzip package archive
@@ -194,11 +200,12 @@ export default class PackageManager {
             await fs.ensureDir( directory )
             proceed()
           }
-          catch( error ){ reject( error ) }
+          catch( error ) { reject( error ) }
         }
 
         progress( false, null, `Installation directory: ${directory}`)
-        /** Do not override existing installation directory
+        /**
+         * Do not override existing installation directory
          * unless --force flag is set in params
          */
         params.includes('--force') ?
@@ -216,17 +223,17 @@ export default class PackageManager {
               && metadata.resource.dependencies
               && metadata.resource.dependencies.length
               && metadata.resource.dependencies.filter( each => { return depRegex.test( each ) } )
-      
+
       if( !Array.isArray( deps ) || !deps.length ) return metadata
 
-      for( const x in deps ){
+      for( const x in deps ) {
         const [ _, depType ] = deps[x].match( depRegex ) || []
 
-        let response = await eachPackage( deps[x], depType )
+        const response = await eachPackage( deps[x], depType )
         if( !response ) throw new Error(`<${deps[x]}> not found`)
-        
-        const category = depType === 'plugin' ? 'plugins' : 'libraries' // plugins or libraries
-        
+
+        const category = depType === 'plugin' ? 'plugins' : 'libraries' // Plugins or libraries
+
         if( !metadata[ category ] ) metadata[ category ] = {}
         metadata[ category ][ response.metadata.nsi ] = response.metadata
       }
@@ -237,7 +244,7 @@ export default class PackageManager {
       const refs = parsePackageReference( pkg )
       if( !refs )
         throw new Error(`Invalid <${pkg}> package reference`)
-      
+
       progress( false, null, `Resolving ${pkg}`)
       const response = await prequest.get({ url: `${_this.cpr}/install/${pkg}`, json: true })
       if( response.error ) throw new Error( response.message )
@@ -261,25 +268,26 @@ export default class PackageManager {
     return await eachPackage( plist.shift(), params.includes('-d') )
   }
 
-  /** Remove/Uninstall one or a list of packages
-   * 
+  /**
+   * Remove/Uninstall one or a list of packages
+   *
    * Use `npm` or `yarn` for NodeJS packages & `cpm`
    * for Cubic Package
-   * 
+   *
    * @packages  Space separated list of package references
    *            Eg. `application:namespace.name~version plugin:...`
    * @params
    *    [-f]  Full installation process (Retrieve metadata & download packages)
    *    [-d]  Is dependency package installation
    * @progress  Process tracking report function. (optional) Default to `this.watcher`
-   * 
+   *
    */
   async remove( packages, params = '', progress ){
 
     if( !packages )
       throw new Error('Undefined package to uninstall')
 
-    if( typeof params == 'function' ){
+    if( typeof params == 'function' ) {
       progress = params,
       params = ''
     }
@@ -287,26 +295,26 @@ export default class PackageManager {
     progress = progress || this.watcher
 
     // Handle by 3rd party CLI package managers like: npm
-    if( ['npm', 'yarn'].includes( this.manager ) ){
+    if( ['npm', 'yarn'].includes( this.manager ) ) {
       let verb
-      switch( this.manager ){
+      switch( this.manager ) {
         case 'npm': verb = 'uninstall'; break
         case 'yarn': // Yarn is use by default
         default: verb = 'remove'
       }
-    
+
       return await this.CLIManager( verb, packages, params, progress )
     }
 
     // Remove package installed with cpm
-    const 
+    const
     _this = this,
     plist = packages.split(/\s+/),
     eachPackage = async pkg => {
       const refs = parsePackageReference( pkg )
       if( !refs ) throw new Error(`Invalid <${pkg}> package reference`)
-      
-      const 
+
+      const
       { type, namespace, name, version } = refs,
       nspDir = `${_this.cwd}/${type}s/${namespace}`
 
@@ -314,10 +322,11 @@ export default class PackageManager {
       if( !await fs.pathExists( nspDir ) )
         throw new Error(`No installation of <${pkg}> found`)
 
-      /** Clear all different installed versions of this 
-       * package, if no version specified 
+      /**
+       * Clear all different installed versions of this
+       * package, if no version specified
        */
-      if( !version ){
+      if( !version ) {
         const dir = await fs.readdir( nspDir )
         await Promise.all( dir.map( dirname => {
           if( dirname.includes( name ) )
@@ -334,25 +343,26 @@ export default class PackageManager {
     return await eachPackage( plist.shift() )
   }
 
-  /** Update one or a list of packages
-   * 
+  /**
+   * Update one or a list of packages
+   *
    * Use `npm` or `yarn` for NodeJS packages & `cpm`
    * for Cubic Package
-   * 
+   *
    * @packages  Space separated list of package references
    *            Eg. `application:namespace.name~version plugin:...`
    * @params
    *    [-f]  Full installation process (Retrieve metadata & download packages)
    *    [-d]  Is dependency package installation
    * @progress  Process tracking report function. (optional) Default to `this.watcher`
-   * 
+   *
    */
   async update( packages, params = '', progress ){
 
     if( !packages )
       throw new Error('Undefined package to uninstall')
 
-    if( typeof params == 'function' ){
+    if( typeof params == 'function' ) {
       progress = params,
       params = ''
     }
@@ -360,9 +370,9 @@ export default class PackageManager {
     progress = progress || this.watcher
 
     // Handle by 3rd party CLI package managers like: npm
-    if( ['npm', 'yarn'].includes( this.manager ) ){
+    if( ['npm', 'yarn'].includes( this.manager ) ) {
       let verb
-      switch( this.manager ){
+      switch( this.manager ) {
         case 'npm': verb = 'update'; break
         case 'yarn': // Yarn is use by default
         default: verb = 'upgrade'
@@ -371,23 +381,24 @@ export default class PackageManager {
 
       return await this.CLIManager( verb, packages, params, progress )
     }
-    
+
     // Update: Reinstall packages to their latest versions
     packages = packages.split(/\s+/).map( each => { return each.replace(/~(([0-9]\.?){2,3})/, '') }).join(' ')
 
     return await this.install( packages, params, progress )
   }
 
-  /** Publish current working directory as package
-   * 
+  /**
+   * Publish current working directory as package
+   *
    * @progress  Process tracking report function. (optional) Default to `this.watcher`
-   * 
+   *
    */
   async publish( progress ){
     // Check whether a package repository is defined
     if( !this.cpr )
       throw new Error('Undefined Cubic Package Repository')
-    
+
     // TODO: Preliminary checks of packagable configurations
 
 
@@ -396,9 +407,9 @@ export default class PackageManager {
     let metadata
     try {
       progress( false, null, 'Checking metadata in config.json')
-      metadata = await fs.readJson( this.cwd +'/config.json' ) 
+      metadata = await fs.readJson( `${this.cwd }/config.json` )
     }
-    catch( error ){
+    catch( error ) {
       console.error( error )
       const explicitError = new Error('Undefined Metadata. Expected config.json file in project root')
 
@@ -408,19 +419,20 @@ export default class PackageManager {
 
     if( !isValidMetadata( metadata ) )
       throw new Error('Invalid Metadata. Check documentation')
-    
-    /** Create .tmp folder in project parent directory 
-     * to temporary hold generated package files 
+
+    /**
+     * Create .tmp folder in project parent directory
+     * to temporary hold generated package files
      */
-    const tmpPath = path.dirname( this.cwd ) +'/.tmp'
+    const tmpPath = `${path.dirname( this.cwd ) }/.tmp`
     progress( false, null, `Creating .tmp directory at ${tmpPath}`)
 
     try { await fs.ensureDir( tmpPath ) }
-    catch( error ){
+    catch( error ) {
       progress( error )
       throw new Error('Installation failed. Check progress logs for more details')
     }
-    
+
     // Prepack Generate CUP & Upload to repositories
     const
     _this = this,
@@ -438,9 +450,9 @@ export default class PackageManager {
         }
 
         request.post( options, ( error, response, body ) => {
-          if( error || body.error ) 
+          if( error || body.error )
             return reject( error || body.message )
-          
+
           fs.remove( tmpPath ) // Delete .tmp directory
           resolve( body )
         })
@@ -456,21 +468,23 @@ export default class PackageManager {
         .on('error', reject )
 
         // Generate package files
-        const 
+        const
         IGNORE_DIRECTORIES = ['node_modules', 'build', 'dist', 'cache', '.git', '.DS_Store', '.plugin', '.application', '.lib'],
         IGNORE_FILES = ['.gitignore'],
         options = {
           ignore: pathname => {
-            // ignore some folders when packing
+            // Ignore some folders when packing
             return IGNORE_DIRECTORIES.includes( path.basename( pathname ) )
                     || IGNORE_FILES.includes( path.extname( pathname ) )
           },
-          // readable: true, // all dirs and files should be readable
-          // writable: true // all dirs and files should be writable
+          /*
+           * Readable: true, // all dirs and files should be readable
+           * writable: true // all dirs and files should be writable
+           */
         }
 
         const prepackStream = tar.pack( _this.cwd, options )
-        
+
         prepackStream
         .on('data', chunk => {
           prepackSize += chunk.length
@@ -479,13 +493,13 @@ export default class PackageManager {
         .on('error', reject )
 
         const zipStream = zlib.createGzip().on('error', reject )
-        
+
         prepackStream
         .pipe( zipStream )
         .pipe( writeStream )
       } )
     }
-    
+
     // Generate .cup (Cubic Universal Package) files
     progress( false, null, 'Prepacking & Generating the CUP file')
     let prepackSize = 0
@@ -497,7 +511,7 @@ export default class PackageManager {
       download: fileStat.size,
       installation: prepackSize
     }
-    
+
     progress( false, null, 'Publishing package ...')
     // Upload package to the given CPR (Cubic Package Repositories)
     return await uploadPackage()

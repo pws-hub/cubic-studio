@@ -8,7 +8,7 @@ export default class FileSystem {
   constructor( options = {} ){
     this.cwd = options.cwd
     this.debugMode = options.debug
-    
+
     // Watcher of occurances on current working directory
     this.watcher = null
     this.watchingPaths = false
@@ -23,19 +23,19 @@ export default class FileSystem {
   // Get content tree of a directory and its sub-directories
   async directory( path, options = {}, depth = false ){
     path = path || ( !depth ? this.cwd : '' )
-    
-    const 
+
+    const
     { ignore, subdir, dirsOnly } = options || {},
     dir = await Fs.readdir( path ),
     content = []
 
     await Promise.all( dir.map( name => {
-      const 
-      contentPath = path +'/'+ name,
+      const
+      contentPath = `${path }/${ name}`,
       ignoreRegex = ignore && new RegExp( ignore )
-      
+
       // Ignore file/directory regular expression
-      if( ignoreRegex && ( ignoreRegex.test( name ) || ignoreRegex.test( contentPath ) ) ) 
+      if( ignoreRegex && ( ignoreRegex.test( name ) || ignoreRegex.test( contentPath ) ) )
         return
 
       return Fs.stat( contentPath )
@@ -58,7 +58,7 @@ export default class FileSystem {
 
     return {
       name: Path.basename( path ),
-      path, 
+      path,
       content
     }
   }
@@ -67,9 +67,9 @@ export default class FileSystem {
   async readFile( path, options = {} ){
     path = this.resolve( path )
 
-    switch( options.encoding ){
+    switch( options.encoding ) {
       case 'json': return await Fs.readJson( path )
-      // case 'base64': 
+      // Case 'base64':
       default: return await Fs.readFile( path, options.encoding || 'UTF-8' )
     }
   }
@@ -89,7 +89,8 @@ export default class FileSystem {
     path = this.resolve( path )
 
     await Fs.ensureFile( path ) // Ensure the file exist: Create directories if does not exist
-    /** Define encoding to write all type of file
+    /**
+     * Define encoding to write all type of file
      * Eg. text as UTF-8 (Default)
      *      media as base64
      *      ...
@@ -101,7 +102,7 @@ export default class FileSystem {
   async rename( path, newname ){
     path = this.resolve( path )
 
-    await Fs.rename( path, Path.dirname( path ) +'/'+ newname )
+    await Fs.rename( path, `${Path.dirname( path ) }/${ newname}` )
   }
 
   // Remove file or directory
@@ -111,7 +112,7 @@ export default class FileSystem {
       path = this.resolve( path )
       await Fs.remove( path )
     }
-    
+
     Array.isArray( args ) ? args.map( fn ) : await fn( args )
   }
 
@@ -134,42 +135,42 @@ export default class FileSystem {
 
     source = this.resolve( source )
     destination = this.resolve( destination )
-    
-    // source is a directory
-    if( await ( await Fs.stat( source ) ).isDirectory() ){
+
+    // Source is a directory
+    if( await ( await Fs.stat( source ) ).isDirectory() ) {
       const readDest = Path.join( destination, Path.basename( source ) )
 
       await Fs.emptyDir( readDest )
       await Fs.copy( source, readDest, options )
     }
-    // source is file by destination is directory
-    else if( await ( await Fs.stat( destination ) ).isDirectory() ){
+    // Source is file by destination is directory
+    else if( await ( await Fs.stat( destination ) ).isDirectory() ) {
       const filename = Path.basename( source )
 
       destination = Path.join( destination, filename )
       await Fs.copy( source, destination, options )
     }
-    // both source and destination paths are files
+    // Both source and destination paths are files
     else await Fs.copy( source, destination, options )
   }
 
-  // Watch recursively changes that occured on files, directories 
+  // Watch recursively changes that occured on files, directories
   watch( options = {}, listener ){
-    
-    if( typeof options == 'function' ){
+
+    if( typeof options == 'function' ) {
       listener = options
       options = {}
     }
-    
-    const 
+
+    const
     { path, paths, ignore } = options,
     wpath = path || paths || this.cwd || 'file, dir, glob, or array'
 
     // Already watching define paths
-    if( this.watcher 
-        && ( this.watchingPaths == wpath 
+    if( this.watcher
+        && ( this.watchingPaths == wpath
               || this.watcher.getWatched().includes( wpath ) ) ) return
-    
+
     this.watcher = Chokidar.watch( wpath, {
                                             ignoreInitial: true, // Do not fire event when discovering paths
                                             ignored: ignore || false, //   /(^|[\/\\])\../, // ignore dotfiles
@@ -194,10 +195,10 @@ export default class FileSystem {
       // .on( 'raw', ( event, path, details ) => this.debug( event, path, details ) )
 
     // External event listener
-    typeof listener == 'function' 
+    typeof listener == 'function'
     && this.watcher.on( 'all', listener )
-    
-    /** 
+
+    /**
      * .getWatched() Return the list of paths being watched on the filesystem
      * .unwatch() {async} Unwatch a given directory
      * .close() Stop watcher

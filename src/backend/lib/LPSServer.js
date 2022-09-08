@@ -5,7 +5,7 @@ import { decrypt, encrypt } from './DTCrypt'
 
 function ruuid(){
   return 'xxxx-xxxx-4xxxx-xxxxxxxx'.replace(/[xy]/g, c => {
-      let r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8)
+      const r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8)
       return v.toString(16)
   })
 }
@@ -14,7 +14,7 @@ const INTERFACES = {
   filesystem: configs => {
 
     const storePath = configs.path
-    
+
     async function getCollection(){
       try {
         let content = await fs.readFile(`${storePath}/data`, 'UTF-8')
@@ -22,38 +22,38 @@ const INTERFACES = {
 
         return content || []
       }
-      catch( error ){ return [] }
+      catch( error ) { return [] }
     }
     async function storeCollection( list ){
       await fs.ensureDir( storePath )
       await fs.writeFile(`${storePath}/data`, encrypt( list ), 'UTF-8')
     }
-    
+
     return {
       insert: async input => {
         if( !input )
           throw new Error('Invalid method call. Expected 1 argument')
 
-        const 
+        const
         list = await getCollection(),
         sids = [],
         each = metadata => {
-          for( const x in list ){
+          for( const x in list ) {
             const { type, nsi, name, namespace, version } = list[x]
 
-            if( type == metadata.type 
+            if( type == metadata.type
                 && nsi == metadata.nsi
                 && name == metadata.name
                 && namespace == metadata.namespace
                 && version == metadata.version )
             throw new Error('Already exists')
           }
-          
+
           const sid = ruuid()
           list.push({ sid, ...metadata })
           sids.push( sid )
         }
-        
+
         Array.isArray( input ) ? input.map( each ) : each( input )
 
         // Store update
@@ -64,12 +64,12 @@ const INTERFACES = {
       get: async conditions => {
         const list = await getCollection()
 
-        for( const x in list ){
+        for( const x in list ) {
           const each = list[x]
           let nomatch = false
 
           for( const key in conditions )
-            if( each[ key ] != conditions[ key ] ){
+            if( each[ key ] != conditions[ key ] ) {
               nomatch = true
               break
             }
@@ -84,7 +84,7 @@ const INTERFACES = {
         const list = await getCollection()
 
         for( const x in list )
-          if( sid == list[x].sid ){
+          if( sid == list[x].sid ) {
             list.splice(x, 1)
 
             // Store update
@@ -101,18 +101,18 @@ const INTERFACES = {
         delete updates.sid // Cannot override sid (unique store id)
 
         for( const x in list )
-          if( sid == list[x].sid ){
+          if( sid == list[x].sid ) {
             list[x] = { ...list[x], ...updates }
             updated = true
             break
           }
 
         // Store updated list
-        if( updated ){
+        if( updated ) {
           await storeCollection( list )
           return 'Updated'
         }
-        else throw new Error('Not Found')
+        throw new Error('Not Found')
       },
       fetch: async filters => {
         const list = await getCollection()
@@ -121,7 +121,7 @@ const INTERFACES = {
         return !filters ? list : list.filter( each => {
           for( const key in filters )
             if( each[ key ] != filters[ key ] ) return false
-          
+
           return true
         } )
       }
@@ -129,7 +129,7 @@ const INTERFACES = {
   },
   mongodb: configs => {
 
-    const collection = configs.collection
+    const {collection} = configs
     if( !collection || !collection.insert )
       throw new Error('Invalid MongoDB Collection Object')
 
@@ -137,23 +137,23 @@ const INTERFACES = {
       insert: async input => {
         if( !input )
           throw new Error('Invalid method call. Expected 1 argument')
-        
-        if( Array.isArray( input ) ){
+
+        if( Array.isArray( input ) ) {
           const sids = []
           input = input.map( each => {
             sids.push( each.sid = ruuid() )
             return each
           } )
-          
+
           await collection.insertMany( input )
           return sids
         }
-        else {
+
           input.sid = ruuid()
           await collection.insert( input )
 
           return input.sid
-        }
+
       },
       get: async conditions => { return await collection.findOne( conditions ) },
       fetch: async filters => { return await collection.find( filters || {} ).toArray() },
@@ -178,15 +178,15 @@ export default ( configs = {} ) => {
 
   configs = {
     type: 'filesystem',
-    path: process.cwd() +'/.lpstore',
+    path: `${process.cwd() }/.lpstore`,
     table: null,
     collection: null,
     ...configs
   }
-  
+
   if( !INTERFACES[ configs.type ] )
     throw new Error(`LSP does not support <${configs.type}> interface`)
-    
+
   const
   Interface = INTERFACES[ configs.type ]( configs ),
   express = app => {
@@ -195,7 +195,7 @@ export default ( configs = {} ) => {
       if( req.headers['lps-user-agent'] !== 'LPS/RM'
           || req.headers['lps-client-id'] !== 'OPAC-12-09HH--$0' )
         return res.status(403).send('Access Denied')
-      
+
       next()
     } )
     .post('/', async ( req, res ) => {
@@ -206,7 +206,7 @@ export default ( configs = {} ) => {
         const result = await Interface.insert( req.body )
         res.json({ error: false, result })
       }
-      catch( error ){ res.json({ error: true, message: error.message }) }
+      catch( error ) { res.json({ error: true, message: error.message }) }
     })
     .get('/', async ( req, res ) => {
       try {
@@ -216,14 +216,14 @@ export default ( configs = {} ) => {
         const result = await Interface.get( req.query )
         res.json({ error: false, result })
       }
-      catch( error ){ res.json({ error: true, message: error.message }) }
+      catch( error ) { res.json({ error: true, message: error.message }) }
     })
     .get('/fetch', async ( req, res ) => {
       try {
         const result = await Interface.fetch( req.query || {} )
         res.json({ error: false, result })
       }
-      catch( error ){ res.json({ error: true, message: error.message }) }
+      catch( error ) { res.json({ error: true, message: error.message }) }
     })
     .patch('/', async ( req, res ) => {
       try {
@@ -237,7 +237,7 @@ export default ( configs = {} ) => {
         const result = await Interface.update( sid, updates )
         res.json({ error: false, result })
       }
-      catch( error ){ res.json({ error: true, message: error.message }) }
+      catch( error ) { res.json({ error: true, message: error.message }) }
     })
     .delete('/', async ( req, res ) => {
       try {
@@ -247,7 +247,7 @@ export default ( configs = {} ) => {
         const result = await Interface.delete( req.query.sid )
         res.json({ error: false, result })
       }
-      catch( error ){ res.json({ error: true, message: error.message }) }
+      catch( error ) { res.json({ error: true, message: error.message }) }
     })
 
     app.use('/lpstore', route )

@@ -23,9 +23,9 @@ export default async () => {
 
     // Grant permissions
     fn([
-      { "type": "tenant.apps", "access": "GRANTED" },
-      { "type": "user.*", "access": "GRANTED" },
-      { "type": "tenant.*", "access": "GRANTED" }
+      { type: 'tenant.apps', access: 'GRANTED' },
+      { type: 'user.*', access: 'GRANTED' },
+      { type: 'tenant.*', access: 'GRANTED' }
     ])
   })
 
@@ -49,10 +49,12 @@ export default async () => {
   console.log('--Refresh--')
   await app.refresh()
 
-  // Implict Quit
-  // console.log('--Implicit Quit--')
-  // app.quit()
-  
+  /*
+   * Implict Quit
+   * console.log('--Implicit Quit--')
+   * app.quit()
+   */
+
   // Explicit Quit
   console.log('--Explicit Quit--')
   pm.quit('SampleApp')

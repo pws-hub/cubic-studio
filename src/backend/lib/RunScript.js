@@ -5,27 +5,27 @@ export default ( scripts, options, progress ) => {
   return new Promise( ( resolve, reject ) => {
 
     const child = shell.exec( scripts, { ...options, silent: true, async: true } )
-    
+
     child.stdout.on( 'data', data => {
-      // console.log('Stdout: ---', data )
+      // Console.log('Stdout: ---', data )
       progress( false, data, data.length )
     })
     child.stderr.on( 'data', data => {
-      // console.log('Stderr: ---', data )
+      // Console.log('Stderr: ---', data )
       progress( data )
     })
-    
+
     child
-    .on( 'error', reject ) 
+    .on( 'error', reject )
     // Process emit exit
     .on( 'close', code => {
-      // console.log('Process emit close: %s', code )
-      if( code !== 0 ){
+      // Console.log('Process emit close: %s', code )
+      if( code !== 0 ) {
         const error = new Error(`Error, exit code ${code}`)
 
         error.name = 'RUN_SCRIPT_ERROR'
         error.code = code
-        
+
         return reject( error )
       }
 

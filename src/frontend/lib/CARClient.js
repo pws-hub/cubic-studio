@@ -2,19 +2,19 @@
 import fetch from 'node-fetch'
 import { io } from 'socket.io-client'
 
-let 
+let
 CARClient,
 isConnected = false
 
 function sendRequest( payload ){
   return new Promise( ( resolve, reject ) => {
 
-    if( CARClient ){
+    if( CARClient ) {
       if( !isConnected )
         return reject('[CAR-Client] No connection to server')
 
       CARClient.emit('API::REQUEST', payload, resolve )
-      return
+
     }
     else {
       const options = {
@@ -22,7 +22,7 @@ function sendRequest( payload ){
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify( payload )
       }
-      
+
       fetch( '/api', options )
           .then( res => res.json() )
           .then( resolve )
@@ -33,15 +33,15 @@ function sendRequest( payload ){
 
 export default ( namespace, user ) => {
   return new Promise( ( resolve, reject ) => {
-    
+
     window.RGet = async url => { return await sendRequest({ url }) }
     window.RPost = async ( url, body ) => { return await sendRequest({ url, method: 'POST', body }) }
     window.RPut = async ( url, body ) => { return await sendRequest({ url, method: 'PUT', body }) }
     window.RPatch = async ( url, body ) => { return await sendRequest({ url, method: 'PATCH', body }) }
     window.RDelete = async ( url, body ) => { return await sendRequest({ url, method: 'DELETE', body: body || {} }) }
 
-    if( window.mode !== 'local' ){
-      
+    if( window.mode !== 'local' ) {
+
       return resolve( isConnected = true )
     }
 
@@ -53,7 +53,7 @@ export default ( namespace, user ) => {
       auth: { token: user.id }
     }
 
-    CARClient = io('/'+( namespace || ''), options )
+    CARClient = io(`/${ namespace || ''}`, options )
     .on( 'connect', () => {
       debugLog('[CAR-Client] Connection established')
       resolve( isConnected = true )

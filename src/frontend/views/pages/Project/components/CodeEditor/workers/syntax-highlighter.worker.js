@@ -1,11 +1,11 @@
 self.importScripts([ 'https://cdnjs.cloudflare.com/ajax/libs/typescript/2.4.2/typescript.min.js' ])
 
 function getLineNumberAndOffset( start, lines ){
-  let 
+  let
   line = 0,
   offset = 0
 
-  while( offset + lines[ line ] < start ){
+  while( offset + lines[ line ] < start ) {
     offset += lines[ line ] + 1
     line += 1
   }
@@ -16,10 +16,10 @@ function getLineNumberAndOffset( start, lines ){
 function nodeToRange( node ){
   if( typeof node.getStart === 'function' && typeof node.getEnd === 'function' )
     return [ node.getStart(), node.getEnd() ]
-  
+
   if( typeof node.pos !== 'undefined' && typeof node.end !== 'undefined' )
     return [ node.pos, node.end ]
-  
+
   return [ 0, 0 ]
 }
 
@@ -28,7 +28,7 @@ function getNodeType( parent, node ){
 }
 
 function getParentRanges( node ){
-  const 
+  const
   ranges = [],
   [ start, end ] = nodeToRange( node )
   let lastEnd = start
@@ -51,10 +51,10 @@ function addChildNodes( node, lines, classifications ){
   const parentKind = ts.SyntaxKind[ node.kind ]
 
   self.ts.forEachChild( node, id => {
-    const 
+    const
     type = getNodeType( node, id ),
     ranges = getParentRanges( id ).map( ({ start, end }) => {
-                                    const 
+                                    const
                                     { offset, line: startLine } = getLineNumberAndOffset( start, lines ),
                                     { line: endLine } = getLineNumberAndOffset( end, lines )
 
@@ -78,7 +78,7 @@ function addChildNodes( node, lines, classifications ){
 self.addEventListener( 'message', event => {
   const { code, title, version } = event.data
   try {
-    const 
+    const
     classifications = [],
     sourceFile = self.ts.createSourceFile( title, code, self.ts.ScriptTarget.ES6, true ),
     lines = code.split('\n').map( line => line.length )
@@ -86,6 +86,6 @@ self.addEventListener( 'message', event => {
     addChildNodes( sourceFile, lines, classifications )
 
     self.postMessage({ classifications, version })
-  } 
-  catch( error ){}
+  }
+  catch( error ) {}
 })

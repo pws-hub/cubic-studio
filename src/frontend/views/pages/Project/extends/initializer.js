@@ -13,13 +13,13 @@ export default $ => {
     try {
       const { error, message, project } = await RGet(`/workspaces/${workspaceId}/projects/${projectId}`)
       if( error ) throw new Error( message )
-      
+
       State.project = project
-      // locale store for only this project
+      // Locale store for only this project
       $.pstore = new PStore({ prefix: `cs-${project.name}`, encrypt: true })
       await $.SetupProject()
     }
-    catch( error ){
+    catch( error ) {
       console.log('Failed retreiving project: ', error )
       State.project = null
 
@@ -41,12 +41,12 @@ export default $ => {
   $.getDependencies = async () => {
     // Get project dependencies in package.json
     if( !$.fs ) return
-    
+
     const packageJson = await $.fs.readFile( 'package.json', { encoding: 'json' } )
     if( !packageJson )
       throw new Error('[Dependency] No package.json file found at the project root')
 
-    const 
+    const
     { dependencies, devDependencies } = packageJson,
     deps = [],
     collector = async ( name, version, dev ) => {
@@ -56,26 +56,26 @@ export default $ => {
         const { description, repository } = await $.fs.readFile(`./node_modules/${name}/package.json`, { encoding: 'json' } )
         dep = { ...dep, description, repository }
       }
-      catch( error ){
+      catch( error ) {
         // Failed fetching package.json of the dependency
       }
 
       deps.push( dep )
     }
-    
+
     for( const name in dependencies )
       await collector( name, dependencies[ name ] )
 
     for( const name in devDependencies )
       await collector( name, devDependencies[ name ], true )
-    
+
     State.Code.dependencies = deps
     State.Code = newObject( State.Code )
   }
   $.SetupProject = async flag => {
     try {
       if( flag ) $.flag = flag
-      
+
       // Init Code related project's section
       $.hasCodeSection() && await initCodeSection()
       // Init API related project's section
@@ -86,11 +86,11 @@ export default $ => {
       // Close active ResetProject modal
       $.onShowResetProjectToggle( false )
     }
-    catch( error ){
+    catch( error ) {
       console.log('Failed setting up project: ', error )
-      $.ongoing({ 
+      $.ongoing({
         noLoading: true,
-        headline: 'Project setup failed', 
+        headline: 'Project setup failed',
         error: error.message
       })
     }
@@ -119,26 +119,26 @@ export default $ => {
     // Delete project specs from cubic server
     $.ongoing({ headline: 'Deleting project specifications from cubic servers' })
     try {
-      const 
+      const
       url = `/workspaces/${State.workspace.workspaceId}/projects/${State.project.projectId}`,
       { error, message } = await await RDelete( url )
 
       if( error ) throw new Error( message )
     }
-    catch( error ){}
+    catch( error ) {}
     await delay(3)
-    
+
     // Clear open tabs
     $.ongoing({ headline: 'Clearing project workspace' })
     State.project = false
-    
+
     // Reset operators
     $.fs = false
     $.pm = false
     $.packager = false
     $.emulator = false
     await delay(2)
-    
+
     // Move back to workspace
     $.ongoing( false )
     navigate(`/workspace/${State.workspace.workspaceId}`)
@@ -158,18 +158,19 @@ export default $ => {
     $.fs.watch( async ( event, path, stats ) => {
       debugLog(`[DIRECTORY Event] ${event}: ${path}`, stats )
 
-      switch( event ){
+      switch( event ) {
         // New file/dir added: Refresh directory tree
         case 'add':
         case 'addDir': wait && clearTimeout( wait )
                         await $.getDirectory()
             break
-        /** Wait for `add` event to conclude file/dir moved: 
-            In that case `add event` will refresh the directory.
-            otherwise, conclude `delete`
-        */
+        /**
+         * Wait for `add` event to conclude file/dir moved:
+         *  In that case `add event` will refresh the directory.
+         *  otherwise, conclude `delete`
+         */
         case 'unlink': wait = setTimeout( async () => await $.getDirectory(), 2000 ); break
-                        
+
       }
     } )
   }
@@ -181,14 +182,14 @@ export default $ => {
     // Coding workspace
     await initCodeWS()
 
-    let AUTORUN = true
+    const AUTORUN = true
 
     // Load project directory
     await $.getDirectory()
 
     // Project has no directory: Setup or Import (Depending of flag value)
-    if( isEmpty( State.Code.directories ) ){
-      if( !$.flag ){
+    if( isEmpty( State.Code.directories ) ) {
+      if( !$.flag ) {
         // TODO: Prompt modal for user to select project directory or setup new
         $.onShowResetProjectToggle( true )
         return
@@ -197,9 +198,9 @@ export default $ => {
     // Import if project have no package.json file at the directory root
     else if( !( await $.fs.readFile( 'package.json', { encoding: 'json' } ) ) )
       $.flag = 'import'
-    
+
     // Flag when something fishing about the setup
-    if( ['setup', 'import'].includes( $.flag ) ){
+    if( ['setup', 'import'].includes( $.flag ) ) {
       // Importing project from specified repo (import) or setup new (default)
       const action = $.flag || 'setup'
 
@@ -207,23 +208,22 @@ export default $ => {
       $.ongoing({ headline: 'Setting up the project' })
       await delay(3)
       await $.pm[ action ]( State.project, ( error, stats ) => {
-        
-        
-          
-        if( error ){
+
+
+        if( error ) {
           // TODO: Manage process exception errors
           console.log('--Progress Error: ', error )
           $.ongoing({ error: typeof error == 'object' ? error.message : error })
           return
         }
-        
+
         // TODO: Display progression stats
         $.ongoing({ headline: `[${stats.percent}%] ${stats.message}` })
         $.progression( stats )
       } )
 
       debugLog('-- Completed indeed --')
-      
+
       // Automatically run project in 3 second
       await delay(3)
       $.ongoing( false )
@@ -233,7 +233,7 @@ export default $ => {
     else {
       const cachedEMImage = $.pstore.get('emulator')
       if( AUTORUN && cachedEMImage )
-        window.env == 'production' ? 
+        window.env == 'production' ?
                       $.ReloadEmulator() // Reload backend process
                       : $.RunEmulator() // Connect frontend to process or run process if not available
     }
@@ -248,7 +248,7 @@ export default $ => {
   }
 
   async function initAPIWS(){
-    
+
   }
   async function initAPISection(){
     // Initialize project's API Test section
@@ -262,7 +262,7 @@ export default $ => {
 
     State.API.collections = [{ name: 'Wigo' }, { name: 'Multipple' }]
     State.API.environments = [{ name: 'Wigo Dev' }, { name: 'Wigo Pro' }]
-    
+
     // Mount project's last states of the active section
     $.initSection('tabs', [] )
     $.initSection('activeConsole', [] )
@@ -270,7 +270,7 @@ export default $ => {
   }
 
   async function initSocketWS(){
-    
+
   }
   async function initSocketSection(){
     // Initialize project's Sockets Test section

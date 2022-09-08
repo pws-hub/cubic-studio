@@ -5,9 +5,9 @@ import jwt from 'jsonwebtoken'
 async function getAuthConfig( req, type, extensionId ){
   // Get an auth configuration type of the app: OAuth, JWT, BAT, BAC, ...
   const app = await Sync.getApp( extensionId )
-  if( typeof app !== 'object' ) 
+  if( typeof app !== 'object' )
     throw new Error('Invalid Installed App Config')
-  
+
   return app.configs && app.configs[ type ]
 }
 
@@ -28,11 +28,11 @@ async function ProcessOAuth2( req, extensionId ){
       return new Promise( ( resolve, reject ) => {
         const
         headers = {
-          Authorization: 'Basic '+ ( id +':'+ secret ).toString('base64')
+          Authorization: `Basic ${ ( `${id }:${ secret}` ).toString('base64')}`
         },
         form = {
           grant_type: 'authorization_code',
-          // code: $code,
+          // Code: $code,
           redirect_uri: `${toOrigin(req.headers.host )}/extension/oauth2/callback`
         }
 
@@ -41,10 +41,10 @@ async function ProcessOAuth2( req, extensionId ){
                   { headers, method: 'POST', form, json: true },
                   ( error, response, body ) => {
                     if( error ) return reject( error )
-                    
+
                     resolve({
                       accessToken: body,
-                      // authorize_url: `https://zoom.us/oauth/authorize?response_type=code&client_id=${id}&redirect_uri=${encodeURIComponent( form.redirect_uri )}`
+                      // Authorize_url: `https://zoom.us/oauth/authorize?response_type=code&client_id=${id}&redirect_uri=${encodeURIComponent( form.redirect_uri )}`
                     })
                   } )
       } )
@@ -54,7 +54,7 @@ async function ProcessOAuth2( req, extensionId ){
       return new Promise( ( resolve, reject ) => {
         const
         headers = {
-          Authorization: 'Basic '+ ( id +':'+ secret ).toString('base64')
+          Authorization: `Basic ${ ( `${id }:${ secret}` ).toString('base64')}`
         },
         form = {
           grant_type: 'refresh_token',
@@ -70,17 +70,17 @@ async function ProcessOAuth2( req, extensionId ){
                   } )
       } )
     }
-    
+
     // Retreive OAuth2.0 configuration of this extension
     request(`${toOrigin( process.env.MULTIPPLE_API_SERVER )}/extension/${extensionId}/oauth2`,
               { headers, method: 'GET', json: true },
               async ( error, response, body ) => {
 
                 if( error || body.error ) return reject( error || body.message )
-                
+
                 const { provider, client, scope } = body.config
                 const { accessToken } = await getToken( provider.baseURL, client.id, client.secret, scope.join() )
-                
+
                 resolve({ baseURL: provider.baseURL, accessToken })
               } )
   } )
@@ -88,7 +88,7 @@ async function ProcessOAuth2( req, extensionId ){
 
 async function ProcessJWT( req, extensionId ){
   try {
-    const 
+    const
     { baseURL, APIKey, APISecret } = await getAuthConfig( req, 'jwt', extensionId ),
     payload = {
       iss: APIKey,
@@ -98,37 +98,37 @@ async function ProcessJWT( req, extensionId ){
 
     return { baseURL, accessToken }
   }
-  catch( error ){ throw new Error( error ) }
+  catch( error ) { throw new Error( error ) }
 }
 
 async function ProcessBAC( req, extensionId ){
   try { return await getAuthConfig( req, 'bac', extensionId ) }
-  catch( error ){ throw new Error( error ) }
+  catch( error ) { throw new Error( error ) }
 }
 
 async function ProcessBAT( req, extensionId ){
   try {
     const config = await getAuthConfig( req, 'bat', extensionId )
-    return { 
-      baseURL: config.baseURL, 
-      accessToken: config.token 
+    return {
+      baseURL: config.baseURL,
+      accessToken: config.token
     }
   }
-  catch( error ){ throw new Error( error ) }
+  catch( error ) { throw new Error( error ) }
 }
 
 export default async ( req, res ) => {
-  let 
+  let
   { extensionId, url, method, body, headers, responseType, authType } = req.body,
   base_URL, access_token
-  
+
   const options = {
-    method, 
+    method,
     headers: headers || {},
     url: decodeURIComponent( url )
   }
 
-  if( authType ){
+  if( authType ) {
     // Caching session of Auth Request Options
     if( !req.session[ extensionId ] )
       req.session[ extensionId ] = {}
@@ -138,9 +138,9 @@ export default async ( req, res ) => {
     access_token = req.session[ extensionId ].access_token
 
     // Authentication Request Authorizations
-    switch( authType ){
+    switch( authType ) {
       // Use OAuth2.0
-      case 'oauth2':  if( !access_token )
+      case 'oauth2': if( !access_token )
                         try {
                           // Process oauth2.0 authentication
                           const { baseURL, accessToken } = await ProcessOAuth2( req, extensionId )
@@ -152,7 +152,7 @@ export default async ( req, res ) => {
                           access_token =
                           req.session[ extensionId ].access_token = accessToken
                         }
-                        catch( error ){ console.log('OAuth2.0 Error: ', error ) }
+                        catch( error ) { console.log('OAuth2.0 Error: ', error ) }
 
                       // Add accessToken to Authorization bearer headers
                       options.auth = { bearer: access_token }
@@ -170,22 +170,22 @@ export default async ( req, res ) => {
                       access_token =
                       req.session[ extensionId ].access_token = accessToken
                     }
-                    catch( error ){ console.log('JWT Error: ', error ) }
+                    catch( error ) { console.log('JWT Error: ', error ) }
 
                   // Add accessToken to Authorization bearer headers
                   options.auth = { bearer: access_token }
         break
       // Use Basic Auth Credentials
       case 'bac': // Re-use token store in session
-                  if( !access_token ){
+                  if( !access_token ) {
                     try {
                       const [ user, password ] = Buffer.from( access_token, 'base64' ).toString('ascii').split(':')
-                      // user & password Authorization
+                      // User & password Authorization
                       options.auth = { user, password, setImmediately: true }
                     }
-                    catch( error ){ console.log('Invalid BAC Token Error: ', error ) }
+                    catch( error ) { console.log('Invalid BAC Token Error: ', error ) }
                   }
-                  
+
                   // Get credentials
                   else try {
                     // Process BAC authentication
@@ -195,17 +195,17 @@ export default async ( req, res ) => {
                     // Keep baseURL & accessToken in session for next requests
                     base_URL =
                     req.session[ extensionId ].base_URL = baseURL
-                    // Store user and password as base64 token in 
+                    // Store user and password as base64 token in
                     access_token =
-                    req.session[ extensionId ].access_token = Buffer.from( user +':'+ password ).toString('base64')
-                    
-                    // user & password Authorization
+                    req.session[ extensionId ].access_token = Buffer.from( `${user }:${ password}` ).toString('base64')
+
+                    // User & password Authorization
                     options.auth = { user, password, setImmediately: true }
                   }
-                  catch( error ){ console.log('BAC Error: ', error ) }
+                  catch( error ) { console.log('BAC Error: ', error ) }
         break
       // Use Bearer Auth Token
-      case 'bat': if( !access_token )   
+      case 'bat': if( !access_token )
                     try {
                       // Process BAT authentication
                       const { baseURL, accessToken } = await ProcessBAT( req, extensionId )
@@ -217,37 +217,40 @@ export default async ( req, res ) => {
                       access_token =
                       req.session[ extensionId ].access_token = accessToken
                     }
-                    catch( error ){ console.log('BAT Error: ', error ) }
+                    catch( error ) { console.log('BAT Error: ', error ) }
 
                   // Add accessToken to Authorization bearer headers
                   options.auth = { bearer: access_token }
         break
     }
   }
-  
-  /** Assign request body by specified `Content-Type` in headers
-   * 
+
+  /**
+   * Assign request body by specified `Content-Type` in headers
+   *
    * MITIGATION:
    * Add empty JSON body to the request to prevent error like,
    * `Expected request body for application/json content-type`
-   * 
+   *
    * NOTE:
    * `multipart/form-data` body is mandatory
-   * */
+   *
+   */
   const contentType = options.headers && ( options.headers['content-type'] || options.headers['Content-Type'] )
-  switch( contentType ){
+  switch( contentType ) {
     case 'multipart/form-data': options.formData = body || {}; break
     case 'application/json': options.body = body || {}; break
 
     // With or without body
     default: if( body ) options.form = body
   }
-  
-  /* Attach provider's Base URL when it's a 3rd 
-    party API with required authorization or 
-    assign LXP API Server by default.
-  */
-  if( !/http(s?):\/\/(.+)/.test( options.url ) ){
+
+  /*
+   * Attach provider's Base URL when it's a 3rd
+   * party API with required authorization or
+   * assign LXP API Server by default.
+   */
+  if( !/http(s?):\/\/(.+)/.test( options.url ) ) {
     if( base_URL )
       options.url = base_URL + options.url
 
@@ -255,14 +258,14 @@ export default async ( req, res ) => {
       if( !req.session.credentials
           || !req.session.credentials.multipple )
         return res.status(400)
-                  .json({ 
+                  .json({
                     error: true,
                     status: 'MULTIPPLE',
                     message: 'Undefined API Request Credentials'
                   })
 
       const { domain, token, deviceId, role } = req.session.credentials.multipple
-    
+
       options.url = toOrigin( process.env.MULTIPPLE_API_SERVER ) + options.url
       options.headers = {
         'Origin': decodeURIComponent( domain ),
@@ -275,16 +278,16 @@ export default async ( req, res ) => {
   }
 
   function onError( error ){
-    
+
     if( !error.statusCode )
-      switch( error.code ){
+      switch( error.code ) {
         case 'ENOTFOUND': error.statusCode = 404; break
       }
-    
+
     res.status( error.statusCode || 400 ).send( error.message )
   }
-  
-  switch( responseType ){
+
+  switch( responseType ) {
     // Blob content
     case 'blob': req.pipe( request( url ).on( 'error', onError ) )
                     .pipe( res )
@@ -295,11 +298,11 @@ export default async ( req, res ) => {
                       if( error ) return onError( error )
                       res.send(`data:${response.headers['content-type']};base64,${Buffer.from( body, 'binary' ).toString('base64')}`)
                     })
-                    
+
     default: options.json = true
               request( options, ( error, response, body ) => {
                 if( error ) return onError( error )
-                
+
                 res.headers = response.headers
                 res.send( body || { code: response.statusCode, message: response.message } )
               } )

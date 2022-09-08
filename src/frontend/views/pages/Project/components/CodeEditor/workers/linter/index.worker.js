@@ -1,6 +1,6 @@
-import Linter from 'eslint/lib/linter';
+import Linter from 'eslint/lib/linter'
 
-import monkeypatch from './monkeypatch-babel-eslint';
+import monkeypatch from './monkeypatch-babel-eslint'
 
 /* eslint-disable global-require */
 const allRules = {
@@ -39,7 +39,7 @@ const allRules = {
   'jsx-a11y/role-has-required-aria-props': require('eslint-plugin-jsx-a11y/lib/rules/role-has-required-aria-props'),
   'jsx-a11y/role-supports-aria-props': require('eslint-plugin-jsx-a11y/lib/rules/role-supports-aria-props'),
   'jsx-a11y/scope': require('eslint-plugin-jsx-a11y/lib/rules/scope'),
-};
+}
 /* eslint-enable global-require */
 
 const restrictedGlobals = [
@@ -101,7 +101,7 @@ const restrictedGlobals = [
   'stop',
   'toolbar',
   'top',
-];
+]
 
 const defaultConfig = {
   parserOptions: {
@@ -241,13 +241,15 @@ const defaultConfig = {
     'valid-typeof': 'warn',
     'no-restricted-properties': [
       'error',
-      // TODO: reenable once import() is no longer slow.
-      // https://github.com/facebookincubator/create-react-app/issues/2176
-      // {
-      //   object: 'require',
-      //   property: 'ensure',
-      //   message: 'Please use import() instead. More info: https://github.com/facebookincubator/create-react-app/blob/master/packages/react-scripts/template/README.md#code-splitting',
-      // },
+      /*
+       * TODO: reenable once import() is no longer slow.
+       * https://github.com/facebookincubator/create-react-app/issues/2176
+       * {
+       *   object: 'require',
+       *   property: 'ensure',
+       *   message: 'Please use import() instead. More info: https://github.com/facebookincubator/create-react-app/blob/master/packages/react-scripts/template/README.md#code-splitting',
+       * },
+       */
       {
         object: 'System',
         property: 'import',
@@ -303,71 +305,71 @@ const defaultConfig = {
     'jsx-a11y/role-supports-aria-props': 'warn',
     'jsx-a11y/scope': 'warn',
   },
-};
+}
 
-monkeypatch({}, defaultConfig.parserOptions);
+monkeypatch({}, defaultConfig.parserOptions)
 
-const linter = new Linter();
+const linter = new Linter()
 
 linter.defineParser(
   'babel-eslint',
   require('babel-eslint') // eslint-disable-line global-require
-);
+)
 
-linter.defineRules(allRules);
+linter.defineRules(allRules)
 
-function getPos(error, from) {
-  let line = error.line - 1;
-  let ch = from ? error.column : error.column + 1;
+function getPos(error, from){
+  let line = error.line - 1
+  let ch = from ? error.column : error.column + 1
 
   if (ch > error.source.length) {
-    ch -= 1;
+    ch -= 1
   }
 
   if (error.node && error.node.loc) {
-    line = from ? error.node.loc.start.line - 1 : error.node.loc.end.line - 1;
-    ch = from ? error.node.loc.start.column : error.node.loc.end.column;
+    line = from ? error.node.loc.start.line - 1 : error.node.loc.end.line - 1
+    ch = from ? error.node.loc.start.column : error.node.loc.end.column
   }
-  return { line: line + 1, column: ch };
+  return { line: line + 1, column: ch }
 }
 
-function getSeverity(error) {
+function getSeverity(error){
   switch (error.severity) {
     case 1:
-      return 2;
+      return 2
     case 2:
-      return 3;
+      return 3
     default:
-      return 3;
+      return 3
   }
 }
 
 // Respond to message from parent thread
 self.addEventListener('message', async event => {
-  const { code, version, title: filename, template } = event.data;
+  const { code, version, title: filename, template } = event.data
 
-  let config = defaultConfig;
-  let options = { filename };
+  let config = defaultConfig
+  let options = { filename }
 
   if (template === 'vue-cli') {
     const {
       getConfig: getVueConfig,
       getVerifyOptions: getVueVerifyOptions,
-    } = await import('./vue');
+    } = await import('./vue')
 
-    config = await getVueConfig(linter);
+    config = await getVueConfig(linter)
     config.rules = {
       ...defaultConfig.rules,
       ...config.rules,
-    };
-    options = { ...options, ...getVueVerifyOptions(filename) };
+    }
+    options = { ...options, ...getVueVerifyOptions(filename) }
   }
 
-  const validations = linter.verify(code, config, options);
+  const validations = linter.verify(code, config, options)
 
   const markers = validations.map(error => {
-    const { line: startL, column: startCol } = getPos(error, true);
-    const { line: endL, column: endCol } = getPos(error, false);
+    const { line: startL, column: startCol } = getPos(error, true)
+    const { line: endL, column: endCol } = getPos(error, false)
 
     return {
       severity: getSeverity(error),
@@ -377,8 +379,8 @@ self.addEventListener('message', async event => {
       endLineNumber: endL,
       message: `${error.message} (${error.ruleId})`,
       source: 'eslint',
-    };
-  });
+    }
+  })
 
-  self.postMessage({ markers, version });
-});
+  self.postMessage({ markers, version })
+})

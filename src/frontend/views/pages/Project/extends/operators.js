@@ -5,7 +5,7 @@ export default $ => {
   const State = $.state
 
   $.FSOperator = async ( type, element ) => {
-    switch( type ){
+    switch( type ) {
       case 'new-dir': if( !element.path || !$.fs ) return
                       await $.fs.newDir( element.path )
           break
@@ -13,7 +13,7 @@ export default $ => {
                       await $.fs.newFile( element.path )
           break
       case 'rename-element': if( !element.path || !element.name || !$.fs ) return
-                            await $.fs.rename( element.path, element.name  )
+                            await $.fs.rename( element.path, element.name )
           break
       case 'remove-element': if( !element.path || !$.fs ) return
                             await $.fs.remove( element.path )
@@ -24,19 +24,19 @@ export default $ => {
     }
   }
   $.PackageOperator = async ( type, element ) => {
-    
-    if( !$.pm ){
+
+    if( !$.pm ) {
       debugLog('[AddElement Event] error: Undeclared process manager')
       return
     }
 
     type = type.replace('-packages', '')
 
-    const 
+    const
     cwd = State.project.specs.code.directory,
     progress = ( error, stats ) => {
 
-      if( error ){
+      if( error ) {
         // TODO: Manage process exception errors
         console.log('--Progress Error: ', error )
         return

@@ -1,8 +1,8 @@
 /* eslint-disable import/no-webpack-loader-syntax */
 import SyntaxHighlightWorker from './../workers/syntax-highlighter.worker'
-// import LinterWorker from './workers/linter/index.worker'
+// Import LinterWorker from './workers/linter/index.worker'
 
-let 
+let
 syntaxWorker,
 editor,
 monaco
@@ -16,7 +16,7 @@ function setupWorkers( _editor, _monaco ){
     const { classifications, version } = event.data
     requestAnimationFrame( () => processDecoration( classifications, version ) )
   })
-  
+
   editor.onDidChangeModelContent( syntaxHighlight )
   editor.onDidChangeModel( syntaxHighlight )
 
@@ -28,12 +28,12 @@ function setupWorkers( _editor, _monaco ){
 }
 
 function syntaxHighlight(){
-  
+
   const model = editor.getModel()
   if( !model ) return
 
   if( !model.file || !/\.(js|jsx|ts|tsx|mjs|cjs)$/.test( model.file.path ) ) return
-  
+
   // Reset the markers
   monaco.editor.setModelMarkers( model, 'eslint', [] )
   // Send the code to the worker
@@ -46,13 +46,13 @@ function syntaxHighlight(){
 }
 
 function processDecoration( classifications, version ){
-  
+
   const model = editor.getModel()
   if( model && model.getVersionId() !== version ) return
 
   const decorations = classifications.map( ({ type, startLine, start, endLine, end, kind, parentKind }) => ({
                                         range: new monaco.Range( startLine, start, endLine, end ),
-                                        options: { 
+                                        options: {
                                           inlineClassName: type ? `${kind} ${type}-of-${parentKind}` : kind
                                         }
                                       }))

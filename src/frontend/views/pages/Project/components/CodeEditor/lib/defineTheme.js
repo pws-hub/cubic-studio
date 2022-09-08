@@ -33,7 +33,7 @@ export default monaco => {
       { token: 'tag.id.jade', foreground: 'e2fabd' },
       { token: 'tag.class.jade', foreground: 'e2fabd' },
       { token: 'meta.scss', foreground: 'e2fabd' },
-      
+
       { token: 'meta.definition.variable', foreground: 'ececec' },
       { token: 'meta.marko-attribute', foreground: 'e2fabd' },
       { token: 'meta.marko-concise-content', foreground: 'e2fabd' },
@@ -42,48 +42,54 @@ export default monaco => {
       { token: 'punctuation.definition.tag.begin.marko', foreground: 'a3a3a3' },
       { token: 'punctuation.definition.tag.end.marko', foreground: 'a3a3a3' },
       { token: 'punctuation.definition.template-expression.begin.js', foreground: 'fff00f' },
-      // { token: 'punctuation.section.scope.begin.marko', foreground: 'e2fabd' },
-      // { token: 'punctuation.section.scope.end.marko', foreground: 'e2fabd' },
+      /*
+       * { token: 'punctuation.section.scope.begin.marko', foreground: 'e2fabd' },
+       * { token: 'punctuation.section.scope.end.marko', foreground: 'e2fabd' },
+       */
       { token: 'punctuation.definition.marko-tag.html', foreground: '4dbf99' },
       { token: 'punctuation.seperator.namespace', foreground: 'ececec' },
       { token: 'punctuation.destructuring', foreground: 'ececec' },
-      
-      // { token: 'metatag.content.html', foreground: '86b300' },
-      // 'entity.other.attribute-name.class.css',
-      // 'entity.other.attribute-name.class.mixin.css',
-      // 'entity.other.attribute-name.id.css',
-      // 'entity.other.attribute-name.parent-selector.css',
-      // 'entity.other.attribute-name.pseudo-class.css',
-      // 'entity.other.attribute-name.pseudo-element.css',
-      // 'source.css.less entity.other.attribute-name.id',
-      // 'entity.other.attribute-name.attribute.scss',
-      // 'entity.other.attribute-name.scss'
+
+      /*
+       * { token: 'metatag.content.html', foreground: '86b300' },
+       * 'entity.other.attribute-name.class.css',
+       * 'entity.other.attribute-name.class.mixin.css',
+       * 'entity.other.attribute-name.id.css',
+       * 'entity.other.attribute-name.parent-selector.css',
+       * 'entity.other.attribute-name.pseudo-class.css',
+       * 'entity.other.attribute-name.pseudo-element.css',
+       * 'source.css.less entity.other.attribute-name.id',
+       * 'entity.other.attribute-name.attribute.scss',
+       * 'entity.other.attribute-name.scss'
+       */
       { token: 'entity.name', foreground: '4dbf99' },
       { token: 'entity.name.function', foreground: 'e2fabd' },
       { token: 'entity.other.inherited-class', foreground: '4dbf99' },
       { token: 'entity.name.tag.marko', foreground: '84a1ff' },
       { token: 'entity.other.attribute-name', foreground: 'a4e1ff' },
       { token: 'entity.other.attribute-name.class', foreground: 'e2fabd' },
-      
+
       { token: 'support.function', foreground: '4dbf99' },
       { token: 'support.class', foreground: '4dbf99' },
       { token: 'support.type.attribute-name.marko', foreground: 'e2fabd' },
       { token: 'support.function.attribute-name.marko', foreground: 'e2fabd' },
-        
+
       { token: 'metatag.html', foreground: 'e2fabd' },
       { token: 'metatag.xml', foreground: 'e2fabd' },
       { token: 'key', foreground: 'a4e1ff' },
       { token: 'string', foreground: '87b49e' },
       { token: 'string.key.json', foreground: 'a4e1ff' },
-      // { token: 'string.value.json', foreground: 'e2fabd' },
-      // { token: 'string.yaml', foreground: 'e2fabd' },
+      /*
+       * { token: 'string.value.json', foreground: 'e2fabd' },
+       * { token: 'string.yaml', foreground: 'e2fabd' },
+       */
       { token: 'attribute.name', foreground: '000000' },
       { token: 'attribute.value', foreground: '0451A5' },
       { token: 'attribute.value.number', foreground: 'abb0b6' },
       { token: 'attribute.value.unit', foreground: '86b300' },
       { token: 'attribute.value.html', foreground: '86b300' },
       { token: 'attribute.value.xml', foreground: '86b300' },
-      
+
       { token: 'storage.type', foreground: '84a1ff' },
       { token: 'storage.modifier', foreground: '4dbf99' },
       { token: 'storage.type.interface', foreground: '4dbf99' },

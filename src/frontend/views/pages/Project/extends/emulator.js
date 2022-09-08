@@ -6,11 +6,11 @@ export default $ => {
 
   $.RunEmulator = async force => {
     // Run/Stop emulator
-    if( !$.pm ){
+    if( !$.pm ) {
       debugLog('[Emulator Event] error: Undeclared process manager')
       return
     }
-    
+
     // Create emulator instance
     if( !$.emulator )
       $.emulator = $.pm.Emulator( State.project )
@@ -18,18 +18,19 @@ export default $ => {
     // Run
     State.emulatorStatus = 'loading'
     GState.ws.layout({ mode: 'auto' })
-    
-    /* Try cached config to reconnect emulator without
-      restarting it, when project got refreshed and
-      servers are up
-    */
+
+    /*
+     * Try cached config to reconnect emulator without
+     * restarting it, when project got refreshed and
+     * servers are up
+     */
     const cachedEMImage = !force ? $.pstore.get('emulator') : false
     if( cachedEMImage )
       State.emulator = cachedEMImage
-      
+
     else {
       const metadata = await $.emulator.run()
-      if( !metadata ){
+      if( !metadata ) {
         State.emulatorStatus = false
         State.emulatorError = 'Emulator failed to run. Check your code and retry'
         return
@@ -43,15 +44,15 @@ export default $ => {
   }
   $.ReloadEmulator = async () => {
     // Reload emulator
-    if( !$.pm ){
+    if( !$.pm ) {
       debugLog('[Emulator Event] error: Undeclared process manager')
       return
     }
-    
+
     // Create emulator instance
     if( !$.emulator )
       $.emulator = $.pm.Emulator( State.project )
-    
+
     State.emulatorStatus = 'reloading'
 
     State.emulator = await $.emulator.reload()
@@ -59,12 +60,12 @@ export default $ => {
   }
   $.QuitEmulator = async () => {
     // Run/Stop emulator
-    if( !$.pm ){
+    if( !$.pm ) {
       debugLog('[Emulator Event] error: Undeclared process manager')
       return
     }
-    
-    if( !$.emulator ){
+
+    if( !$.emulator ) {
       debugLog('[Emulator Event] error: No active Emulator found')
       return
     }
@@ -72,7 +73,7 @@ export default $ => {
     // Quit
     State.emulator = false
     State.emulatorStatus = 'stopping'
-  
+
     await $.emulator.quit()
     State.emulatorStatus = false
 

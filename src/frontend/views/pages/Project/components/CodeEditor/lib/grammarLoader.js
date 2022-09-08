@@ -5,7 +5,7 @@ import { wireTmGrammars } from 'monaco-editor-textmate'
 import languages from './../languages.json'
 
 function getTmGrammar( scopeName ){
-  for( let gm in languages )
+  for( const gm in languages )
     if( languages[ gm ].grammar.scopeName === scopeName )
       return languages[ gm ].grammar
 }
@@ -13,11 +13,11 @@ function getTmGrammar( scopeName ){
 export const load = async () => {
   try {
     if( window.onigasmLoaded ) return
-    
-    await loadWASM(`/onigasm.wasm`)
+
+    await loadWASM('/onigasm.wasm')
     window.onigasmLoaded = true
   }
-  catch( error ){ console.log('[Editor] Grammar loader: ', error.message ) }
+  catch( error ) { console.log('[Editor] Grammar loader: ', error.message ) }
 }
 
 export const registerGrammar = async ( monaco, editor ) => {
@@ -27,16 +27,16 @@ export const registerGrammar = async ( monaco, editor ) => {
         try {
           const gm = getTmGrammar( scopeName )
           if( !gm ) throw new Error('No such grammar')
-          
+
           const content = require(`./../tmGrammars/${gm.fileName}`)
           return {
             format: gm.format,
-            content: gm.format === 'json' ? 
+            content: gm.format === 'json' ?
                           content // Parsed JSON data
                           : await ( await fetch( content ) ).text() // Raw text: plist
           }
         }
-        catch( error ){ debugLog('Error: ', error ) }
+        catch( error ) { debugLog('Error: ', error ) }
       }
     })
 
@@ -50,10 +50,10 @@ export const registerGrammar = async ( monaco, editor ) => {
       if( extendConfig )
         monaco.languages.setLanguageConfiguration( id, require(`./../configurations/${id}.json`) )
     } )
-    
+
     await wireTmGrammars( monaco, registry, grammars, editor )
   }
-  catch( error ){
+  catch( error ) {
     console.log( error )
   }
 }

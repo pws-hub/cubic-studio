@@ -6,9 +6,9 @@ export const dotCubic = async ({ specs }) => {
   const language = specs.code.language.split('~')[0]
   let cubic = {}
 
-  try { cubic = await fs.readJson( specs.code.directory +'/.cubic' ) }
-  catch( error ){}
-  
+  try { cubic = await fs.readJson( `${specs.code.directory }/.cubic` ) }
+  catch( error ) {}
+
   return {
     // Default fields
     language: specs.code.language,
@@ -32,29 +32,29 @@ export const dotCubic = async ({ specs }) => {
 }
 
 export const dotGitignore = async directory => {
-  
+
   let gitignore = ''
 
-  try { gitignore = await fs.readFile( directory +'/.gitignore', { encoding: 'UTF-8' } ) }
-  catch( error ){}
+  try { gitignore = await fs.readFile( `${directory }/.gitignore`, { encoding: 'UTF-8' } ) }
+  catch( error ) {}
 
-  ;[
+  [
     'node_modules',
     'sandbox',
     'build',
     '*.log',
     'yarn.lock'
-  ].map( each => { if( !gitignore.includes( each ) ) gitignore += '\n'+ each } )
-  
+  ].map( each => { if( !gitignore.includes( each ) ) gitignore += `\n${ each}` } )
+
   return gitignore
 }
 
 export const configJson = async ({ name, nsi, description, specs }) => {
 
   let config
-  try { config = await fs.readJson( specs.code.directory +'/config.json' ) }
-  catch( error ){ throw error }
-  
+  try { config = await fs.readJson( `${specs.code.directory }/config.json` ) }
+  catch( error ) { throw error }
+
   return {
     ...config,
     name,

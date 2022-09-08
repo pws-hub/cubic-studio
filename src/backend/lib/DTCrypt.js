@@ -1,11 +1,12 @@
-/** -------------------------------------
+/**
+ * -------------------------------------
  *  DTCrypt: Delta Token Data Encryption
  ** --------------------------------------
-*
-* @version 1.0
-* @author Fabrice Marlboro
-* 
-*/
+ *
+ * @version 1.0
+ * @author Fabrice Marlboro
+ *
+ */
 
 import CryptoJS from 'crypto-js'
 import Randtoken from 'rand-token'
@@ -33,13 +34,14 @@ const CryptoJSAesJson = {
   }
 }
 
-function reverse( str ){ 
-  return str.split('').reverse().join('') 
+function reverse( str ){
+  return str.split('').reverse().join('')
 }
 
-/** Encrypt
- * 
- * Generate encrypted string token of 
+/**
+ * Encrypt
+ *
+ * Generate encrypted string token of
  * any typeof data: String, Object, Number, ...
  *
  * @param {mixed} arg
@@ -47,12 +49,12 @@ function reverse( str ){
  */
 export const encrypt = arg => {
 
-  const 
+  const
   argtype = typeof arg,
   key = Randtoken.generate(58)
-  
+
   arg = reverse( argtype == 'object' ? JSON.stringify( arg ) : String( arg ) )
-  
+
   let
   str = `${CryptoJS.AES.encrypt( arg, key ).toString()}:${argtype}`,
   token = '',
@@ -60,7 +62,7 @@ export const encrypt = arg => {
 
   // Add random string of 8 length here
   str = Randtoken.generate(8) + str + Randtoken.generate(6)
-  
+
   const b64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
   do {
       let
@@ -84,12 +86,13 @@ export const encrypt = arg => {
       token += b64.charAt( b1 ) + b64.charAt( b2 ) + b64.charAt( b3 ) + b64.charAt( b4 )
 
   } while ( i < str.length )
-  
+
   return `${token}$${reverse( key )}`
 }
 
-/** Decrypt
- * 
+/**
+ * Decrypt
+ *
  * Reverse encrypted string token to its
  * original data format.
  *
@@ -98,28 +101,28 @@ export const encrypt = arg => {
  */
 export const decrypt = input => {
   // Default Reverse Encrypting Tool: Modified Base64 decoder
-  const 
+  const
   b64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/',
   [ token, key ] = input.split('$')
-  
+
   let
   predata = '',
   i = 0
-  
+
   do {
-    let
+    const
     b1 = b64.indexOf( token.charAt(i++) ),
     b2 = b64.indexOf( token.charAt(i++) ),
     b3 = b64.indexOf( token.charAt(i++) ),
     b4 = b64.indexOf( token.charAt(i++) ),
 
     a = ( ( b1 & 0x3F ) << 2 ) | ( ( b2 >> 4 ) & 0x3 ),
-    b = ( ( b2 & 0xF  ) << 4 ) | ( ( b3 >> 2 ) & 0xF ),
-    c = ( ( b3 & 0x3  ) << 6 ) | ( b4 & 0x3F )
+    b = ( ( b2 & 0xF ) << 4 ) | ( ( b3 >> 2 ) & 0xF ),
+    c = ( ( b3 & 0x3 ) << 6 ) | ( b4 & 0x3F )
 
     predata += String.fromCharCode( a ) + ( b ? String.fromCharCode( b ) : '' ) + ( c ? String.fromCharCode( c ) : '' )
   } while( i < token.length )
-  
+
   predata = predata.replace( predata.slice( 0, 8 ), '' )
                     .replace( predata.slice( predata.length - 6 ), '' )
 
@@ -127,11 +130,11 @@ export const decrypt = input => {
   data = reverse( CryptoJS.AES.decrypt( data, reverse( key ) ).toString( CryptoJS.enc.Utf8 ) )
 
   // Return the argument in its encoding type
-  switch( datatype ){
+  switch( datatype ) {
     case 'number': return +data
     case 'object': return JSON.parse( data )
     case 'boolean': return Boolean( data )
-    default: return data // string
+    default: return data // String
   }
 }
 

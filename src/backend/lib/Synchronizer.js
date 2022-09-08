@@ -3,10 +3,11 @@ import Path from 'path'
 import Fs from 'fs-extra'
 import { encrypt, decrypt } from './DTCrypt'
 
-/** Variable holder of "online/offline" state of 
- * local mode app user updated by socket `SYNC::IS_ONLINE` 
+/**
+ * Variable holder of "online/offline" state of
+ * local mode app user updated by socket `SYNC::IS_ONLINE`
  * events.
- * 
+ *
  * NOTE: Only used for local based application
  */
 let LOCAL_USER_ONLINE = false
@@ -14,7 +15,8 @@ let LOCAL_USER_ONLINE = false
 function isOnline(){
   // Whether user have internet
 
-  /** As a backend process, cloud based app
+  /**
+   * As a backend process, cloud based app
    * service is already online
    */
   if( isOncloud() ) return true
@@ -32,12 +34,12 @@ function initChannel( socket ){
 
 async function getPath( type ){
   let path
-  switch( type ){
+  switch( type ) {
     case 'install':
     case 'credentials': path = Path.resolve(`sync/${type}`)
                         await Fs.ensureDir( path )
                         return path
-                        
+
     case 'session': path = Path.resolve('sync')
                     await Fs.ensureDir( path )
                     return path
@@ -47,20 +49,21 @@ async function getPath( type ){
 async function setSession( data ){
   // Cache user session for backup in offline mode
   if( isOncloud() ) return
-  
+
   const sessdir = await getPath('session')
   await Fs.writeFile( `${sessdir}/session.dtf`, encrypt( data ), 'UTF-8' )
 }
 async function getSession( type, req ){
-  
-  switch( type ){
-    /** Get current user authentication session value
-     * 
+
+  switch( type ) {
+    /**
+     * Get current user authentication session value
+     *
      * For users on cloud based app service of local
      * base app but online, strictly rely on req.session
      * value.
-     * 
-     * Otherwise, fetch cached session (Offline) 
+     *
+     * Otherwise, fetch cached session (Offline)
      * NOTE: Cached session are destroyed only when user
      *        signout manually.
      */
@@ -69,11 +72,11 @@ async function getSession( type, req ){
                       isConnected: req.session.isConnected,
                       user: req.session.user
                     }
-                  
+
                   // Fetch cached session
                   try {
-                    const 
-                    token = await Fs.readFile( await getPath('session') +'/session.dtf', 'UTF-8' ),
+                    const
+                    token = await Fs.readFile( `${await getPath('session') }/session.dtf`, 'UTF-8' ),
                     session = decrypt( token )
 
                     if( typeof session !== 'object' ) return {}
@@ -88,28 +91,28 @@ async function getSession( type, req ){
 
                     return { isConnected, user, authError }
                   }
-                  catch( error ){
+                  catch( error ) {
                     console.log('Failed fetching cached session: ', error.message )
                     return {}
-                  }                 
+                  }
   }
 }
 
 async function setApp( appId, dataset ){
   // TODO: Add app to a database on `cloud` base mode
-  if( isOncloud() ){}
+  if( isOncloud() ) {}
   // Add app to `temp` folder on `local` base mode
   else await Fs.writeFile(`${ await getPath('install') }/${appId}.app`, encrypt( dataset ), 'UTF-8' )
 }
 async function getApp( appId ){
   // TODO: Get app information from a database on `cloud` base mode
-  if( isOncloud() ){}
+  if( isOncloud() ) {}
   // Get app information from `temp` folder on `local` base mode
   else decrypt( await Fs.readFile(`${ await getPath('install') }/${appId}.app`, 'UTF-8') )
 }
 async function clearApp( appId ){
   // TODO: Remove app from a database on `cloud` base mode
-  if( isOncloud() ){}
+  if( isOncloud() ) {}
   // Remove app from `temp` folder on `local` base mode
   else await Fs.remove(`${ await getPath('install') }/${appId}.app`)
 }

@@ -5,9 +5,9 @@ function initChannel( socket ){
   console.log('IPT New Connection: ', socket.id )
 
   function create( options = {}, callback ){
-    
-    if( options && typeof options !== 'object' ){
-      typeof callback == 'function' 
+
+    if( options && typeof options !== 'object' ) {
+      typeof callback == 'function'
       && callback({ error: true, message: 'Invalid IProcess Initialization Options'})
       return
     }
@@ -16,27 +16,27 @@ function initChannel( socket ){
     options.watcher = ( process, error, stats ) => socket.emit( 'IPROCESS::PROGRESS', process, error, stats )
     // New Process mamager
     socket.data.IProcess = new IProcess( options )
-    
-    typeof callback == 'function' 
+
+    typeof callback == 'function'
     && callback({ error: false })
   }
 
   async function run( method, ...args ){
-    
+
     let callback = () => {}
     // Extract callback function
     if( typeof args.slice(-1)[0] === 'function' )
       callback = args.pop()
 
-    // console.log( method, ...args, callback )
+    // Console.log( method, ...args, callback )
     try {
       // Call targeted IProcess method
       const response = await socket.data.IProcess[ method ]( ...args )
       callback({ error: false, response })
     }
-    catch( error ){ 
+    catch( error ) {
       console.log( error )
-      callback({ error: true, message: error }) 
+      callback({ error: true, message: error })
     }
   }
 
@@ -48,7 +48,7 @@ function initChannel( socket ){
     socket.disconnect( true )
 
     typeof callback == 'function'
-    && callback({ error: false, message: 'Closed' }) 
+    && callback({ error: false, message: 'Closed' })
   }
 
   socket
@@ -59,6 +59,6 @@ function initChannel( socket ){
 
 export default ioServer => {
   ioServer
-  .of('/'+ process.env.IPT_NAMESPACE )
+  .of(`/${ process.env.IPT_NAMESPACE}` )
   .on( 'connection', initChannel )
 }

@@ -47,4 +47,4 @@ export default {
     'vue/valid-v-show': 'error',
     'vue/valid-v-text': 'error',
   },
-};
+}

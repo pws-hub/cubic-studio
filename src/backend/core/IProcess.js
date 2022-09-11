@@ -1,56 +1,21 @@
 
 import Fs from 'fs-inter'
 import Path from 'path-inter'
-import randtoken from 'rand-token'
 import Emulator from './Emulator'
+import PackageManager from './CPM'
+import LPSServer from './LPSServer'
 import GitManager from './GitManager'
 import FileSystem from './FileSystem'
 import * as GenericFile from './GenericFile'
-import PackageManager from './PackageManager'
 
-async function generateId( name ){
-
-  const
-  dirpath = Path.resolve('sync'),
-  filepath = `${dirpath}/ids.json`
-  try {
-    const IDs = await Fs.readJson( filepath )
-    if( typeof IDs != 'object' )
-      throw new Error('Not Exist')
-
-    if( !IDs[ name ] ) {
-      IDs[ name ] = `EXT-${ random( 10, 99999 )
-                          }-${ randtoken.generate(4).toUpperCase()
-                          }-${ randtoken.generate(8).toUpperCase()}`
-
-      await Fs.ensureDir( dirpath )
-      await Fs.writeFile( filepath, JSON.stringify( IDs, null, '\t' ), 'UTF-8' )
-
-      return IDs[ name ]
-    }
-
-    return IDs[ name ]
-  }
-  catch( error ) {
-    const ID = `EXT-${ random( 10, 99999 )
-                        }-${ randtoken.generate(4).toUpperCase()
-                        }-${ randtoken.generate(8).toUpperCase()}`
-
-    await Fs.ensureDir( dirpath )
-    await Fs.writeFile( filepath, JSON.stringify({ [name]: ID }, null, '\t' ), 'UTF-8' )
-
-    return ID
-  }
-}
-
-async function PackageProcess( action, dataset, directory, source, _process ){
+async function processJSPackage( action, packages, directory, source, _process ){
 
   const processName = `${action }-packages`
   source = source || 'cpm'
 
   try {
-    if( !Array.isArray( dataset ) )
-      throw new Error('Invalid packages dataset argument. Expecte an <Array>')
+    if( !Array.isArray( packages ) )
+      throw new Error('Invalid packages argument. Expecte an <Array>')
 
     if( !directory || !( await Fs.pathExists( directory ) ) )
       throw new Error('Invalid project directory.')
@@ -63,9 +28,9 @@ async function PackageProcess( action, dataset, directory, source, _process ){
                         message: 'Installing dependency pagkages'
                       })
 
-    const
-    pm = new PackageManager({ cwd: directory, manager: Configs.NODE_PACKAGE_MANAGER, debug: _process.debugMode }),
-    packages = dataset.map( ({ name, version }) => { return name +( action == 'install' && version ? `@${ version}` : '' ) } )
+    const pm = new PackageManager({ cwd: directory, manager: Configs.NODE_PACKAGE_MANAGER, debug: _process.debugMode })
+
+    packages = packages.map( ({ name, version }) => { return name +( action == 'install' && version ? `@${ version}` : '' ) } )
 
     await pm[ action ]( packages, '-W', ( error, message, bytes ) => {
       // Installation progress tracking
@@ -94,6 +59,56 @@ async function PackageProcess( action, dataset, directory, source, _process ){
     _process.watcher( processName, error )
   }
 }
+async function processCubicPackage( action, packages, directory, _process ){
+
+  const
+  processName = `${action}-packages`
+  processor = 'cpm'
+
+  try {
+    if( !Array.isArray( packages ) )
+      throw new Error('Invalid package references argument. Expected an <Array>')
+
+    if( !directory || !( await Fs.pathExists( directory ) ) )
+      throw new Error('Invalid project directory.')
+
+    _process.watcher( processName,
+                      false,
+                      {
+                        percent: 1,
+                        processor,
+                        message: 'Installing pagkages'
+                      })
+
+    const pm = new PackageManager({ cwd: directory, debug: _process.debugMode })
+
+    await pm[ action ]( packages.join(' '), '-f -d', ( error, bytes, message ) => {
+      // Installation progress tracking
+      error ?
+        _process.watcher( processName, error )
+        : _process.watcher( processName,
+                            error,
+                            {
+                              percent: bytes,
+                              processor,
+                              message
+                            })
+    } )
+
+    // Completed
+    _process.watcher( processName,
+                      false,
+                      {
+                        percent: 100,
+                        processor,
+                        message: `Installation ${action.replace(/e$/, '')}ed`
+                      })
+  }
+  catch( error ) {
+    _process.debug('Error occured: ', error )
+    _process.watcher( processName, error )
+  }
+}
 
 export default class IProcess {
 
@@ -104,6 +119,8 @@ export default class IProcess {
     this.watcher = typeof options.watcher === 'function' ? options.watcher : () => {}
     // Active emulators
     this.emulators = {}
+    // Locale Package Store
+    this.LPS = LPSServer().Interface
   }
 
   // Internal operation log: Debug mode
@@ -158,7 +175,7 @@ export default class IProcess {
         git.setCWD( directory )
 
         /* -------------------------------------------------------------------------*/
-        // Add generic files: .cubic, config.json, README.md
+        // Add generic files: .cubic, .metadata, README.md
         this.watcher( 'setup',
                       false,
                       {
@@ -168,11 +185,11 @@ export default class IProcess {
                       })
         const
         dotCubic = await GenericFile.dotCubic( dataset ),
-        configJson = await GenericFile.configJson( dataset ),
+        dotMetadata = await GenericFile.dotMetadata( dataset ),
         dotGitignore = await GenericFile.dotGitignore( directory )
 
         await fs.newFile( `${directory }/.cubic`, JSON.stringify( dotCubic, null, '\t' ) )
-        await fs.newFile( `${directory }/config.json`, JSON.stringify( configJson, null, '\t' ) )
+        await fs.newFile( `${directory }/.metadata`, JSON.stringify( dotMetadata, null, '\t' ) )
         await fs.newFile( `${directory }/.gitignore`, dotGitignore )
 
         /* -------------------------------------------------------------------------*/
@@ -200,16 +217,16 @@ export default class IProcess {
         const
         starter = `${pm.manager}${pm.manager == 'npm' ? ' run' : ''}`,
         packageJson = {
-          name: configJson.nsi || name,
-          description: description || `Short description of the ${ type}`,
-          version: configJson.version || '1.0.0',
+          name: dotMetadata.nsi || name,
+          description: description || `Short description of the ${type}`,
+          version: dotMetadata.version || '1.0.0',
           private: true,
           scripts: {
             start: `cd ./.sandbox && ${starter} start`,
             test: `cd ./.sandbox && ${starter} test:dev`
           },
-          main: `src/index.${ plang}`,
-          author: configJson.author.name,
+          main: `src/index.${plang}`,
+          author: dotMetadata.author.name,
           repository: repository || '-',
           licence: 'GNU'
         }
@@ -229,7 +246,7 @@ export default class IProcess {
                         processor: 'cpm',
                         message: 'Installing project dependencies'
                       })
-        await pm.installPackages( ( error, message, bytes ) => {
+        await pm.installDependencies( ( error, message, bytes ) => {
           // Installation progress tracking
           error ?
             this.watcher( 'setup', error )
@@ -337,7 +354,7 @@ export default class IProcess {
         git.setCWD( directory )
 
         /* -------------------------------------------------------------------------*/
-        // Update/Create generic files: .cubic, config.json, README.md
+        // Update/Create generic files: .cubic, .metadata, README.md
         this.watcher( 'import',
                       false,
                       {
@@ -347,11 +364,11 @@ export default class IProcess {
                       })
         const
         dotCubic = await GenericFile.dotCubic( dataset ),
-        configJson = await GenericFile.configJson( dataset ),
+        dotMetadata = await GenericFile.dotMetadata( dataset ),
         dotGitignore = await GenericFile.dotGitignore( directory )
 
         await fs.newFile( `${directory }/.cubic`, JSON.stringify( dotCubic, null, '\t' ) )
-        await fs.newFile( `${directory }/config.json`, JSON.stringify( configJson, null, '\t' ) )
+        await fs.newFile( `${directory }/.metadata`, JSON.stringify( dotMetadata, null, '\t' ) )
         await fs.newFile( `${directory }/.gitignore`, dotGitignore )
 
         /* -------------------------------------------------------------------------*/
@@ -382,16 +399,16 @@ export default class IProcess {
         const
         starter = `${pm.manager}${pm.manager == 'npm' ? ' run' : ''}`,
         packageJson = {
-          name: configJson.nsi || name,
+          name: dotMetadata.nsi || name,
           description: description || `Short description of the ${ type}`,
-          version: configJson.version || '1.0.0',
+          version: dotMetadata.version || '1.0.0',
           private: true,
           scripts: {
             start: `cd ./.sandbox && ${starter} start`,
             test: `cd ./.sandbox && ${starter} test:dev`
           },
           main: `src/index.${ plang}`,
-          author: configJson.author.name,
+          author: dotMetadata.author.name,
           repository: repository || '-',
           licence: 'GNU'
         }
@@ -411,7 +428,7 @@ export default class IProcess {
                         processor: 'cpm',
                         message: 'Installing project dependencies'
                       })
-        await pm.installPackages( ( error, message, bytes ) => {
+        await pm.installDependencies( ( error, message, bytes ) => {
           // Installation progress tracking
           error ?
             this.watcher( 'import', error )
@@ -552,20 +569,20 @@ export default class IProcess {
                   })
   }
 
-  async installPackages( dataset, directory, source ){
-    // Install/Add dependency packages from MPM, CPM, ...
-    await PackageProcess( 'install', dataset, directory, source, this )
+  // Install/Add JS dependency packages from NPM, CPM, ...
+  async installJSPackages( packages, directory, source ){
+    await processJSPackage( 'install', packages, directory, source, this )
   }
-  async removePackages( dataset, directory, source ){
-    // Remove dependency packages
-    await PackageProcess( 'remove', dataset, directory, source, this )
+  // Remove dependency packages
+  async removeJSPackages( packages, directory, source ){
+    await processJSPackage( 'remove', packages, directory, source, this )
   }
-  async updatePackages( dataset, directory, source ){
-    // Update dependency packages
-    await PackageProcess( 'update', dataset, directory, source, this )
+  // Update dependency packages
+  async updateJSPackages( packages, directory, source ){
+    await processJSPackage( 'update', packages, directory, source, this )
   }
-  async refreshPackages( directory, source ){
-    // Reinstall dependency packages
+  // Reinstall dependency packages
+  async refreshJSPackages( directory, source ){
     try {
       if( !directory || !( await Fs.pathExists( directory ) ) )
         throw new Error('Invalid project directory.')
@@ -581,7 +598,7 @@ export default class IProcess {
                       })
 
       const pm = new PackageManager({ cwd: directory, manager: Configs.NODE_PACKAGE_MANAGER, debug: this.debugMode })
-      await pm.installPackages( ( error, message, bytes ) => {
+      await pm.installDependencies( ( error, message, bytes ) => {
         // Installation progress tracking
         error ?
           this.watcher( 'refresh-packages', error )
@@ -609,10 +626,23 @@ export default class IProcess {
     }
   }
 
-  async installApp( dataset ){
+  // Install cubic packages from CPR
+  async installCubicPackages( packages, directory ){
+    await processCubicPackage( 'install', packages, directory, this )
+  }
+  // Remove cubic packages
+  async removeCubicPackages( packages, directory ){
+    await processCubicPackage( 'remove', packages, directory, this )
+  }
+  // Update cubic packages
+  async updateCubicPackages( packages, directory ){
+    await processCubicPackage( 'update', packages, directory, this )
+  }
+
+  async installApp( metadata ){
     try {
-      if( !isApp( dataset ) )
-        throw new Error('Invalid application dataset')
+      if( !isApp( metadata ) )
+        throw new Error('Invalid application metadata')
 
       this.watcher( 'install-app',
                     false,
@@ -622,10 +652,7 @@ export default class IProcess {
                       message: 'Installation started'
                     })
 
-      const appId =
-      dataset.extensionId = await generateId( dataset.name )
-
-      await Sync.setApp( appId, dataset )
+      const sid = await this.LPS.insert( metadata )
 
       // Completed
       this.watcher( 'install-app',
@@ -636,16 +663,16 @@ export default class IProcess {
                       message: 'Installation completed'
                     })
 
-      return appId
+      return sid
     }
     catch( error ) {
       this.debug('Failed to install app: ', error )
       this.watcher( 'install-app', error )
     }
   }
-  async uninstallApp( appId ){
+  async uninstallApp( sid ){
     try {
-      if( !appId )
+      if( !sid )
         throw new Error('Undefined application id')
 
       this.watcher( 'uninstall-app',
@@ -656,7 +683,7 @@ export default class IProcess {
                       message: 'Removing application'
                     })
 
-      await Sync.clearApp( appId )
+      await this.LPS.delete( sid )
 
       // Completed
       this.watcher( 'uninstall-app',

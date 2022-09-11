@@ -35,7 +35,7 @@ export default class PackageManager {
   }
 
   /**
-   * Generate initial `package.json` and `config.json`
+   * Generate initial `package.json` and `.metadata`
    *  requirement files at project root.
    *
    * @configs Custom configurations
@@ -43,19 +43,19 @@ export default class PackageManager {
    */
   async init( configs ){
     // Default is CPM config file.
-    let filepath = `${this.cwd }/config.json`
+    let filepath = `${this.cwd }/.metadata`
 
     // Generate 3rd party CLI package managers (npm, yarn) package.json
     if( ['npm', 'yarn'].includes( this.manager ) )
       filepath = `${this.cwd }/package.json`
 
-    // Check & Fetch existing config.json/package.json content
+    // Check & Fetch existing .metadata or package.json content
     try {
       const existing = await fs.readJson( filepath )
 
       /**
        * Merge new information with exising
-       *  config.json/package.json content.
+       *  .metadata or package.json content.
        */
       if( typeof existing == 'object' )
         configs = { ...existing, ...configs }
@@ -75,7 +75,7 @@ export default class PackageManager {
    * @progress  Process tracking report function. (optional) Default to `this.watcher`
    *
    */
-  CLIManager( verb, packages, params, progress ){
+  throughCLI( verb, packages, params, progress ){
     return new Promise( ( resolve, reject ) => {
       // Specified packages to uninstall
       packages = Array.isArray( packages ) ? packages.join(' ') : packages || ''
@@ -88,7 +88,7 @@ export default class PackageManager {
 
   /**
    * Install dependency package requirements listed
-   *  in `config.json` or `package.json` files
+   *  in `.metadata` or `package.json` files
    *
    * Use `npm` or `yarn` for NodeJS packages & `cpm`
    * for Cubic Package
@@ -99,7 +99,7 @@ export default class PackageManager {
    * @progress  Process tracking report function. (optional) Default to `this.watcher`
    *
    */
-  async installPackages( params = '', progress ){
+  async installDependencies( params = '', progress ){
 
     if( typeof params == 'function' ) {
       progress = params,
@@ -110,7 +110,7 @@ export default class PackageManager {
 
     // Handle by 3rd party CLI package managers like: npm
     if( ['npm', 'yarn'].includes( this.manager ) )
-      return await this.CLIManager( 'install', null, params, progress )
+      return await this.throughCLI( 'install', null, params, progress )
 
   }
 
@@ -147,7 +147,7 @@ export default class PackageManager {
         default: verb = 'add'
       }
 
-      return await this.CLIManager( verb, packages, params, progress )
+      return await this.throughCLI( verb, packages, params, progress )
     }
 
     // Check whether a package repository is defined
@@ -257,7 +257,7 @@ export default class PackageManager {
        * Install all required dependencies (plugin/library)
        *
        * NOTE: Regular mode only. Plugin are directly added to
-       *       `config.json` file in sandbox mode.
+       *       `.metadata` file in sandbox mode.
        */
       response.metadata = await installDependencies( response.metadata )
 
@@ -303,7 +303,7 @@ export default class PackageManager {
         default: verb = 'remove'
       }
 
-      return await this.CLIManager( verb, packages, params, progress )
+      return await this.throughCLI( verb, packages, params, progress )
     }
 
     // Remove package installed with cpm
@@ -379,7 +379,7 @@ export default class PackageManager {
                   params += ' --latest'
       }
 
-      return await this.CLIManager( verb, packages, params, progress )
+      return await this.throughCLI( verb, packages, params, progress )
     }
 
     // Update: Reinstall packages to their latest versions
@@ -406,12 +406,12 @@ export default class PackageManager {
 
     let metadata
     try {
-      progress( false, null, 'Checking metadata in config.json')
-      metadata = await fs.readJson( `${this.cwd }/config.json` )
+      progress( false, null, 'Checking metadata in .metadata')
+      metadata = await fs.readJson( `${this.cwd }/.metadata` )
     }
     catch( error ) {
       console.error( error )
-      const explicitError = new Error('Undefined Metadata. Expected config.json file in project root')
+      const explicitError = new Error('Undefined Metadata. Expected .metadata file in project root')
 
       progress( explicitError )
       throw explicitError

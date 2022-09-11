@@ -1,17 +1,20 @@
 
 import request from 'request'
 import jwt from 'jsonwebtoken'
+import LPSServer from '../../src/backend/core/LPSServer'
 
-async function getAuthConfig( req, type, extensionId ){
+const LPS = LPSServer().Interface
+
+async function getAuthConfig( req, type, sid ){
   // Get an auth configuration type of the app: OAuth, JWT, BAT, BAC, ...
-  const app = await Sync.getApp( extensionId )
+  const app = await LPS.get({ sid })
   if( typeof app !== 'object' )
     throw new Error('Invalid Installed App Config')
 
   return app.configs && app.configs[ type ]
 }
 
-async function ProcessOAuth2( req, extensionId ){
+async function ProcessOAuth2( req, sid ){
   return new Promise( ( resolve, reject ) => {
 
     const headers = {
@@ -28,15 +31,15 @@ async function ProcessOAuth2( req, extensionId ){
       return new Promise( ( resolve, reject ) => {
         const
         headers = {
-          Authorization: `Basic ${ ( `${id }:${ secret}` ).toString('base64')}`
+          Authorization: `Basic ${(`${id}:${secret}`).toString('base64')}`
         },
         form = {
           grant_type: 'authorization_code',
           // Code: $code,
-          redirect_uri: `${toOrigin(req.headers.host )}/extension/oauth2/callback`
+          redirect_uri: `${toOrigin(req.headers.host)}/service/oauth2/callback`
         }
 
-        // Retreive OAuth2.0 configuration of this extension
+        // Retreive OAuth2.0 configuration of this service
         request(`${baseURL}/oauth/token`,
                   { headers, method: 'POST', form, json: true },
                   ( error, response, body ) => {
@@ -54,14 +57,14 @@ async function ProcessOAuth2( req, extensionId ){
       return new Promise( ( resolve, reject ) => {
         const
         headers = {
-          Authorization: `Basic ${ ( `${id }:${ secret}` ).toString('base64')}`
+          Authorization: `Basic ${(`${id}:${secret}`).toString('base64')}`
         },
         form = {
           grant_type: 'refresh_token',
           refresh_token: token
         }
 
-        // Retreive OAuth2.0 configuration of this extension
+        // Retreive OAuth2.0 configuration of this service
         request(`${baseURL}/oauth/token`,
                   { headers, method: 'POST', form, json: true },
                   ( error, response, body ) => {
@@ -71,8 +74,8 @@ async function ProcessOAuth2( req, extensionId ){
       } )
     }
 
-    // Retreive OAuth2.0 configuration of this extension
-    request(`${toOrigin( process.env.MULTIPPLE_API_SERVER )}/extension/${extensionId}/oauth2`,
+    // Retreive OAuth2.0 configuration of this service
+    request(`${toOrigin( process.env.MULTIPPLE_API_SERVER )}/service/${sid}/oauth2`,
               { headers, method: 'GET', json: true },
               async ( error, response, body ) => {
 
@@ -86,10 +89,10 @@ async function ProcessOAuth2( req, extensionId ){
   } )
 }
 
-async function ProcessJWT( req, extensionId ){
+async function ProcessJWT( req, sid ){
   try {
     const
-    { baseURL, APIKey, APISecret } = await getAuthConfig( req, 'jwt', extensionId ),
+    { baseURL, APIKey, APISecret } = await getAuthConfig( req, 'jwt', sid ),
     payload = {
       iss: APIKey,
       exp: ( ( new Date() ).getTime() + 5000 )
@@ -101,14 +104,14 @@ async function ProcessJWT( req, extensionId ){
   catch( error ) { throw new Error( error ) }
 }
 
-async function ProcessBAC( req, extensionId ){
-  try { return await getAuthConfig( req, 'bac', extensionId ) }
+async function ProcessBAC( req, sid ){
+  try { return await getAuthConfig( req, 'bac', sid ) }
   catch( error ) { throw new Error( error ) }
 }
 
-async function ProcessBAT( req, extensionId ){
+async function ProcessBAT( req, sid ){
   try {
-    const config = await getAuthConfig( req, 'bat', extensionId )
+    const config = await getAuthConfig( req, 'bat', sid )
     return {
       baseURL: config.baseURL,
       accessToken: config.token
@@ -119,7 +122,7 @@ async function ProcessBAT( req, extensionId ){
 
 export default async ( req, res ) => {
   let
-  { extensionId, url, method, body, headers, responseType, authType } = req.body,
+  { sid, url, method, body, headers, responseType, authType } = req.body,
   base_URL, access_token
 
   const options = {
@@ -130,12 +133,12 @@ export default async ( req, res ) => {
 
   if( authType ) {
     // Caching session of Auth Request Options
-    if( !req.session[ extensionId ] )
-      req.session[ extensionId ] = {}
+    if( !req.session[ sid ] )
+      req.session[ sid ] = {}
 
     // Use previous generated info stored in session
-    base_URL = req.session[ extensionId ].base_URL
-    access_token = req.session[ extensionId ].access_token
+    base_URL = req.session[ sid ].base_URL
+    access_token = req.session[ sid ].access_token
 
     // Authentication Request Authorizations
     switch( authType ) {
@@ -143,14 +146,14 @@ export default async ( req, res ) => {
       case 'oauth2': if( !access_token )
                         try {
                           // Process oauth2.0 authentication
-                          const { baseURL, accessToken } = await ProcessOAuth2( req, extensionId )
+                          const { baseURL, accessToken } = await ProcessOAuth2( req, sid )
                           if( !accessToken ) throw new Error('Unexpected Error Occured')
 
                           // Keep baseURL & accessToken in session for next requests
                           base_URL =
-                          req.session[ extensionId ].base_URL = baseURL
+                          req.session[ sid ].base_URL = baseURL
                           access_token =
-                          req.session[ extensionId ].access_token = accessToken
+                          req.session[ sid ].access_token = accessToken
                         }
                         catch( error ) { console.log('OAuth2.0 Error: ', error ) }
 
@@ -161,14 +164,14 @@ export default async ( req, res ) => {
       case 'jwt': if( !access_token )
                     try {
                       // Process JWT authentication
-                      const { baseURL, accessToken } = await ProcessJWT( req, extensionId )
+                      const { baseURL, accessToken } = await ProcessJWT( req, sid )
                       if( !accessToken ) throw new Error('Unexpected Error Occured')
 
                       // Keep baseURL & accessToken in session for next requests
                       base_URL =
-                      req.session[ extensionId ].base_URL = baseURL
+                      req.session[ sid ].base_URL = baseURL
                       access_token =
-                      req.session[ extensionId ].access_token = accessToken
+                      req.session[ sid ].access_token = accessToken
                     }
                     catch( error ) { console.log('JWT Error: ', error ) }
 
@@ -189,15 +192,15 @@ export default async ( req, res ) => {
                   // Get credentials
                   else try {
                     // Process BAC authentication
-                    const { baseURL, user, password } = await ProcessBAC( req, extensionId )
+                    const { baseURL, user, password } = await ProcessBAC( req, sid )
                     if( !accessToken ) throw new Error('Unexpected Error Occured')
 
                     // Keep baseURL & accessToken in session for next requests
                     base_URL =
-                    req.session[ extensionId ].base_URL = baseURL
+                    req.session[ sid ].base_URL = baseURL
                     // Store user and password as base64 token in
                     access_token =
-                    req.session[ extensionId ].access_token = Buffer.from( `${user }:${ password}` ).toString('base64')
+                    req.session[ sid ].access_token = Buffer.from(`${user }:${ password}`).toString('base64')
 
                     // User & password Authorization
                     options.auth = { user, password, setImmediately: true }
@@ -208,14 +211,14 @@ export default async ( req, res ) => {
       case 'bat': if( !access_token )
                     try {
                       // Process BAT authentication
-                      const { baseURL, accessToken } = await ProcessBAT( req, extensionId )
+                      const { baseURL, accessToken } = await ProcessBAT( req, sid )
                       if( !accessToken ) throw new Error('Unexpected Error Occured')
 
                       // Keep baseURL & accessToken in session for next requests
                       base_URL =
-                      req.session[ extensionId ].base_URL = baseURL
+                      req.session[ sid ].base_URL = baseURL
                       access_token =
-                      req.session[ extensionId ].access_token = accessToken
+                      req.session[ sid ].access_token = accessToken
                     }
                     catch( error ) { console.log('BAT Error: ', error ) }
 

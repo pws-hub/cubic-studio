@@ -113,7 +113,7 @@ function ProcessHandler( client ){
     }
   }
 
-  this.Packager = ( dataset, directory ) => {
+  this.JSPackageManager = ( packages, directory ) => {
     return {
       install: async tracker => {
         try {
@@ -121,7 +121,7 @@ function ProcessHandler( client ){
           if( typeof tracker == 'function' )
             this.trackers['install-packages'] = tracker
 
-          const { error, message, response } = await run('installPackages', dataset, directory, 'npm' )
+          const { error, message, response } = await run('installJSPackages', packages, directory, 'npm' )
           if( error ) throw new Error( message )
 
           return response || true
@@ -137,7 +137,7 @@ function ProcessHandler( client ){
           if( typeof tracker == 'function' )
             this.trackers['remove-packages'] = tracker
 
-          const { error, message, response } = await run( 'removePackages', dataset, directory )
+          const { error, message, response } = await run( 'removeJSPackages', packages, directory )
           if( error ) throw new Error( message )
 
           return response || true
@@ -153,7 +153,7 @@ function ProcessHandler( client ){
           if( typeof tracker == 'function' )
             this.trackers['update-packages'] = tracker
 
-          const { error, message, response } = await run( 'updatePackages', dataset, directory, 'npm' )
+          const { error, message, response } = await run( 'updateJSPackages', packages, directory, 'npm' )
           if( error ) throw new Error( message )
 
           return response || true
@@ -169,7 +169,59 @@ function ProcessHandler( client ){
           if( typeof tracker == 'function' )
             this.trackers['refresh-packages'] = tracker
 
-          const { error, message, response } = await run( 'refreshPackages', directory, 'npm' )
+          const { error, message, response } = await run( 'refreshJSPackages', directory, 'npm' )
+          if( error ) throw new Error( message )
+
+          return response || true
+        }
+        catch( error ) {
+          console.log( error )
+          return false
+        }
+      }
+    }
+  }
+  this.CubicPackageManager = ( packages, directory ) => {
+    return {
+      install: async tracker => {
+        try {
+          // Register `install-packages` tracker
+          if( typeof tracker == 'function' )
+            this.trackers['install-packages'] = tracker
+
+          const { error, message, response } = await run('installCubicPackages', packages, directory )
+          if( error ) throw new Error( message )
+
+          return response || true
+        }
+        catch( error ) {
+          console.log( error )
+          return false
+        }
+      },
+      remove: async tracker => {
+        try {
+          // Register `remove-packages` tracker
+          if( typeof tracker == 'function' )
+            this.trackers['remove-packages'] = tracker
+
+          const { error, message, response } = await run( 'removeCubicPackages', packages, directory )
+          if( error ) throw new Error( message )
+
+          return response || true
+        }
+        catch( error ) {
+          console.log( error )
+          return false
+        }
+      },
+      update: async tracker => {
+        try {
+          // Register `update-packages` tracker
+          if( typeof tracker == 'function' )
+            this.trackers['update-packages'] = tracker
+
+          const { error, message, response } = await run( 'updateCubicPackages', packages, directory )
           if( error ) throw new Error( message )
 
           return response || true
@@ -182,13 +234,13 @@ function ProcessHandler( client ){
     }
   }
 
-  this.addComponents = async ( dataset, directory, tracker ) => {
+  this.addComponents = async ( list, directory, tracker ) => {
     try {
       // Register `add-component` tracker
       if( typeof tracker == 'function' )
         this.trackers['add-components'] = tracker
 
-      const { error, message, response } = await run( 'addComponents', dataset, directory )
+      const { error, message, response } = await run( 'addComponents', list, directory )
       if( error ) throw new Error( message )
 
       return response || true
@@ -199,13 +251,13 @@ function ProcessHandler( client ){
     }
   }
 
-  this.installApp = async ( dataset, tracker ) => {
+  this.installApp = async ( metadata, tracker ) => {
     try {
       // Register `install-app` tracker
       if( typeof tracker == 'function' )
         this.trackers['install-app'] = tracker
 
-      const { error, message, response } = await run( 'installApp', dataset )
+      const { error, message, response } = await run( 'installApp', metadata )
       if( error ) throw new Error( message )
 
       return response
@@ -215,13 +267,13 @@ function ProcessHandler( client ){
       return false
     }
   }
-  this.uninstallApp = async ( appid, tracker ) => {
+  this.uninstallApp = async ( sid, tracker ) => {
     try {
       // Register `uninstall-app` tracker
       if( typeof tracker == 'function' )
         this.trackers['uninstall-app'] = tracker
 
-      const { error, message, response } = await run( 'uninstallApp', appid )
+      const { error, message, response } = await run( 'uninstallApp', sid )
       if( error ) throw new Error( message )
 
       return response

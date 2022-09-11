@@ -5,7 +5,7 @@ import { dotCubic, dotGitignore, configJson } from '../../src/core/GenericFile'
 ;( async () => {
   try {
     const dataset = {}
-    
+
     console.log( await dotCubic( dataset ) )
     console.log( await dotGitignore( path.resolve('.') ) )
     console.log( await configJson( dataset ) )

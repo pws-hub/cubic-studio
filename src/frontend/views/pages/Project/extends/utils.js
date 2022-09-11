@@ -1,9 +1,9 @@
 
-export default $ => {
+export default Self => {
 
-  const State = $.state
+  const State = Self.state
 
-  $.ongoing = labels => {
+  Self.ongoing = labels => {
 
     if( labels === false ) {
       State.ongoingSetup = false
@@ -12,7 +12,7 @@ export default $ => {
 
     State.ongoingSetup = { ...(State.ongoingSetup || {}), ...labels }
   }
-  $.progression = stats => {
+  Self.progression = stats => {
     // Display ongoing process progression details on Footer
     if( !stats )
       State.ongoingProcess = false
@@ -26,7 +26,7 @@ export default $ => {
       }
     }
   }
-  $.applyTabsChange = arg => {
+  Self.applyTabsChange = arg => {
     // Apply and reflect changes on tabs
     if( typeof arg !== 'object' ) return
 
@@ -34,7 +34,7 @@ export default $ => {
     Array.isArray( arg ) ?
             tabs = newObject( arg ) // Update the whole tabs list
             // Change on single tab
-            : tabs = ($.getSection('tabs') || []).map( tab => {
+            : tabs = (Self.getSection('tabs') || []).map( tab => {
               // Tab already exist
               if( tab.path === arg.path )
                 return arg
@@ -42,35 +42,35 @@ export default $ => {
               return tab
             } )
 
-    $.setSection('tabs', tabs )
+    Self.setSection('tabs', tabs )
   }
 
-  $.hasCodeSection = () => { return State.project && State.project.specs.code && !isEmpty( State.project.specs.code ) }
-  $.hasAPISection = () => { return State.project && Array.isArray( State.project.specs.API ) }
-  $.hasSocketSection = () => { return State.project && Array.isArray( State.project.specs.sockets ) }
-  $.hasUnitSection = () => { return State.project && Array.isArray( State.project.specs.units ) }
+  Self.hasCodeSection = () => { return State.project && State.project.specs.code && !isEmpty( State.project.specs.code ) }
+  Self.hasAPISection = () => { return State.project && Array.isArray( State.project.specs.API ) }
+  Self.hasSocketSection = () => { return State.project && Array.isArray( State.project.specs.sockets ) }
+  Self.hasUnitSection = () => { return State.project && Array.isArray( State.project.specs.units ) }
 
-  $.initSection = ( key, defaultValue = null ) => {
-    $.setSection( key, $.pstore.get( key ) || defaultValue )
+  Self.initSection = ( key, defaultValue = null ) => {
+    Self.setSection( key, Self.pstore.get( key ) || defaultValue )
   }
-  $.setSection = ( key, value ) => {
+  Self.setSection = ( key, value ) => {
     State[ State.activeSection ][ key ] = value
-    $.setStateDirty( State.activeSection )
-    $.pstore.set( key, value )
+    Self.setStateDirty( State.activeSection )
+    Self.pstore.set( key, value )
   }
-  $.getSection = key => {
+  Self.getSection = key => {
     return key !== undefined ?
         State[ State.activeSection ][ key ] // Specific field of the section
         : State[ State.activeSection ] // All section set
   }
-  $.clearSection = key => {
+  Self.clearSection = key => {
     // Specific field of the section
     if( key ) {
       State[ State.activeSection ][ key ] = null
-      $.pstore.clear( key )
+      Self.pstore.clear( key )
     }
     else State[ State.activeSection ] = {}
 
-    $.setStateDirty( State.activeSection )
+    Self.setStateDirty( State.activeSection )
   }
 }

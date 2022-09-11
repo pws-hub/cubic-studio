@@ -46,7 +46,7 @@ export const set = async metadata => {
 export const get = async query => {
   try {
     /** ---------- Sandbox mode ----------**/
-    // If( window.SANDBOX ) return require('root/../config.json')
+    // If( window.SANDBOX ) return require('root/../.metadata')
 
     /** ---------- Regular mode ----------**/
     const { error, message, result } = await Request(`${query ? `?${ Obj2Params( query )}` : '/'}`)

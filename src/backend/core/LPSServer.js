@@ -1,7 +1,7 @@
 
 import fs from 'fs-extra'
 import { Router } from 'express'
-import { decrypt, encrypt } from './DTCrypt'
+import { decrypt, encrypt } from '../lib/DTCrypt'
 
 function ruuid(){
   return 'xxxx-xxxx-4xxxx-xxxxxxxx'.replace(/[xy]/g, c => {
@@ -45,8 +45,10 @@ const INTERFACES = {
                 && nsi == metadata.nsi
                 && name == metadata.name
                 && namespace == metadata.namespace
-                && version == metadata.version )
-            throw new Error('Already exists')
+                && version == metadata.version ) {
+              sids.push( list[x].sid ) // Record existing item Store ID (sid)
+              return
+            }
           }
 
           const sid = ruuid()
@@ -138,22 +140,34 @@ const INTERFACES = {
         if( !input )
           throw new Error('Invalid method call. Expected 1 argument')
 
+        async function checkExists({ type, nsi, namespace }){
+          const exists = await collectoin.findOne({ type, nsi, namespace })
+          if( !exists ) return
+
+          return exists.sid
+        }
+
         if( Array.isArray( input ) ) {
           const sids = []
-          input = input.map( each => {
-            sids.push( each.sid = ruuid() )
-            return each
-          } )
 
-          await collection.insertMany( input )
+          Promise.all( input.map( each => {
+            const itemId = checkExists( each )
+            if( itemId ) return sids.push( itemId )
+
+            sids.push( each.sid = ruuid() )
+            collection.insertOne( each )
+          } ) )
+
           return sids
         }
 
-          input.sid = ruuid()
-          await collection.insert( input )
+        const itemId = checkExists( input )
+        if( itemId ) return itemId
 
-          return input.sid
+        input.sid = ruuid()
+        await collection.insertOne( input )
 
+        return input.sid
       },
       get: async conditions => { return await collection.findOne( conditions ) },
       fetch: async filters => { return await collection.find( filters || {} ).toArray() },

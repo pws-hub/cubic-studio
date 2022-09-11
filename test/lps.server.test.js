@@ -1,5 +1,5 @@
 
-import Store from '../src/backend/lib/LPSServer'
+import Store from '../src/backend/core/LPSServer'
 
 ;( async () => {
   try {
@@ -15,7 +15,7 @@ import Store from '../src/backend/lib/LPSServer'
     // Insert Many
     console.log( await Interface.insert( extensions ) )
     // Fetch
-    console.log( await Interface.fetch({ type: 'plugin' }) )
+    console.log( await Interface.fetch() )
     // Get
     const metadata = await Interface.get({ nsi: 'n-keypad' })
     console.log( metadata )

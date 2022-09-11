@@ -49,10 +49,10 @@ export const dotGitignore = async directory => {
   return gitignore
 }
 
-export const configJson = async ({ name, nsi, description, specs }) => {
+export const dotMetadata = async ({ name, nsi, description, specs }) => {
 
   let config
-  try { config = await fs.readJson( `${specs.code.directory }/config.json` ) }
+  try { config = await fs.readJson( `${specs.code.directory }/.metadata` ) }
   catch( error ) { throw error }
 
   return {

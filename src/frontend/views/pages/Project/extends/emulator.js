@@ -1,19 +1,19 @@
 
-export default $ => {
+export default Self => {
 
-  $.emulator = false
-  const State = $.state
+  Self.em = false
+  const State = Self.state
 
-  $.RunEmulator = async force => {
+  Self.RunEmulator = async force => {
     // Run/Stop emulator
-    if( !$.pm ) {
+    if( !Self.pm ) {
       debugLog('[Emulator Event] error: Undeclared process manager')
       return
     }
 
     // Create emulator instance
-    if( !$.emulator )
-      $.emulator = $.pm.Emulator( State.project )
+    if( !Self.em )
+      Self.em = Self.pm.Emulator( State.project )
 
     // Run
     State.emulatorStatus = 'loading'
@@ -24,12 +24,12 @@ export default $ => {
      * restarting it, when project got refreshed and
      * servers are up
      */
-    const cachedEMImage = !force ? $.pstore.get('emulator') : false
+    const cachedEMImage = !force ? Self.pstore.get('emulator') : false
     if( cachedEMImage )
       State.emulator = cachedEMImage
 
     else {
-      const metadata = await $.emulator.run()
+      const metadata = await Self.em.run()
       if( !metadata ) {
         State.emulatorStatus = false
         State.emulatorError = 'Emulator failed to run. Check your code and retry'
@@ -40,32 +40,32 @@ export default $ => {
     }
 
     State.emulatorStatus = 'running'
-    $.pstore.set('emulator', State.emulator )
+    Self.pstore.set('emulator', State.emulator )
   }
-  $.ReloadEmulator = async () => {
+  Self.ReloadEmulator = async () => {
     // Reload emulator
-    if( !$.pm ) {
+    if( !Self.pm ) {
       debugLog('[Emulator Event] error: Undeclared process manager')
       return
     }
 
     // Create emulator instance
-    if( !$.emulator )
-      $.emulator = $.pm.Emulator( State.project )
+    if( !Self.em )
+      Self.em = Self.pm.Emulator( State.project )
 
     State.emulatorStatus = 'reloading'
 
-    State.emulator = await $.emulator.reload()
+    State.emulator = await Self.em.reload()
     State.emulatorStatus = 'running'
   }
-  $.QuitEmulator = async () => {
+  Self.QuitEmulator = async () => {
     // Run/Stop emulator
-    if( !$.pm ) {
+    if( !Self.pm ) {
       debugLog('[Emulator Event] error: Undeclared process manager')
       return
     }
 
-    if( !$.emulator ) {
+    if( !Self.em ) {
       debugLog('[Emulator Event] error: No active Emulator found')
       return
     }
@@ -74,12 +74,12 @@ export default $ => {
     State.emulator = false
     State.emulatorStatus = 'stopping'
 
-    await $.emulator.quit()
+    await Self.em.quit()
     State.emulatorStatus = false
 
     GState.ws.layout({ mode: 'ns' })
 
     // Clear cached config
-    $.pstore.clear('emulator')
+    Self.pstore.clear('emulator')
   }
 }

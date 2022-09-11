@@ -2,7 +2,7 @@
 export default async ( req, res ) => {
   // Direct request to appropriete handler
   try {
-    const {provider} = req.params
+    const { provider } = req.params
 
     // Check whether request handle is defined
     if( !Configs.REQUEST_HANDLERS[ provider ] )

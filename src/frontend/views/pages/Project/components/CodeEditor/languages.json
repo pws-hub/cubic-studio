@@ -56,12 +56,11 @@
     }
   },
   {
-    "id": "cubic",
-    "extensions": [".cubic"],
-    "aliases": ["cubic"],
-    "mimetypes": ["text/cubic"],
+    "id": "json",
+    "extensions": [".cubic", ".metadata"],
+    "mimetypes": ["text/json"],
     "grammar": {
-      "scopeName": "source.cubic",
+      "scopeName": "source.json",
       "fileName": "json.tmLanguage.json",
       "format": "json"
     }

@@ -47,11 +47,11 @@ export default function( e ){
     }
     catch( error ) { callback( error ) }
   } )
-  .on( 'request:install', async ( payload, callback ) => {
+  .on( 'request:install', async ( metadata, callback ) => {
     // Request callback function default to empty function
     callback = typeof callback == 'function' ? callback : () => {}
 
-    try { callback( false, await Install( payload ) ) }
+    try { callback( false, await Install( metadata ) ) }
     catch( error ) { callback( error ) }
   } )
 

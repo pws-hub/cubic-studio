@@ -47,9 +47,9 @@ class {
   }
   onOpenTest( status ){ this.state.testMode = status }
   onQuit(){
-    // Send QUIT signal to extension
+    // Send QUIT signal to service
     this.iof.emit('signal', 'USER:QUIT')
-    // Delay closing emulator to observe extension behaviour during quiting process
+    // Delay closing emulator to observe service behaviour during quiting process
     setTimeout( () => this.emit('quit'), 1500 )
   }
 }

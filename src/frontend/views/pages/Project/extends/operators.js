@@ -1,31 +1,31 @@
 
-export default $ => {
+export default Self => {
 
-  $.packager = false
-  const State = $.state
+  Self.dpm = false
+  const State = Self.state
 
-  $.FSOperator = async ( type, element ) => {
+  Self.FSOperator = async ( type, element ) => {
     switch( type ) {
-      case 'new-dir': if( !element.path || !$.fs ) return
-                      await $.fs.newDir( element.path )
+      case 'new-dir': if( !element.path || !Self.fs ) return
+                      await Self.fs.newDir( element.path )
           break
-      case 'new-file': if( !element.path || !$.fs ) return
-                      await $.fs.newFile( element.path )
+      case 'new-file': if( !element.path || !Self.fs ) return
+                      await Self.fs.newFile( element.path )
           break
-      case 'rename-element': if( !element.path || !element.name || !$.fs ) return
-                            await $.fs.rename( element.path, element.name )
+      case 'rename-element': if( !element.path || !element.name || !Self.fs ) return
+                            await Self.fs.rename( element.path, element.name )
           break
-      case 'remove-element': if( !element.path || !$.fs ) return
-                            await $.fs.remove( element.path )
+      case 'remove-element': if( !element.path || !Self.fs ) return
+                            await Self.fs.remove( element.path )
           break
-      case 'move-element': if( !element.source || !element.destination || !$.fs ) return
-                          await $.fs.move( element.source, element.destination )
+      case 'move-element': if( !element.source || !element.destination || !Self.fs ) return
+                          await Self.fs.move( element.source, element.destination )
           break
     }
   }
-  $.PackageOperator = async ( type, element ) => {
+  Self.PackageOperator = async ( type, packages ) => {
 
-    if( !$.pm ) {
+    if( !Self.pm ) {
       debugLog('[AddElement Event] error: Undeclared process manager')
       return
     }
@@ -43,12 +43,13 @@ export default $ => {
       }
 
       // TODO: Display progression stats on Footer
-      $.progression( stats )
+      Self.progression( stats )
     }
 
-    $.packager = $.pm.Packager( element, cwd )
+    // Dependency Package Manager
+    Self.dpm = Self.pm.JSPackageManager( packages, cwd )
 
-    await $.packager[ type ]( progress )
-    await $.getDependencies()
+    await Self.dpm[ type ]( progress )
+    await Self.getDependencies()
   }
 }

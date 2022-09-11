@@ -360,7 +360,7 @@ export default class ProcessManager extends EventHanlder {
     this.emit( 'refresh', { loaded: this.loaded(), actives: this.filter('ACTIVE') })
 
     // Show Aside in default/auto mode
-    ;( !ActiveProcesses.length || WSMode ) && this.emit( 'ws-mode', WSMode || 'auto' )
+    ;( !ActiveProcesses.length || WSMode ) && this.emit( 'ws-mode', { mode: WSMode || 'auto' } )
   }
 
 

@@ -7,6 +7,13 @@ import request from 'request'
 import prequest from 'request-promise'
 import rs from '../lib/RunScript'
 
+/**
+ * Parse package reference string in to 
+ * construction object.
+ *
+ * @param {Function} reference  - Eg. plugin:namespace.name~version
+ *
+ */
 function parsePackageReference( reference ){
 
   const sequence = reference.match(/(\w+):([a-zA-Z0-9_\-+]+).([a-zA-Z0-9_\-+]+)(~(([0-9]\.?){2,3}))?/)
@@ -22,7 +29,13 @@ function isValidMetadata( metadata ){
 }
 
 export default class PackageManager {
-
+  
+  /**
+   * Intanciate PackageManager Object
+   *
+   * @param {Object} options       - Initial configuration options
+   *
+   */
   constructor( options = {} ){
     this.manager = options.manager || 'cpm' // Yarn as default node package manager (npm): (Install in packages)
     this.cwd = options.cwd
@@ -38,7 +51,7 @@ export default class PackageManager {
    * Generate initial `package.json` and `.metadata`
    *  requirement files at project root.
    *
-   * @configs Custom configurations
+   * @param {Object} configs    - Custom configurations
    *
    */
   async init( configs ){
@@ -69,10 +82,10 @@ export default class PackageManager {
   /**
    * `npm` or `yarn` CLI command runner
    *
-   * @verb Package managemet action: install, remove, update, ...
-   * @packages Space separated list of NodeJS packages/libraries
-   * @params Check `npm` or `yarn` command parameters documentation
-   * @progress  Process tracking report function. (optional) Default to `this.watcher`
+   * @param {String} verb       - Package managemet action: install, remove, update, ...
+   * @param {String} packages   - Space separated list of NodeJS packages/libraries
+   * @param {String} params     - Check `npm` or `yarn` command parameters documentation
+   * @param {String} progress   - Process tracking report function. (optional) Default to `this.watcher`
    *
    */
   throughCLI( verb, packages, params, progress ){
@@ -93,11 +106,13 @@ export default class PackageManager {
    * Use `npm` or `yarn` for NodeJS packages & `cpm`
    * for Cubic Package
    *
-   * @params
-   *    [-f]  Full installation process (Retrieve metadata & download packages)
-   *    [-d]  Is dependency package installation
-   * @progress  Process tracking report function. (optional) Default to `this.watcher`
-   *
+   * @param {String} params    - Custom process options
+   *                                [-f]      Full installation process (Retrieve metadata & fetch package files)
+   *                                [-d]      Is dependency package installation
+   *                                [-v]      Verbose logs
+   *                                [--force] Override directory of existing installations of same packages
+   * @param {Function} progress  Process tracking report function. (optional) Default to `this.watcher`
+   * 
    */
   async installDependencies( params = '', progress ){
 
@@ -120,14 +135,15 @@ export default class PackageManager {
    * Use `npm` or `yarn` for NodeJS packages & `cpm`
    * for Cubic Package
    *
-   * @packages  Space separated list of package references
-   *            Eg. `application:namespace.name~version plugin:...`
-   * @params
-   *    [-f]      Full installation process (Retrieve metadata & download packages)
-   *    [-d]      Is dependency package installation
-   *    [--force] Override directory of existing installations of same packages
-   * @progress  Process tracking report function. (optional) Default to `this.watcher`
-   *
+   * @param {String} packages  - Space separated list of package references
+   *                            Eg. `application:namespace.name~version plugin:...`
+   * @param {String} params    - Custom process options
+   *                                [-f]      Full installation process (Retrieve metadata & fetch package files)
+   *                                [-d]      Is dependency package installation
+   *                                [-v]      Verbose logs
+   *                                [--force] Override directory of existing installations of same packages
+   * @param {Function} progress  Process tracking report function. (optional) Default to `this.watcher`
+   * 
    */
   async install( packages, params = '', progress ){
 
@@ -157,7 +173,7 @@ export default class PackageManager {
     const
     _this = this,
     plist = packages.split(/\s+/),
-    downloadPackage = ( { type, namespace, name }, { metadata, dtoken }, isDep ) => {
+    fetchPackage = ( { type, namespace, name }, { metadata, dtoken }, isDep ) => {
       return new Promise( ( resolve, reject ) => {
         /**
          * Define installation directory
@@ -184,7 +200,7 @@ export default class PackageManager {
           const unpackStream = tar.extract( directory ).on( 'error', reject )
 
           request
-          .get({ url: `${_this.cpr}/package/download?dtoken=${dtoken}`, json: true },
+          .get({ url: `${_this.cpr}/package/fetch?dtoken=${dtoken}`, json: true },
                 async ( error, response, body ) => {
                   if( error || body.error )
                     return reject( error || body.message )
@@ -249,9 +265,9 @@ export default class PackageManager {
       const response = await prequest.get({ url: `${_this.cpr}/install/${pkg}`, json: true })
       if( response.error ) throw new Error( response.message )
 
-      // Download packages
+      // Fetch packages
       params.includes('-f')
-      && await downloadPackage( refs, response, isDep )
+      && await fetchPackage( refs, response, isDep )
 
       /**
        * Install all required dependencies (plugin/library)
@@ -274,13 +290,14 @@ export default class PackageManager {
    * Use `npm` or `yarn` for NodeJS packages & `cpm`
    * for Cubic Package
    *
-   * @packages  Space separated list of package references
-   *            Eg. `application:namespace.name~version plugin:...`
-   * @params
-   *    [-f]  Full installation process (Retrieve metadata & download packages)
-   *    [-d]  Is dependency package installation
-   * @progress  Process tracking report function. (optional) Default to `this.watcher`
-   *
+   * @param {String} packages  - Space separated list of package references
+   *                            Eg. `application:namespace.name~version plugin:...`
+   * @param {String} params    - Custom process options
+   *                                [-f]      Full installation process (Retrieve metadata & fetch package files)
+   *                                [-d]      Is dependency package installation
+   *                                [-v]      Verbose logs
+   *                                [--force] Override directory of existing installations of same packages
+   * @param {Function} progress  Process tracking report function. (optional) Default to `this.watcher`
    */
   async remove( packages, params = '', progress ){
 
@@ -349,12 +366,14 @@ export default class PackageManager {
    * Use `npm` or `yarn` for NodeJS packages & `cpm`
    * for Cubic Package
    *
-   * @packages  Space separated list of package references
-   *            Eg. `application:namespace.name~version plugin:...`
-   * @params
-   *    [-f]  Full installation process (Retrieve metadata & download packages)
-   *    [-d]  Is dependency package installation
-   * @progress  Process tracking report function. (optional) Default to `this.watcher`
+   * @param {String} packages  - Space separated list of package references
+   *                            Eg. `application:namespace.name~version plugin:...`
+   * @param {String} params    - Custom process options
+   *                                [-f]      Full installation process (Retrieve metadata & fetch package files)
+   *                                [-d]      Is dependency package installation
+   *                                [-v]      Verbose logs
+   *                                [--force] Override directory of existing installations of same packages
+   * @param {Function} progress  Process tracking report function. (optional) Default to `this.watcher`
    *
    */
   async update( packages, params = '', progress ){
@@ -391,7 +410,7 @@ export default class PackageManager {
   /**
    * Publish current working directory as package
    *
-   * @progress  Process tracking report function. (optional) Default to `this.watcher`
+   * @param {Function} progress  Process tracking report function. (optional) Default to `this.watcher`
    *
    */
   async publish( progress ){

@@ -1,7 +1,7 @@
 
 import path from 'path'
 import numeral from 'numeral'
-import PackageManager from '../src/backend/core/PackageManager'
+import PackageManager from '../src/backend/core/CPM'
 
 /*
  *;( async () => {

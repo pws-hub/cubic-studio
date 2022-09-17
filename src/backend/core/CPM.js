@@ -3,12 +3,15 @@ import path from 'path'
 import zlib from 'zlib'
 import tar from 'tar-fs'
 import fs from 'fs-inter'
+import crypto from 'crypto'
 import request from 'request'
+import randtoken from 'rand-token'
 import prequest from 'request-promise'
 import rs from '../lib/RunScript'
+import { encode, decode } from '../lib/Encoder'
 
 /**
- * Parse package reference string in to 
+ * Parse package reference string in to
  * construction object.
  *
  * @param {Function} reference  - Eg. plugin:namespace.name~version
@@ -25,11 +28,162 @@ function parsePackageReference( reference ){
 }
 
 function isValidMetadata( metadata ){
-  return true
+  return !!metadata.type
+          || !!metadata.nsi
+          || !!metadata.name
+          || !!metadata.namespace
 }
 
-export default class PackageManager {
-  
+class CUP {
+  /**
+   * Generate encryption token, cipherkey & initialization
+   * token for .cup package encryption
+   *
+   * @param {String} passcode     - (Optional) Encryption passcode
+   *
+   */
+  keygen( passcode ){
+    passcode = passcode || randtoken.generate(88)
+    const iv = crypto.randomBytes(16)
+
+    return {
+      etoken: encode({ passcode, iv }),
+      key: crypto.createHash('sha256').update( passcode ).digest(),
+      iv
+    }
+  }
+  /**
+   * Parse encryption token to cipherkey & Initialization Vector
+   *
+   * @param {Object} etoken     - Project's root directory path
+   *
+   */
+  keypar( etoken ){
+    try {
+      const { passcode, iv } = decode( etoken )
+      if( !passcode || !iv || !iv.type == 'Buffer' )
+        throw new Error('Invalid etoken')
+
+      return {
+        key: crypto.createHash('sha256').update( passcode ).digest(),
+        iv: Buffer( iv.data )
+      }
+    }
+    catch( error ) { return {} }
+  }
+
+  /**
+   * Generate initial `package.json` and `.metadata`
+   *  requirement files at project root.
+   *
+   * @param {String} rootDir     - Project's root directory path
+   * @param {String} filepath    - Destination path for generated .cup file
+   * @param {Function} progress  - Process tracking report function
+   *
+   */
+  pack( rootDir, filepath, progress ){
+    return new Promise( ( resolve, reject ) => {
+      progress( false, null, 'Prepacking & Generating the CUP file')
+
+      // Generate .cup file encryption token, key & iv
+      const encryption = this.keygen()
+      let prepackSize = 0
+
+      // Writable stream of temporary path of generated .cup
+      const writeStream = fs.createWriteStream( filepath )
+
+      writeStream
+      .on('finish', () => {
+        progress( false, prepackSize, 'Prepack completed!' )
+        return resolve({ prepackSize, etoken: encryption.etoken })
+      } )
+      .on('error', reject )
+
+      // Generate package files
+      const
+      IGNORE_DIRECTORIES = ['node_modules', 'build', 'dist', 'cache', '.git', '.DS_Store', '.plugin', '.application', '.lib'],
+      IGNORE_FILES = ['.gitignore'],
+      options = {
+        ignore: pathname => {
+          // Ignore some folders when packing
+          return IGNORE_DIRECTORIES.includes( path.basename( pathname ) )
+                  || IGNORE_FILES.includes( path.extname( pathname ) )
+        },
+        /**
+         * Readable: true, // all dirs and files should be readable
+         * writable: true // all dirs and files should be writable
+         */
+      }
+
+      const prepackStream = tar.pack( rootDir, options )
+
+      prepackStream
+      .on('data', chunk => {
+        prepackSize += chunk.length
+        progress( false, prepackSize, 'Prepacking ...' )
+      } )
+      .on('error', reject )
+
+      const
+      zipStream = zlib.createGzip().on('error', reject ),
+      cipherStream = crypto.createCipheriv( 'aes256', encryption.key, encryption.iv )
+
+      prepackStream
+      .pipe( zipStream )
+      .pipe( cipherStream )
+      .pipe( writeStream )
+    } )
+  }
+
+  /**
+   * Generate initial `package.json` and `.metadata`
+   *  requirement files at project root.
+   *
+   * @param {String} source      - Source path or URL of the .cup file
+   * @param {String} directory   - Extraction directory path
+   * @param {String} etoken      - CUP package Encryption token
+   * @param {Function} progress  - Process tracking report function
+   *
+   */
+  unpack( source, directory, etoken, progress ){
+    return new Promise( ( resolve, reject ) => {
+      // Get decryption key
+      const { key, iv } = this.keypar( etoken )
+      if( !key || !iv )
+        return reject( new Error('Invalid encryption token') )
+
+      const decipherStream = crypto.createDecipheriv('aes256', key, iv )
+
+      // .gz format unzipping stream
+      const unzipStream = zlib.createGunzip()
+      let unpackSize = 0
+
+      unzipStream
+      .on('data', chunk => {
+        unpackSize += chunk.length
+        progress( false, unpackSize, 'Unpacking ...')
+      })
+      .on('close', () => {
+        progress( false, null, 'Unpack completed!')
+        resolve({ unpackSize })
+      } )
+      .on('error', reject )
+
+      // .tar format extracting stream
+      const unpackStream = tar.extract( directory ).on( 'error', reject )
+
+      progress( false, null, 'Fetching CUP package ...')
+      request
+      .get({ url: source, json: true }, error => error && reject( error ) )
+      .pipe( decipherStream ) // Decipher package
+      .pipe( unzipStream ) // Unzip package
+      .pipe( unpackStream ) // Extract/Unpack package content
+    })
+  }
+}
+
+export default class PackageManager extends CUP {
+
   /**
    * Intanciate PackageManager Object
    *
@@ -37,6 +191,8 @@ export default class PackageManager {
    *
    */
   constructor( options = {} ){
+    super( options )
+
     this.manager = options.manager || 'cpm' // Yarn as default node package manager (npm): (Install in packages)
     this.cwd = options.cwd
     this.cpr = options.cpr
@@ -73,7 +229,7 @@ export default class PackageManager {
       if( typeof existing == 'object' )
         configs = { ...existing, ...configs }
     }
-    catch( error ) {}
+    catch( error ) { console.log('Init Error: ', error ) }
 
     // Generate a new package.json file
     await fs.outputJSON( filepath, configs, { spaces: '\t' } )
@@ -106,18 +262,18 @@ export default class PackageManager {
    * Use `npm` or `yarn` for NodeJS packages & `cpm`
    * for Cubic Package
    *
-   * @param {String} params    - Custom process options
+   * @param {String} params       - Custom process options
    *                                [-f]      Full installation process (Retrieve metadata & fetch package files)
    *                                [-d]      Is dependency package installation
    *                                [-v]      Verbose logs
    *                                [--force] Override directory of existing installations of same packages
-   * @param {Function} progress  Process tracking report function. (optional) Default to `this.watcher`
-   * 
+   * @param {Function} progress   - Process tracking report function. (optional) Default to `this.watcher`
+   *
    */
   async installDependencies( params = '', progress ){
 
     if( typeof params == 'function' ) {
-      progress = params,
+      progress = params
       params = ''
     }
 
@@ -135,20 +291,20 @@ export default class PackageManager {
    * Use `npm` or `yarn` for NodeJS packages & `cpm`
    * for Cubic Package
    *
-   * @param {String} packages  - Space separated list of package references
-   *                            Eg. `application:namespace.name~version plugin:...`
-   * @param {String} params    - Custom process options
+   * @param {String} packages     - Space separated list of package references
+   *                                Eg. `application:namespace.name~version plugin:...`
+   * @param {String} params       - Custom process options
    *                                [-f]      Full installation process (Retrieve metadata & fetch package files)
    *                                [-d]      Is dependency package installation
    *                                [-v]      Verbose logs
    *                                [--force] Override directory of existing installations of same packages
-   * @param {Function} progress  Process tracking report function. (optional) Default to `this.watcher`
-   * 
+   * @param {Function} progress   - Process tracking report function. (optional) Default to `this.watcher`
+   *
    */
   async install( packages, params = '', progress ){
 
     if( typeof params == 'function' ) {
-      progress = params,
+      progress = params
       params = ''
     }
 
@@ -173,7 +329,7 @@ export default class PackageManager {
     const
     _this = this,
     plist = packages.split(/\s+/),
-    fetchPackage = ( { type, namespace, name }, { metadata, dtoken }, isDep ) => {
+    fetchPackage = ( { type, namespace, name }, { metadata, dtoken, etoken }, isDep ) => {
       return new Promise( ( resolve, reject ) => {
         /**
          * Define installation directory
@@ -184,51 +340,31 @@ export default class PackageManager {
          */
         const
         directory = `${_this.cwd}/${isDep ? `.${type}/` : ''}${namespace}/${name}~${metadata.version}`,
-        proceed = () => {
-          // .gz format unzipping stream
-          const unzipStream = zlib.createGunzip()
-          let unzipSize = 0
+        downloadAndUnpack = async () => {
+          progress( false, null, `Installation directory: ${directory}`)
 
-          unzipStream
-          .on('data', chunk => {
-            unzipSize += chunk.length
-            progress( false, unzipSize, 'Unpacking ...')
-          })
-          .on('error', reject )
-
-          // .tar format extracting stream
-          const unpackStream = tar.extract( directory ).on( 'error', reject )
-
-          request
-          .get({ url: `${_this.cpr}/package/fetch?dtoken=${dtoken}`, json: true },
-                async ( error, response, body ) => {
-                  if( error || body.error )
-                    return reject( error || body.message )
-
-                  progress( false, null, 'Completed')
-                  resolve()
-                })
-          .pipe( unzipStream ) // Unzip package archive
-          .pipe( unpackStream ) // Extract/Unpack package content
-        },
-        ensureDirectory = async () => {
-          try {
-            await fs.ensureDir( directory )
-            proceed()
-          }
-          catch( error ) { reject( error ) }
+          await fs.ensureDir( directory )
+          return await this.unpack(`${_this.cpr}/package/fetch?dtoken=${dtoken}`, directory, etoken, progress )
         }
 
-        progress( false, null, `Installation directory: ${directory}`)
         /**
          * Do not override existing installation directory
          * unless --force flag is set in params
          */
-        params.includes('--force') ?
-                          ensureDirectory()
-                          : fs.pathExists( directory )
-                              .then( yes => yes ? resolve() : ensureDirectory() )
-                              .catch( reject )
+        if( params.includes('--force') )
+          return downloadAndUnpack().then( resolve ).catch( reject )
+
+        // Check directory and append package files
+        fs
+        .pathExists( directory )
+        .then( yes => {
+          if( yes ) {
+            progress( false, null, `Package is already installed. ${directory}\n\tUse --force option to override existing installation.`)
+            resolve()
+          }
+          else downloadAndUnpack().then( resolve ).catch( reject )
+        } )
+        .catch( reject )
       } )
     },
     installDependencies = async metadata => {
@@ -262,7 +398,7 @@ export default class PackageManager {
         throw new Error(`Invalid <${pkg}> package reference`)
 
       progress( false, null, `Resolving ${pkg}`)
-      const response = await prequest.get({ url: `${_this.cpr}/install/${pkg}`, json: true })
+      const response = await prequest.get({ url: `${_this.cpr}/resolve/${pkg}`, json: true })
       if( response.error ) throw new Error( response.message )
 
       // Fetch packages
@@ -290,14 +426,14 @@ export default class PackageManager {
    * Use `npm` or `yarn` for NodeJS packages & `cpm`
    * for Cubic Package
    *
-   * @param {String} packages  - Space separated list of package references
-   *                            Eg. `application:namespace.name~version plugin:...`
-   * @param {String} params    - Custom process options
+   * @param {String} packages     - Space separated list of package references
+   *                                Eg. `application:namespace.name~version plugin:...`
+   * @param {String} params       - Custom process options
    *                                [-f]      Full installation process (Retrieve metadata & fetch package files)
    *                                [-d]      Is dependency package installation
    *                                [-v]      Verbose logs
    *                                [--force] Override directory of existing installations of same packages
-   * @param {Function} progress  Process tracking report function. (optional) Default to `this.watcher`
+   * @param {Function} progress   - Process tracking report function. (optional) Default to `this.watcher`
    */
   async remove( packages, params = '', progress ){
 
@@ -305,7 +441,7 @@ export default class PackageManager {
       throw new Error('Undefined package to uninstall')
 
     if( typeof params == 'function' ) {
-      progress = params,
+      progress = params
       params = ''
     }
 
@@ -366,14 +502,14 @@ export default class PackageManager {
    * Use `npm` or `yarn` for NodeJS packages & `cpm`
    * for Cubic Package
    *
-   * @param {String} packages  - Space separated list of package references
-   *                            Eg. `application:namespace.name~version plugin:...`
-   * @param {String} params    - Custom process options
+   * @param {String} packages     - Space separated list of package references
+   *                                Eg. `application:namespace.name~version plugin:...`
+   * @param {String} params       - Custom process options
    *                                [-f]      Full installation process (Retrieve metadata & fetch package files)
    *                                [-d]      Is dependency package installation
    *                                [-v]      Verbose logs
    *                                [--force] Override directory of existing installations of same packages
-   * @param {Function} progress  Process tracking report function. (optional) Default to `this.watcher`
+   * @param {Function} progress   - Process tracking report function. (optional) Default to `this.watcher`
    *
    */
   async update( packages, params = '', progress ){
@@ -382,7 +518,7 @@ export default class PackageManager {
       throw new Error('Undefined package to uninstall')
 
     if( typeof params == 'function' ) {
-      progress = params,
+      progress = params
       params = ''
     }
 
@@ -410,7 +546,7 @@ export default class PackageManager {
   /**
    * Publish current working directory as package
    *
-   * @param {Function} progress  Process tracking report function. (optional) Default to `this.watcher`
+   * @param {Function} progress   - Process tracking report function. (optional) Default to `this.watcher`
    *
    */
   async publish( progress ){
@@ -426,10 +562,9 @@ export default class PackageManager {
     let metadata
     try {
       progress( false, null, 'Checking metadata in .metadata')
-      metadata = await fs.readJson( `${this.cwd }/.metadata` )
+      metadata = await fs.readJson(`${this.cwd }/.metadata`)
     }
     catch( error ) {
-      console.error( error )
       const explicitError = new Error('Undefined Metadata. Expected .metadata file in project root')
 
       progress( explicitError )
@@ -443,7 +578,7 @@ export default class PackageManager {
      * Create .tmp folder in project parent directory
      * to temporary hold generated package files
      */
-    const tmpPath = `${path.dirname( this.cwd ) }/.tmp`
+    const tmpPath = `${path.dirname( this.cwd )}/.tmp`
     progress( false, null, `Creating .tmp directory at ${tmpPath}`)
 
     try { await fs.ensureDir( tmpPath ) }
@@ -452,10 +587,9 @@ export default class PackageManager {
       throw new Error('Installation failed. Check progress logs for more details')
     }
 
-    // Prepack Generate CUP & Upload to repositories
     const
     _this = this,
-    filepath = `${tmpPath}/${metadata.name}.cup`, // (.cup) Cubic Universal Package
+    filepath = `${tmpPath}/${metadata.nsi}.cup`, // (.cup) Cubic Universal Package
     uploadPackage = () => {
       return new Promise( ( resolve, reject ) => {
         const options = {
@@ -469,63 +603,23 @@ export default class PackageManager {
         }
 
         request.post( options, ( error, response, body ) => {
-          if( error || body.error )
+          if( error || ( body && body.error ) )
             return reject( error || body.message )
 
           fs.remove( tmpPath ) // Delete .tmp directory
           resolve( body )
         })
       })
-    },
-    generateCUP = () => {
-      return new Promise( ( resolve, reject ) => {
-        // Upload file once package file generated
-        const writeStream = fs.createWriteStream( filepath )
-
-        writeStream
-        .on('finish', resolve )
-        .on('error', reject )
-
-        // Generate package files
-        const
-        IGNORE_DIRECTORIES = ['node_modules', 'build', 'dist', 'cache', '.git', '.DS_Store', '.plugin', '.application', '.lib'],
-        IGNORE_FILES = ['.gitignore'],
-        options = {
-          ignore: pathname => {
-            // Ignore some folders when packing
-            return IGNORE_DIRECTORIES.includes( path.basename( pathname ) )
-                    || IGNORE_FILES.includes( path.extname( pathname ) )
-          },
-          /*
-           * Readable: true, // all dirs and files should be readable
-           * writable: true // all dirs and files should be writable
-           */
-        }
-
-        const prepackStream = tar.pack( _this.cwd, options )
-
-        prepackStream
-        .on('data', chunk => {
-          prepackSize += chunk.length
-          progress( false, prepackSize, 'Prepacking ...' )
-        } )
-        .on('error', reject )
-
-        const zipStream = zlib.createGzip().on('error', reject )
-
-        prepackStream
-        .pipe( zipStream )
-        .pipe( writeStream )
-      } )
     }
 
-    // Generate .cup (Cubic Universal Package) files
-    progress( false, null, 'Prepacking & Generating the CUP file')
-    let prepackSize = 0
-    await generateCUP()
-
+    const
+    // Generate .cup (Cubic Universal Package) package
+    { prepackSize, etoken } = await this.pack( this.cwd, filepath, progress ),
     // Add package stages sizes to metadata
-    const fileStat = await fs.stat( filepath )
+    fileStat = await fs.stat( filepath )
+
+    // Attach .cup encryption token
+    metadata.etoken = etoken
     metadata.sizes = {
       download: fileStat.size,
       installation: prepackSize

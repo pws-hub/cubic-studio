@@ -13,9 +13,9 @@
 		"requireConfigFile": false,
     "babelOptions": {
       "babelrc": false,
-      "configFile": false,
+      "configFile": false
       // your babel options
-      "presets": ["babel-preset-razzle"]
+      // "presets": ["babel-preset-razzle"]
     }
 	},
 	"rules": {

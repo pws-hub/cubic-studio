@@ -37,7 +37,7 @@ function isValidMetadata( metadata ){
 class CUP {
   /**
    * Generate encryption token, cipherkey & initialization
-   * token for .cup package encryption
+   * vector for .cup package encryption
    *
    * @param {String} passcode     - (Optional) Encryption passcode
    *
@@ -52,6 +52,7 @@ class CUP {
       iv
     }
   }
+
   /**
    * Parse encryption token to cipherkey & Initialization Vector
    *
@@ -126,7 +127,7 @@ class CUP {
 
       const
       zipStream = zlib.createGzip().on('error', reject ),
-      cipherStream = crypto.createCipheriv( 'aes256', encryption.key, encryption.iv )
+      cipherStream = crypto.createCipheriv( 'AES-256-CBC', encryption.key, encryption.iv )
 
       prepackStream
       .pipe( zipStream )
@@ -152,7 +153,7 @@ class CUP {
       if( !key || !iv )
         return reject( new Error('Invalid encryption token') )
 
-      const decipherStream = crypto.createDecipheriv('aes256', key, iv )
+      const decipherStream = crypto.createDecipheriv( 'AES-256-CBC', key, iv )
 
       // .gz format unzipping stream
       const unzipStream = zlib.createGunzip()

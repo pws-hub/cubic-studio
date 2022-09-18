@@ -4,6 +4,7 @@ import { io } from 'socket.io-client'
 
 let
 CARClient,
+isResolved = false,
 isConnected = false
 
 function sendRequest( payload ){
@@ -56,7 +57,12 @@ export default ( namespace, user ) => {
     CARClient = io(`/${ namespace || ''}`, options )
     .on( 'connect', () => {
       debugLog('[CAR-Client] Connection established')
-      resolve( isConnected = true )
+
+      isConnected = true
+      if( isResolved ) return
+
+      isResolved = true
+      resolve( isConnected )
     } )
     .on( 'disconnect', () => {
       debugLog('[CAR-Client] Disconnected')

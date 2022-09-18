@@ -2,7 +2,6 @@
 import { io } from 'socket.io-client'
 
 let isConnected = false
-const ACTIVE_FS_INSTANCES = []
 
 function FSHandler( mode, client ){
 
@@ -143,19 +142,31 @@ function FSHandler( mode, client ){
 
 function Manager( client ){
 
+  this.mode = null
+  this.options = null
+
   this.init = ( mode, options ) => {
     return new Promise( ( resolve, reject ) => {
+
+      this.mode = mode
+      this.options = options
 
       if( !client || !isConnected )
         return reject('[FST-Client] No connection to server')
 
       client.emit( 'FS::INIT', mode, options, ({ error, message }) => {
-        if( error )
-          return reject( message )
+        if( error ) return reject( message )
 
-        resolve( new FSHandler( mode, client ) )
+        this.handler = new FSHandler( mode, client )
+        resolve( this.handler )
       })
     } )
+  }
+
+  this.reset = () => {
+    client.emit( 'FS::INIT', this.mode, this.options, ({ error, message }) => {
+      if( error ) throw new Error( message )
+    })
   }
 }
 
@@ -168,11 +179,20 @@ export default namespace => {
       reconnectionDelayMax: 20000
     },
     FSTClient = io(`/${ namespace || ''}`, options )
+    let manager
+
+    FSTClient
     .on( 'connect', () => {
       debugLog('[FST-Client] Connection established')
 
       isConnected = true
-      resolve( new Manager( FSTClient ) )
+
+      if( !manager ) {
+        // New instanciation
+        manager = new Manager( FSTClient )
+        resolve( manager )
+      }
+      else manager.reset() // Reset manager instance
     } )
     .on( 'disconnect', () => {
       debugLog('[FST-Client] Disconnected')

@@ -30,9 +30,17 @@ function initChannel( socket ){
 
     // Console.log( method, ...args, callback )
     try {
+      if( !socket.data || !socket.data.IProcess )
+        throw new Error('IPT channel not initialized')
+
+      if( typeof socket.data.IProcess[ method ] !== 'function' )
+        throw new Error(`IPT <${method}> method not found`)
+
       // Call targeted IProcess method
-      const response = await socket.data.IProcess[ method ]( ...args )
-      callback({ error: false, response })
+      callback({
+        error: false,
+        response: await socket.data.IProcess[ method ]( ...args )
+      })
     }
     catch( error ) {
       console.log( error )

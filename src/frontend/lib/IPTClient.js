@@ -293,20 +293,27 @@ function ProcessHandler( client ){
 
 function Manager( client ){
 
+  this.options = null
+
   this.create = options => {
     return new Promise( ( resolve, reject ) => {
+
+      this.options = options
 
       if( !client || !isConnected )
         return reject('[IPT-Client] No connection to server')
 
-      client
-      .emit( 'IPROCESS::CREATE', options, ({ error, message }) => {
-        if( error )
-          return reject( message )
-
+      client.emit( 'IPROCESS::CREATE', options, ({ error, message }) => {
+        if( error ) return reject( message )
         resolve( new ProcessHandler( client ) )
       })
     } )
+  }
+
+  this.reset = () => {
+    client.emit( 'IPROCESS::CREATE', this.options, ({ error, message }) => {
+      if( error ) throw new Error( message )
+    })
   }
 }
 
@@ -319,11 +326,20 @@ export default namespace => {
       reconnectionDelayMax: 20000
     },
     IPTClient = io(`/${ namespace || ''}`, options )
+    let manager
+
+    IPTClient
     .on( 'connect', () => {
       debugLog('[IPT-Client] Connection established')
 
       isConnected = true
-      resolve( new Manager( IPTClient ) )
+
+      if( !manager ) {
+        // New instanciation
+        manager = new Manager( IPTClient )
+        resolve( manager )
+      }
+      else manager.reset() // Reset manager instance
     } )
     .on( 'disconnect', () => {
       debugLog('[IPT-Client] Disconnected')

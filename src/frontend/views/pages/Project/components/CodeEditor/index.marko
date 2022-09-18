@@ -253,7 +253,7 @@ class {
     this.editor.updateOptions({ tabSize: 2 })
     
     model.onDidChangeContent( () => this.onChange() )
-    model.onWillDispose( () => { console.log('Model Will Dispose') } )
+    // model.onWillDispose( () => { console.log('Model Will Dispose') } )
 
     this.activeModel = model
   }

@@ -43,7 +43,7 @@ function initChannel( socket ){
                 listener = ( event, path, stats ) => socket.emit( 'FS::EVENT', event, path, stats )
 
                 // Drop existing watcher
-                if( ACTIVE_CWD_WATCHERS.hasOwnProperty( options.cwd ) )
+                if( ACTIVE_CWD_WATCHERS[ options.cwd ] )
                   ACTIVE_CWD_WATCHERS[ options.cwd ].close()
 
                 // Watch this cwd
@@ -63,9 +63,17 @@ function initChannel( socket ){
 
     // Console.log( method, ...args, callback )
     try {
+      if( !socket.data || !socket.data.FS )
+        throw new Error('FST channel not initialized')
+
+      if( typeof socket.data.FS[ method ] !== 'function' )
+        throw new Error(`FST <${method}> method not found`)
+
       // Call targeted FileSystem method
-      const response = await socket.data.FS[ method ]( ...args )
-      callback({ error: false, response })
+      callback({
+        error: false,
+        response: await socket.data.FS[ method ]( ...args )
+      })
     }
     catch( error ) {
       console.log( error )

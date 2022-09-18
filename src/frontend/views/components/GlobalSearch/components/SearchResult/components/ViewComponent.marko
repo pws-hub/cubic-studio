@@ -19,9 +19,12 @@ class {
 }
 
 <context|{}, emit| from="GlobalSearch">
-  <div.px-3.pt-4.overflow-auto style="max-height:46rem">
-    <div.text-right>
-      <Bx.font-large-1 type="right-arrow-alt" on-click( () => component.emit('dismiss') )/>
+  <div.px-2.pt-4.overflow-auto style="max-height:46rem">
+    <div.text-right.mb-2>
+      <Button type="md" on-click( () => component.emit('dismiss') )>
+        Close
+        <Bx.font-medium-4 type="right-arrow-alt"/>
+      </Button>
     </div>
 
     <Row>

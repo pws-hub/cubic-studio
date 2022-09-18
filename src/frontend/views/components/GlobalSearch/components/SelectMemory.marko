@@ -1,0 +1,31 @@
+
+<div.position-absolute.bottom-0.w-100.theme-bg.border-top.shadow-md.py-75>
+  <ul.w-80.list-inline.px-1.m-0.d-inline-flex.align-items-center 
+      style="overflow-x:auto;overflow-y:hidden">
+    <for|record, index| of=input.memory>
+      $ const { source, version, item } = record
+      
+      <li.px-25>
+        <Switch by=source>
+          <@case is="package">
+            <span.theme-bg-lighten.round.text-nowrap.d-flex.align-items-center>
+              <span.px-1.cursor-pointer 
+                    on-click( () => component.emit( 'open', 'package', item ) )>
+                ${item.name}@${version}
+              </span>
+
+              <!-- Remove this item from memory -->
+              <Bx.font-medium-4.rounded-circle.theme-bg.p-25.m-25.cursor-pointer 
+                  type="x"
+                  on-click( () => component.emit( 'memorize', record, false ) )/>
+            </span>
+          </@case>
+        </Switch>
+      </li>
+    </for>
+  </ul>
+
+  <div.position-absolute.w-20.top-0.right-0.h-100.d-flex.align-items-center.justify-content-end>
+    <Button.btn-sm.strong.mx-2 primary on-click( () => component.emit('return') )>Install</Button>
+  </div>
+</div>

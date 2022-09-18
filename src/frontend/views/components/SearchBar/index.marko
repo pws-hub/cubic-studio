@@ -120,6 +120,7 @@ class {
       <input type="text" class=('form-control form-control-'+( input.size || 'lg' )+' pl-5 border-none shadow-none')
               placeholder=( input.placeholder || 'Search ...' )
               value=state.query
+              autofocus=(input.autofocus ? 'true' : false)
               on-focus( 'onToggle', true )
               on-blur( 'onToggle', false )
               on-keyup('onKeyword')>

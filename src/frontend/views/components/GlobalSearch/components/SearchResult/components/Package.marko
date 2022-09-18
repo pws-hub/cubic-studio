@@ -1,12 +1,12 @@
 
 <if( Array.isArray( input.list ) && input.list.length )>
-  <div.font-small-3.text-info.px-2.py-1.theme-bg-fade>NPM</div>
+  <div.font-small-3.text-info.px-2.py-1.strong>NPM</div>
   <Row.m-0>
     <for|each, index| of=input.list>
       $ const { version, name, description } = each
 
-      <@col.p-0 ns="col-6" qs="col-6" hs="col-12" fs="col-12">
-        <div.nav-item.cursor-pointer.shadow-none.border-bottom.rounded-0.m-0.px-2.py-1 on-click( () => component.emit( 'open', each ) )>
+      <@col.px-50.py-50 ns="col-6" qs="col-6" hs="col-12" fs="col-12">
+        <div.nav-item.cursor-pointer.shadow-none.border.round-xs.m-0.px-2.py-1 on-click( () => component.emit( 'open', each ) )>
           <div.card-content>
             <p.mb-2.w-100.text-ellipsis>${name}</p>
             <p.mb-2.w-100.font-small-4.text-ellipsis.text-muted>${description}</p>

@@ -1,6 +1,7 @@
 
 import dotenv from 'dotenv'
 import kebabCase from 'kebab-case'
+import Configs from '../../cubic.json'
 
 dotenv.config()
 
@@ -17,7 +18,7 @@ String.prototype.toCapitalCase = function(){
   return First.toUpperCase() + this.split( new RegExp( `^${ First}` ) )[1]
 }
 
-global.Configs = require('../../cubic.json')
+global.Configs = Configs
 
 global.clc = require('colors')
 global.serverVersion = Configs.APPVERSION || require('../../package.json').version

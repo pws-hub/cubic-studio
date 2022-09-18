@@ -197,9 +197,11 @@ export default class PackageManager extends CUP {
     this.manager = options.manager || 'cpm' // Yarn as default node package manager (npm): (Install in packages)
     this.cwd = options.cwd
     this.cpr = options.cpr
+    this.authToken = options.authToken
     this.debugMode = options.debug
-    this.watcher = options.watcher || function(){}
 
+    // Mute watcher function by default
+    this.watcher = typeof options.watcher == 'function' ? options.watcher : function(){}
     // Script runner options
     this.rsOptions = { cwd: this.cwd, stdio: 'pipe', shell: true }
   }
@@ -595,7 +597,11 @@ export default class PackageManager extends CUP {
       return new Promise( ( resolve, reject ) => {
         const options = {
           url: `${_this.cpr}/publish`,
-          headers: { 'Content-Type': 'application/cup' },
+          headers: {
+            'Authorization': `Bearer ${this.authToken}`,
+            'Content-Type': 'application/octet-stream',
+            'X-User-Agent': 'CPM/1.0'
+          },
           formData: {
             metadata: JSON.stringify( metadata ),
             pkg: fs.createReadStream( filepath )

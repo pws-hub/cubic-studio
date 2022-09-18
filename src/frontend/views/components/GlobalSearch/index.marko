@@ -1,5 +1,5 @@
 
-import { AVAILABLE_SOURCES, ManifestQuery, APIQuery } from './sources'
+import { AVAILABLE_TARGETS, ManifestQuery, APIQuery } from './targets'
 
 class {
   onCreate(){
@@ -9,17 +9,17 @@ class {
       memory: []
     }
 
-    this.SOURCES = {}
+    this.TARGETS = {}
   }
   onInput({ filters }){
     // Defined targets by user
     const { targets } = filters || {}
     if( targets ){
-      this.SOURCES = {}
+      this.TARGETS = {}
 
       targets.map( target => {
-        if( !AVAILABLE_SOURCES[ target ] || this.SOURCES[ target ] ) return
-        this.SOURCES[ target ] = AVAILABLE_SOURCES[ target ]
+        if( !AVAILABLE_TARGETS[ target ] || this.TARGETS[ target ] ) return
+        this.TARGETS[ target ] = AVAILABLE_TARGETS[ target ]
       } )
     }
   }
@@ -32,37 +32,44 @@ class {
             || !this.input.filters.targets.length
   }
   launchSearch( query ){
+    console.log( query, this.TARGETS )
     // Search on all target by default
-    if( !Object.keys( this.SOURCES ).length )
-      this.SOURCES = AVAILABLE_SOURCES
+    if( !Object.keys( this.TARGETS ).length )
+      this.TARGETS = AVAILABLE_TARGETS
       
     let searchCount = 0
-    Object.entries( this.SOURCES )
-          .map( async ([ source, { type } ]) => {
-            switch( type ){
-              case 'API': searchCount++
-                          if( !this.state.searching ) this.state.searching = true
 
-                          this.state.results[ source ] = await APIQuery( source, query )
-                          searchCount--
-                          
-                          this.state.results = newObject( this.state.results )
-                          debugLog('API Query search result: ', this.state.results )
-                          // Last to respond close the search
-                          if( !searchCount ) this.state.searching = false
-                  break
-              case 'manifest': searchCount++
-                                if( !this.state.searching ) this.state.searching = true
+    function byTarget([ target, sources ]){
+      sources.map( async ({ type }) => {
+        switch( type ){
+          case 'API': searchCount++
+                      if( !this.state.searching ) this.state.searching = true
+                      
+                      this.state.results[ target ] = await APIQuery( target, query )
+                      searchCount--
+                      
+                      this.state.results = newObject( this.state.results )
+                      debugLog('API Query search result: ', this.state.results )
+                      // Last to respond close the search
+                      if( !searchCount ) this.state.searching = false
+              break
+          case 'manifest': searchCount++
+                            if( !this.state.searching ) this.state.searching = true
 
-                                this.state.results[ source ] = await ManifestQuery( source, query )
-                                debugLog('Manifest Query search result: ', this.state.results )
-                                searchCount--
+                            this.state.results[ target ] = await ManifestQuery( target, query )
+                            debugLog('Manifest Query search result: ', this.state.results )
+                            searchCount--
 
-                                // Last to respond close the search
-                                if( !searchCount ) this.state.searching = false
-                  break
-            }
-          } )
+                            // Last to respond close the search
+                            if( !searchCount ) this.state.searching = false
+              break
+        }
+      })
+    }
+
+    Object
+    .entries( this.TARGETS )
+    .map( byTarget.bind(this) )
   }
 
   onQuery( query ){
@@ -73,17 +80,17 @@ class {
     // Auto-specific target by content
     if( this.noTargetFilter() )
       semanticQuery.map( word => {
-        Object.keys( AVAILABLE_SOURCES ).map( target => {
+        Object.keys( AVAILABLE_TARGETS ).map( target => {
           if( ( word.includes( target ) || target.includes( word ) )
-              && !this.SOURCES[ target ] )
-            this.SOURCES[ target ] = AVAILABLE_SOURCES[ target ]
+              && !this.TARGETS[ target ] )
+            this.TARGETS[ target ] = AVAILABLE_TARGETS[ target ]
         } )
       } )
       
     this.launchSearch( semanticQuery )
   }
   onNoQuery(){
-    // this.SOURCES = {}
+    // this.TARGETS = {}
     this.state.results = {}
   }
   onMemorize( data, status ){
@@ -95,8 +102,8 @@ class {
     }
     
     status === false ? 
-          this.state.memory = this.state.memory.filter( ({ name, version }) => { return data.name != name || data.version != version } )
-          : !this.state.memory.filter( ({ name, version }) => { return data.name == name && data.version == version } ).length ? 
+          this.state.memory = this.state.memory.filter( ({ item, version }) => { return data.item.name != item.name || data.version != version } )
+          : !this.state.memory.filter( ({ item, version }) => { return data.item.name == item.name && data.version == version } ).length ? 
                                                   this.state.memory = [ ...(this.state.memory), data ] : null
     
     this.setStateDirty('memory')
@@ -127,32 +134,61 @@ class {
 <context on-return( ( ...args ) => component.emit( 'return', ...args ) )
           on-memorize('onMemorize')>
   <Modal.px-4.pt-2 
-        width=40 
+        width=50 
         transparent
         noDismissButton 
         on-dismiss( () => component.emit('dismiss') )>
-    <SearchBar.round-xs.shadow-lg
-              size="xl"
-              searching=state.searching
-              on-query('onQuery')
-              on-no-query('onNoQuery')/>
-    <!-- List of available search target/source types -->
-    <if( !Object.keys( state.results ).length )>
-      <ul.position-relative.zindex-2.list-inline.my-1>
-        <for|type| in=( Object.keys( component.SOURCES ).length ? component.SOURCES : AVAILABLE_SOURCES )>
-          <li.px-75.py-25.mx-25.theme-bg-lighten.font-small-3.round>
-            <Locale text=type.toCapitalCase()/>
-          </li>
-        </for>
-      </ul>
-    </if>
-    <!-- Display search results -->
-    <else>
-      <SearchResult table=state.results
-                    memory=state.memory
-                    searching=state.searching
-                    on-return('onReturn')
-                    on-memorize('onMemorize')/>
-    </else>
+    $ {
+      const
+      targetsLen = Object.keys( component.TARGETS ).length,
+      resultsLen = Object.keys( state.results ).length
+    }
+
+    <div style={ minHeight: !resultsLen ? '30rem' : 'auto'}>
+      <SearchBar.round-xs.shadow-lg
+                size="xl"
+                autofocus
+                placeholder="Search keywords ..."
+                searching=state.searching
+                on-query('onQuery')
+                on-no-query('onNoQuery')/>
+      <!-- List of available search targets -->
+      <if( !resultsLen )>
+        <div.position-relative.zindex-2.my-1>
+          <for|target, sources| in=( targetsLen ? component.TARGETS : AVAILABLE_TARGETS )>
+            <div.py-1>
+              <span.px-1.py-50.mx-25.theme-bg-fade.font-small-3.round>
+                <Locale text=`${target}s`.toCapitalCase()/>
+              </span>
+
+              <if( Array.isArray( sources ) && sources.length )>
+                <br><br>
+                <Row>
+                  <for|{ name, label, description, website }| of=sources>
+                    <@col.col-4>
+                      <a.d-flex.align-items-center.border.px-2.py-1.rounded-lg href=website target="_blank">
+                        <Image.pr-4 src=`/images/icons/${name}.png` style="height:32px"/>
+                        <div.pl-4>
+                          <h5.font-medium-3.mt-0>${label}</h5>
+                          <span.font-small-3.text-muted>${description}</span>
+                        </div>
+                      </a>
+                    </@col>
+                  </for>
+                </Row>
+              </if>
+            </div>
+          </for>
+        </div>
+      </if>
+      <!-- Display search results -->
+      <else>
+        <SearchResult table=state.results
+                      memory=state.memory
+                      searching=state.searching
+                      on-return('onReturn')
+                      on-memorize('onMemorize')/>
+      </else>
+    </div>
   </Modal>
 </context>

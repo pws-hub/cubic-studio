@@ -16,7 +16,7 @@
     "icon": { "type": "extension", "color": "danger" }
   },
   "test": {
-    "description": "Create & run integration tests on your application/plugin.",
+    "description": "Create & run unit tests, functional tests, etc on your project.",
     "icon": { "type": "wrench", "color": "warning" }
   },
   "share": {

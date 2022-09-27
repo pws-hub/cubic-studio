@@ -2,7 +2,6 @@
 import pm2 from 'pm2'
 import fs from 'fs-inter'
 import fetch from 'node-fetch'
-import rs from '../lib/RunScript'
 
 function isValidEnv( env ){
   return typeof env == 'object' && !isEmpty( env )
@@ -61,7 +60,6 @@ export default class Emulator {
         // Listen to process events
         this.esm.launchBus( ( error, bus ) => {
           if( error ) return reject( error )
-
           bus.on( 'process:msg', ({ data, _process }) => this.watcher( data.event, data.stats ) )
         } )
 
@@ -83,81 +81,82 @@ export default class Emulator {
     } )
   }
 
-  run(){
+  start(){
     // Start emulator
-    return new Promise( async ( resolve, reject ) => {
+    return new Promise( ( resolve, reject ) => {
+      this.connect()
+          .then( async () => {
+            try {
+              const config = await this.getConfig()
 
-      const config = await this.getConfig()
+              if( isValidEnv( config.env ) )
+                this.process.env = {
+                  ...this.process.env, // Default or previous `env`
+                  ...config.env, // Defined `env`
 
-      if( isValidEnv( config.env ) )
-        this.process.env = {
-          ...this.process.env, // Default or previous `env`
-          ...config.env, // Defined `env`
-
-          // Set development server PORT
-          PORT_DEV: Number( config.env.PORT || this.process.env.PORT ) + 1
-        }
-
-      const
-      { name, cwd, env } = this.process,
-      rsOptions = {
-        cwd,
-        env,
-        stdio: 'pipe',
-        shell: true,
-        windowsHide: true
-      }
-
-      console.log( rsOptions )
-
-      rs( 'chmod +x ./.sandbox/start.sh', rsOptions, ( ...args ) => console.log('watcher: ', ...args ) )
-        .then( async ( ...args ) => {
-          try {
-            const hostname = toOrigin( `${env.HOST}:${env.PORT}`, !isOncloud() )
-
-            /**
-             * TODO: Handle this with PM2 process.send & process.launchBus event manager
-             * ISSUE: Razzle spawn the sandbox server process so PM2
-             *        only run a script to start the process without
-             *        managing it. Therefore process.send(...) & bus.on(...)
-             *        between started sandbox-server and Emulator doen't work
-             *
-             * HACK: Check frequently whether the started
-             *        process (server) has finished compiling
-             *        and now listen.
-             */
-            let
-            MAX_ATTEMPT = 45, // 45 seconds
-            untilServerUp = setInterval( async () => {
-              try {
-                const up = await ( await fetch( hostname, { method: 'GET' } ) ).text()
-                // Server is up
-                clearInterval( untilServerUp )
-                resolve({ pid, cwd, name, hostname })
-              }
-              catch( error ) {
-                MAX_ATTEMPT--
-                this.debug(`Failed [${45 - MAX_ATTEMPT}]: `, error.message )
-
-                // Maximum attempt reached
-                if( MAX_ATTEMPT == 0 ) {
-                  // Emulator server still not available: exit
-                  clearInterval( untilServerUp )
-
-                  this.exit()
-                      .then( () => reject('Emulator server failed to load.') )
-                      .catch( error => reject('Unexpected error occured: ', error.message ) )
+                  // Set development server PORT
+                  PORT_DEV: Number( config.env.PORT || this.process.env.PORT ) + 1
                 }
-              }
-            }, 1000 )
-          }
-          catch( error ) { reject( error ) }
-        } )
-        .catch( reject )
+
+              this.esm.stop( this.process.name )
+              this.esm.start( this.process, ( error, metadata ) => {
+                if( error ) {
+                  this.disconnect()
+                  return reject( error )
+                }
+
+                if( !Array.isArray( metadata ) || !metadata[0] )
+                  return reject('Process Not Found')
+
+                const
+                { pid } = metadata[0],
+                { name, cwd, env } = this.process,
+                hostname = toOrigin( `${env.HOST}:${env.PORT}`, !isOncloud() )
+
+                /**
+                 * TODO: Handle this with PM2 process.send & process.launchBus event manager
+                 * ISSUE: Razzle spawn the sandbox server process so PM2
+                 *        only run a script to start the process without
+                 *        managing it. Therefore process.send(...) & bus.on(...)
+                 *        between started sandbox-server and Emulator doen't work
+                 *
+                 * HACK: Check frequently whether the started
+                 *        process (server) has finished compiling
+                 *        and now listen.
+                 */
+                let
+                MAX_ATTEMPT = 45, // 45 seconds
+                untilServerUp = setInterval( async () => {
+                  try {
+                    const up = await ( await fetch( hostname, { method: 'GET' } ) ).text()
+                    // Server is up
+                    clearInterval( untilServerUp )
+                    resolve({ pid, cwd, name, hostname })
+                  }
+                  catch( error ) {
+                    MAX_ATTEMPT--
+                    this.debug(`Failed [${45 - MAX_ATTEMPT}]: `, error.message )
+
+                    // Maximum attempt reached
+                    if( MAX_ATTEMPT == 0 ) {
+                      // Emulator server still not available: exit
+                      clearInterval( untilServerUp )
+
+                      this.exit()
+                          .then( () => reject('Emulator server failed to load.') )
+                          .catch( error => reject('Unexpected error occured: ', error.message ) )
+                    }
+                  }
+                }, 1000 )
+              } )
+            }
+            catch( error ) { reject( error ) }
+          } )
+          .catch( reject )
     } )
   }
 
-  reload(){
+  restart(){
     return new Promise( ( resolve, reject ) => {
       this.connect()
           .then( async () => {
@@ -179,8 +178,10 @@ export default class Emulator {
                   return reject( error )
                 }
 
-                const config = await this.getConfig()
+                if( !Array.isArray( metadata ) || !metadata[0] )
+                  return reject('Process Not Found')
 
+                const config = await this.getConfig()
                 if( isValidEnv( config.env ) )
                   this.process.env = {
                     ...this.process.env, // Default or previous `env`

@@ -61,8 +61,8 @@ class {
                             status=input.status
                             extended=(!state.extendedBlocks.includes('dependencies'))
                             on-show-settings('onShowSettings')
-                            on-run( () => component.emit( 'action', 'run-emulator', false ) )
-                            on-quit( () => component.emit( 'action', 'quit-emulator' ) )
+                            on-start( () => component.emit( 'action', 'start-emulator', false ) )
+                            on-stop( () => component.emit( 'action', 'stop-emulator' ) )
                             on-open( element => component.emit( 'action', 'open', element ) )
                             on-new-dir( element => component.emit( 'action', 'new-dir', element ) )
                             on-new-file( element => component.emit( 'action', 'new-file', element ) )

@@ -1,12 +1,12 @@
 
 let pm
 
-export const Install = async options => {
+export const Install = async metadata => {
   pm = pm || await window.IProcess.create({ debug: true })
-  return await pm.installApp( options )
+  return await pm.installApp( metadata )
 }
 
-export const Uninstall = async appId => {
+export const Uninstall = async sid => {
   pm = pm || await window.IProcess.create({ debug: true })
-  return await pm.uninstallApp( appId )
+  return await pm.uninstallApp( sid )
 }

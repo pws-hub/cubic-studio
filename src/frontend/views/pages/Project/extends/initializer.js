@@ -86,15 +86,15 @@ export default Self => {
       // Automatically run project in 3 second
       await delay(3)
       Self.ongoing( false )
-      AUTORUN && Self.RunEmulator( true )
+      AUTORUN && Self.StartEmulator( true )
     }
     // Reload cached emulator state of this project
     else {
       const cachedEMImage = Self.pstore.get('emulator')
       if( AUTORUN && cachedEMImage )
         window.env == 'production' ?
-                      Self.ReloadEmulator() // Reload backend process
-                      : Self.RunEmulator() // Connect frontend to process or run process if not available
+                      Self.RestartEmulator() // Reload backend process
+                      : Self.StartEmulator() // Connect frontend to process or run process if not available
     }
 
     // Mount project's last states of the active section
@@ -240,7 +240,7 @@ export default Self => {
   Self.DeleteProject = async () => {
     // Close running emulator
     Self.ongoing({ headline: 'Dropping all running emulator instances' })
-    await Self.QuitEmulator()
+    await Self.StopEmulator()
     await delay(2)
 
     // Clear store

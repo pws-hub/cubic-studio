@@ -1,27 +1,27 @@
 
-import Emulator from '../src/core/Emulator.alt'
+import Emulator from '../src/backend/core/Emulator'
 
 ;( async () => {
   try {
     const
     options = {
-      cwd: '/Users/fabricemarlboro/dev-pro/Myapp-labs/multiple/Extensions/Notex',
+      cwd: '/Users/fabricemarlboro/dev-pro/Myapp-labs/multiple/Extensions/Docdis',
       name: 'sandbox-server',
       debug: true,
-      watcher: ( process, error, stats ) => {
+      watcher: ( error, stats ) => {
         error ?
           console.error( error )
-          : console.log( `${process} -- [${stats.percent}]: ${stats.message}`)
+          : console.log( `[${stats.percent}]: ${stats.message}`)
       }
     },
     em = new Emulator( options )
 
-    console.log( await em.run() )
+    console.log( await em.start() )
+    // await em.stop()
     /*
-     * Console.log( await em.reload() )
+     * Console.log( await em.restart() )
      * console.log( await em.stop() )
-     * console.log( await em.metadata() )
-     * console.log( await em.exit() )
+     * console.log( await em.getMetadata() )
      */
   }
   catch( error ) {

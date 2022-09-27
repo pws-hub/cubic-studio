@@ -27,13 +27,14 @@ export default class ProcessManager extends EventHanlder {
    * variables, cache, fetch & load installed
    * packages.
    *
-   * @configs
-   *    - CPR   Access configuration to Cubic Package Repository
+   * @param {Object} configs
+   *    - CPR   Access configuration to Cubic Package
+   *            Repository: { server, version, scopeKey }
    *    - LPS   Locale Package Store client
    *    - UAT   User Account Type
    */
   constructor( configs ){
-    super( configs )
+    super()
 
     if( !configs.CPR ) throw new Error('Undefined <CPR> configuration')
     if( !configs.LPS ) throw new Error('Undefined <LPS> configuration')
@@ -99,7 +100,7 @@ export default class ProcessManager extends EventHanlder {
    * Return a list of process theads
    * state details by their current status
    *
-   * @status   Process status: `LATENT`, `ACTIVE`, `STALLED`
+   * @param {String} status   Process status: `LATENT`, `ACTIVE`, `STALLED`
    *
    */
   filter( status ){ return Object.values( this.__PROCESS_THREADS ).filter( each => { return each.status == status } ) }
@@ -109,17 +110,17 @@ export default class ProcessManager extends EventHanlder {
    * Check whether a given process thread
    * exists
    *
-   * @sid   Store id of installed package
+   * @param {String} sid   Store id of installed package
    *
    */
-  exists( sid ){ return !!this.__PROCESS_THREADS.hasOwnProperty( sid ) }
+  exists( sid ){ return !!this.__PROCESS_THREADS[ sid ] }
 
 
   /**
    * Check whether an application requires
    * or have a missing permissions
    *
-   * @metadata
+   * @param {Object} metadata
    *
    */
   requirePermission({ resource }){
@@ -138,9 +139,9 @@ export default class ProcessManager extends EventHanlder {
    * Make an external request to get
    * authorization for mandatory permissions
    *
-   * @type        Type of permission: `scope`, `feat`, `context`, ...
-   * @requestor   Metadata of package requesting permissions
-   * @list        List of mandatory permissions
+   * @param {String} type        Type of permission: `scope`, `feat`, `context`, ...
+   * @param {Object} requestor   Metadata of package requesting permissions
+   * @param {Array} list        List of mandatory permissions
    *
    */
   askPermission( type, requestor, list ){
@@ -154,7 +155,7 @@ export default class ProcessManager extends EventHanlder {
    * Generate public access URL of a favicon
    * asset deployed on a CPR
    *
-   * @metadata
+   * @param {Object} metadata
    *
    */
   favicon( metadata ){
@@ -168,7 +169,7 @@ export default class ProcessManager extends EventHanlder {
   /**
    * Register new process thread
    *
-   * @process
+   * @param {Object} process
    *
    * NOTE: Requires & await for mandatory
    *       permissions to complete the registration
@@ -178,7 +179,7 @@ export default class ProcessManager extends EventHanlder {
     if( !isValidProcess( process ) ) return
 
     const { sid, type, name, runscript, resource } = process.metadata
-    if( this.__ACTIVE_APPLICATIONS.hasOwnProperty( name ) ) {
+    if( this.__ACTIVE_APPLICATIONS[ name ] ) {
       // Throw process already exist alert
       this.emit('alert', 'PROCESS_EXIST', process.metadata )
       return false
@@ -238,8 +239,8 @@ export default class ProcessManager extends EventHanlder {
   /**
    * Unregister a process
    *
-   * @sid   Store id of installed package
-   *        Use as process ID as well
+   * @param {String} sid   Store id of installed package
+   *                       Use as process ID as well
    *
    */
   unregister( sid ){
@@ -260,7 +261,7 @@ export default class ProcessManager extends EventHanlder {
   /**
    * Return a given process metadata
    *
-   * @query   Match metadata `sid`, `name` or `nsi`
+   * @param {String} query   Match metadata `sid`, `name` or `nsi`
    *
    */
   metadata( query ){
@@ -283,13 +284,13 @@ export default class ProcessManager extends EventHanlder {
   /**
    * Unregister a process
    *
-   * @type   Opening data or file MIME type
-   * @argv   Input argument variables to run the process
+   * @param {String} type   Opening data or file MIME type
+   * @param {Object} argv   Input argument variables to run the process
    *
    */
   open( type, argv = {} ){
 
-    if( !Array.isArray( this.__MIMETYPE_SUPPORT.hasOwnProperty( type ) ) ) {
+    if( !Array.isArray( this.__MIMETYPE_SUPPORT[ type ] ) ) {
       console.log('[EXT]: No process to read this datatype found')
       return false
     }
@@ -309,8 +310,8 @@ export default class ProcessManager extends EventHanlder {
   /**
    * Spawn a new process
    *
-   * @sid    User installed package store ID as process ID
-   * @argv   Input argument variables to run the process
+   * @param {String} sid    User installed package store ID as process ID
+   * @param {Object} argv   Input argument variables to run the process
    *
    */
   spawn( sid, argv = {} ){
@@ -368,7 +369,7 @@ export default class ProcessManager extends EventHanlder {
    * Refresh a running process in-memory
    * metadata with LPS metadata
    *
-   * @sid    Installed package store ID used as process ID
+   * @param {String} sid    Installed package store ID used as process ID
    *
    */
   async refresh( sid ){
@@ -393,7 +394,7 @@ export default class ProcessManager extends EventHanlder {
   /**
    * Kill a running process
    *
-   * @sid    Installed package store ID used as process ID
+   * @param {String} sid    Installed package store ID used as process ID
    *
    */
   kill( sid ){
@@ -423,8 +424,8 @@ export default class ProcessManager extends EventHanlder {
   /**
    * Run an application
    *
-   * @name    App name
-   * @argv    Input argument variables to run the app
+   * @param {String} name    App name
+   * @param {Object} argv    Input argument variables to run the app
    *
    */
   run( name, argv = {} ){
@@ -461,7 +462,7 @@ export default class ProcessManager extends EventHanlder {
   /**
    * Quit an application
    *
-   * @name    App name
+   * @param {String} name    App name
    *
    */
   quit( name ){

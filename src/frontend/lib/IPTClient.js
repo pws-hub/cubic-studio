@@ -63,16 +63,16 @@ function ProcessHandler( client ){
 
   this.Emulator = ( dataset, tracker ) => {
     // Unique ID of emulator control instance
-    const emulatorId = `${dataset.type}:${dataset.name}`
+    const emulatorId = `${dataset.type}:${dataset.namespace}.${dataset.nsi}`
 
     return {
-      run: async () => {
+      start: async () => {
         try {
           // Register setup process tracker
           if( typeof tracker == 'function' )
             this.trackers.emulator = tracker
 
-          const { error, message, response } = await run( 'runEM', emulatorId, dataset )
+          const { error, message, response } = await run( 'startEM', emulatorId, dataset )
           if( error ) throw new Error( message )
 
           return response
@@ -82,9 +82,9 @@ function ProcessHandler( client ){
           return false
         }
       },
-      reload: async () => {
+      restart: async () => {
         try {
-          const { error, message, response } = await run( 'reloadEM', emulatorId, dataset )
+          const { error, message, response } = await run( 'restartEM', emulatorId, dataset )
           if( error ) throw new Error( message )
 
           return response
@@ -94,9 +94,9 @@ function ProcessHandler( client ){
           return false
         }
       },
-      quit: async () => {
+      stop: async () => {
         try {
-          const { error, message, response } = await run( 'quitEM', emulatorId, dataset )
+          const { error, message, response } = await run( 'stopEM', emulatorId, dataset )
           if( error ) throw new Error( message )
 
           // Unregister emulator process tracker
@@ -325,7 +325,7 @@ export default namespace => {
       extraHeaders: { 'X-User-Agent': 'Cubic.socket~001/1.0' },
       reconnectionDelayMax: 20000
     },
-    IPTClient = io(`/${ namespace || ''}`, options )
+    IPTClient = io(`/${namespace || ''}`, options )
     let manager
 
     IPTClient

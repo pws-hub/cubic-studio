@@ -10,54 +10,27 @@ import {
 class {
   onCreate(){
     this.state = {
-      canLoad: false,
-      reloading: false,
       languages: null,
       tests: null,
       testMode: false
     }
   }
-  onInput({ error, meta, status }){
-
-    if( this.state.reloading ){
-      // Still reloading
-      if( status !== 'running' ) return
-      // Reloading completed
-      this.state.reloading = false
-    }
-
-    if( !meta ){
-      this.state.canLoad = false
-      return
-    }
-    
-    // Check whether the emulator server is available
-    window.fetch( meta.hostname, { mode: 'no-cors', cache: 'no-cache' } )
-          .then( resp => resp.text() )
-          .then( () => this.state.canLoad = true ) // Can load the iframe
-          .catch( error => this.emit('run') ) // Run emulator & process
-  }
   onAction( _event, data, fn ){ this.iof.emit( _event, data, fn ) }
   onLoaded( e ){ Channel.bind( this )( e ) }
-  onReload(){
-    this.state.canLoad = false
-    this.state.reloading = true
-
-    this.emit('reload')
-  }
+  onRestart(){ this.emit('restart') }
   onOpenTest( status ){ this.state.testMode = status }
-  onQuit(){
+  onStop(){
     // Send QUIT signal to service
-    this.iof.emit('signal', 'USER:QUIT')
-    // Delay closing emulator to observe service behaviour during quiting process
-    setTimeout( () => this.emit('quit'), 1500 )
+    // this.iof.emit('signal', 'USER:QUIT')
+    // Delay closing emulator to observe service behaviour during stopping process
+    setTimeout( () => this.emit('stop'), 1500 )
   }
 }
 
 <div.Emulator.h-100>
-  <if( state.canLoad )>
-    $ const { name, hostname, pid } = input.meta
-    
+  $ const { name, hostname, pid, process } = input.metadata || {}
+  
+  <if( hostname && process && process.started )>
     <iframe.rounded-lg
             src=`${hostname}?wp=iframe&base=${pid}`
             style="width:calc(100% - 2rem);height:calc(100% - 2rem);margin:1rem;border:none"
@@ -74,19 +47,32 @@ class {
                 languages=state.languages
                 tests=state.tests
                 testMode=state.testMode
-                on-quit('onQuit')
-                on-reload('onReload')
+                on-stop('onStop')
+                on-restart('onRestart')
                 on-action('onAction')
                 on-open-test('onOpenTest')/>
   </if>
   <else>
     <div.w-100.h-100.d-flex.align-items-center.justify-content-center>
       <!-- Processing stage status -->
-      <if( state.reloading || input.status )>
+      <if( input.status )>
         <div.w-100.text-center>
           <Preloader.font-large-3 active=true/>
           <br><br>
-          <Locale text=( input.status || 'Reloading' ).toCapitalCase()/>
+          <if( process && process.output )>
+            <div.px-4.d-flex.align-items-center style="min-height:15rem">
+              <div.w-100>
+                <div.w-100.theme-bg-lighten.rounded.overflow-hidden style="height:2px">
+                  <div.h-100.theme-bg-primary style=`width:${process.output.percent || 0}%`></div>
+                </div>
+                <br>
+                <if( process.output.message )>
+                  <p.text-muted>${process.output.message}</p>
+                </if>
+              </div>
+            </div>
+          </if>
+          <else><Locale text=(input.status || 'Restarting').toCapitalCase()/></else>
         </div>
       </if>
       <!-- Display error message -->
@@ -96,7 +82,7 @@ class {
           <br><br>
           <p.px-4>${input.error}</p>
           <br>
-          <Button type="md" on-click('onReload')>Retry</Button>
+          <Button type="md" on-click('onRestart')>Retry</Button>
         </div>
       </else-if>
       <else>

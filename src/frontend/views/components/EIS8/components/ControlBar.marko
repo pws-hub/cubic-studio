@@ -116,17 +116,17 @@ $ const isQuaterScreen = state.ws.mode == 'qs'
           </li>
         </if>
         
-        <!-- Reload emulator -->
+        <!-- Restart emulator -->
         <li.cursor-pointer.scale-down.p-50
-            title=Locale('Reload')
-            on-click( () => component.emit('reload') )>
+            title=Locale('Restart')
+            on-click( () => component.emit('restart') )>
           <Bx.font-medium-5.p-50 type="rotate-left"/>
         </li>
 
         <!-- Exit emulator -->
         <li.cursor-pointer.scale-down.p-50
-            title=Locale('Quit')
-            on-click( () => component.emit('quit') )>
+            title=Locale('Stop')
+            on-click( () => component.emit('stop') )>
           <Bx.font-medium-5.p-50 type="power-off"/>
         </li>
       </ul>

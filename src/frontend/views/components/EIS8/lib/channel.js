@@ -7,7 +7,7 @@ export default function( e ){
   this.iof && this.iof.removeListeners()
 
   this.iof = new IOF({ type: 'window', debug: true })
-  this.iof.initiate( e.target.contentWindow, this.input.meta.hostname )
+  this.iof.initiate( e.target.contentWindow, this.input.metadata.hostname )
 
   this.iof
   .once( 'connect', async () => {

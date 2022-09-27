@@ -136,7 +136,7 @@ async function handleLocale(){
 		if( typeof translation == 'object' ) {
 			// Specified variant defined
 			if( variant
-					&& translation.hasOwnProperty( variant ) )
+					&& translation[ variant ] )
 				translation = translation[ variant ]
 
 			// User default define variant

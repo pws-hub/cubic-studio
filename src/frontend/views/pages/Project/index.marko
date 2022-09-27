@@ -141,9 +141,9 @@ class {
       case 'remove-element': this.FSOperator( action, ...args ); break
       case 'cursor-position': this.state.editorCursorPosition = args[0]; break
 
-      case 'run-emulator': this.RunEmulator( ...args ); break
-      case 'reload-emulator': this.ReloadEmulator(); break
-      case 'quit-emulator': this.QuitEmulator(); break
+      case 'start-emulator': this.StartEmulator( ...args ); break
+      case 'restart-emulator': this.RestartEmulator(); break
+      case 'stop-emulator': this.StopEmulator(); break
       
       case 'add-dependency': this.onAddonSelect('dependency'); break
       case 'update-packages':
@@ -332,12 +332,12 @@ class {
               hs="col-6"
               fs="position-absolute col-12">
         <!-- Sandbox Emulator: Model EIS8 -->
-        <EIS8 meta=state.emulator
+        <EIS8 metadata=state.emulator
               status=state.emulatorStatus
               error=state.emulatorError
-              on-run( 'onAction', 'run-emulator' )
-              on-reload( 'onAction', 'reload-emulator' )
-              on-quit( 'onAction', 'quit-emulator' )/>        
+              on-start( 'onAction', 'start-emulator' )
+              on-restart( 'onAction', 'restart-emulator' )
+              on-stop( 'onAction', 'stop-emulator' )/>        
       </WSAdapt>
     </Row>
   </div>

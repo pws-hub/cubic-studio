@@ -461,16 +461,17 @@ export default class IProcess {
     }
   }
 
-  async runEM( id, dataset ){
+  async startEM( id, dataset ){
     // Start an Emulator Instance
     try {
       const
-      { type, name, specs } = dataset,
+      { name, specs } = dataset,
       { directory } = specs.code,
+      watcher = ( error, data ) => this.watcher('emulator', error, data ),
 
       fs = new FileSystem({ cwd: directory, debug: this.debugMode }),
       em = this.emulators[ id ] // Use cached instance
-            || new Emulator({ cwd: directory, name, debug: this.debugMode })
+            || new Emulator({ cwd: directory, name, debug: this.debugMode, watcher })
 
       if( !( await fs.exists() ) )
         throw new Error('Project directory not found')
@@ -478,8 +479,7 @@ export default class IProcess {
       if( !( await fs.exists('.sandbox') ) )
         throw new Error('Project setup not found. Synchronize with CPM may solve the problem')
 
-      // Run
-      const metadata = await em.run()
+      const metadata = await em.start()
       // Cash instance for post control operations. Eg. restart, quit
       this.emulators[ id ] = em
 
@@ -490,40 +490,42 @@ export default class IProcess {
       this.watcher( 'emulator', error )
     }
   }
-  async reloadEM( id, dataset ){
-    // Reload emulator instance
+  async restartEM( id, dataset ){
+    // Restart emulator instance
     try {
-      // Reconnect to process in case development server was reloaded
+      // Reconnect to process in case development server was restarted
       if( !this.emulators[ id ] ) {
         const
         { name, specs } = dataset,
-        { directory } = specs.code
+        { directory } = specs.code,
+        watcher = ( error, data ) => this.watcher('emulator', error, data )
 
-        this.emulators[ id ] = new Emulator({ cwd: directory, name, debug: this.debugMode })
+        this.emulators[ id ] = new Emulator({ cwd: directory, name, debug: this.debugMode, watcher })
       }
 
-      // Reload process
-      return await this.emulators[ id ].reload()
+      // Restart process
+      return await this.emulators[ id ].restart()
     }
     catch( error ) {
       this.debug('Error occured: ', error )
       this.watcher( 'emulator', error )
     }
   }
-  async quitEM( id, dataset ){
+  async stopEM( id, dataset ){
     // Close emulator instance
     try {
-      // Reconnect to process in case development server was reloaded
+      // Reconnect to process in case development server was restarted
       if( !this.emulators[ id ] ) {
         const
         { name, specs } = dataset,
-        { directory } = specs.code
+        { directory } = specs.code,
+        watcher = ( error, data ) => this.watcher('emulator', error, data )
 
-        this.emulators[ id ] = new Emulator({ cwd: directory, name, debug: this.debugMode })
+        this.emulators[ id ] = new Emulator({ cwd: directory, name, debug: this.debugMode, watcher })
       }
 
-      // Destory process
-      return await this.emulators[ id ].exit()
+      // Destroy process
+      return await this.emulators[ id ].stop()
     }
     catch( error ) {
       this.debug('Error occured: ', error )

@@ -1,16 +1,87 @@
 
-import pm2 from 'pm2'
 import fs from 'fs-inter'
-import fetch from 'node-fetch'
+import shell from 'shelljs'
 
 function isValidEnv( env ){
   return typeof env == 'object' && !isEmpty( env )
 }
+
+function runCommand( script, options, progress ){
+  return new Promise( ( resolve, reject ) => {
+
+    options = {
+      ...options,
+      stdio: 'pipe',
+      shell: true,
+      async: true,
+      silent: true,
+      detached: true,
+      windowsHide: true
+    }
+
+    const sp = shell.exec( script, options )
+
+    sp.stdout.on('data', data => progress( false, data, data.length ) )
+    sp.stderr.on('data', data => progress( data ) )
+
+    sp
+    .on('error', reject )
+    .on('spawn', () => { return resolve( sp ) })
+  } )
+}
+
+function getProcess( cwd, ports, debug ){
+  return new Promise( ( resolve, reject ) => {
+
+    if( !Array.isArray( ports ) && !ports.length )
+      return reject( new Error('Undefined Ports list. <Array> expected') )
+
+    const
+    options = {
+      stdio: 'inherit',
+      shell: true,
+      async: true,
+      silent: true,
+      windowsHide: true
+    },
+    lsof = shell.exec(`lsof -t ${cwd}/.sandbox`, options )
+    let pids = []
+
+    console.log(`-------------lsof -t ${cwd}.sandbox && lsof -t -i :${ports.join(',')}` )
+
+    lsof.stdout.on( 'data', data => { if( data ) pids = Array.from( new Set([ ...pids, ...data.trim().split(/\s+/) ]) ) } )
+    lsof.stderr.on( 'data', data => typeof debug == 'function' && debug('Error: ', data ) )
+
+    lsof
+    .on( 'error', reject )
+    .on( 'close', () => { return resolve( pids ) } )
+  } )
+}
+
+function killProcess( pids, debug ){
+  return new Promise( ( resolve, reject ) => {
+    const
+    options = {
+      stdio: 'inherit',
+      shell: true,
+      async: true,
+      silent: true,
+      windowsHide: true
+    },
+    lsof = shell.exec(`kill -9 ${pids.join(' ')}`, options )
+    lsof.stderr.on( 'data', data => typeof debug == 'function' && debug('Error: ', data ) )
+
+    lsof
+    .on( 'error', reject )
+    .on( 'close', () => { return resolve() } )
+  } )
+}
+
 export default class Emulator {
 
   constructor( options = {} ){
-    // Process config
-    this.process = {
+    // Process metadata
+    this.metadata = {
       cwd: options.cwd || process.cwd(),
       name: `${toNSI( options.name )}:cubic:sandbox`,
       script: options.script || '.sandbox/start.sh',
@@ -18,9 +89,11 @@ export default class Emulator {
         NODE_ENV: 'development',
         HOST: 'localhost',
         PORT: 33000,
-        PORT_DEV: 33001
+        PORT_DEV: 33001,
+        PATH: process.env.PATH
       },
-      watch: false // Disable watch & restart server by pm2
+      hostname: null,
+      watch: false // Disable watch & restart server
     }
 
     // Emulator Server Manager
@@ -33,10 +106,12 @@ export default class Emulator {
   // Internal operation log: Debug mode
   debug( ...args ){ this.debugMode && console.log( ...args ) }
 
+  getMetadata(){ return this.metadata }
+
   async getConfig(){
     // Fetch emulator config in .cubic
     let config
-    try { config = JSON.parse( await fs.readFile( `${this.process.cwd }/.cubic`, 'UTF-8' ) ) }
+    try { config = JSON.parse( await fs.readFile( `${this.metadata.cwd}/.cubic`, 'UTF-8' ) ) }
     catch( error ) { throw new Error('Not found or Invalid .cubic file at the project root') }
 
     if( !config.emulator )
@@ -45,249 +120,95 @@ export default class Emulator {
     return config.emulator
   }
 
-  connect(){
-    // Establish connection with local PM2 instance
-    return new Promise( ( resolve, reject ) => {
-      // Connected
-      if( this.esm ) return resolve()
-
-      pm2.connect( error => {
-        if( error )
-          return reject( error )
-
-        this.esm = pm2
-
-        // Listen to process events
-        this.esm.launchBus( ( error, bus ) => {
-          if( error ) return reject( error )
-
-          bus.on( 'process:msg', ({ data, _process }) => this.watcher( data.event, data.stats ) )
-        } )
-
-        resolve()
-      } )
-    } )
-  }
-
-  disconnect(){
-    // Establish connection with local PM2 instance
-    return new Promise( ( resolve, reject ) => {
-      // Existing connection
-      if( !this.esm ) return reject()
-
-      this.esm.disconnect()
-      this.esm = false
-
-      resolve()
-    } )
-  }
-
-  run(){
+  async start(){
     // Start emulator
-    return new Promise( ( resolve, reject ) => {
-      this.connect()
-          .then( async () => {
-            try {
-              const config = await this.getConfig()
+    const config = await this.getConfig()
 
-              if( isValidEnv( config.env ) )
-                this.process.env = {
-                  ...this.process.env, // Default or previous `env`
-                  ...config.env, // Defined `env`
+    if( isValidEnv( config.env ) )
+      this.metadata.env = {
+        ...this.metadata.env, // Default or previous `env`
+        ...config.env, // Defined `env`
 
-                  // Set development server PORT
-                  PORT_DEV: Number( config.env.PORT || this.process.env.PORT ) + 1
-                }
+        // Set development server PORT
+        PORT_DEV: Number( config.env.PORT || this.metadata.env.PORT ) + 1
+      }
 
-              this.esm.start( this.process, ( error, metadata ) => {
-                if( error ) {
-                  this.disconnect()
-                  return reject( error )
-                }
+    const { cwd, env, script } = this.metadata
+    // Running emulator server hostname
+    this.metadata.hostname = toOrigin(`${env.HOST}:${env.PORT}`, !isOncloud() )
 
-                if( !Array.isArray( metadata ) || !metadata[0] )
-                  return reject('Process Not Found')
+    // Find processes running on this `{cwd}/.sandbox` directory
+    const pids = await getProcess( cwd, [ env.PORT, env.PORT_DEV ], this.debug.bind(this) )
+    if( Array.isArray( pids ) && pids.length ) {
+      // Process already running
+      if( pids.length >= 2 ) {
+        this.debug(`Process [${pids[0]}] already running`)
+        this.metadata.pid = parseInt( pids[0] )
 
-                const
-                { pid } = metadata[0],
-                { name, cwd, env } = this.process,
-                hostname = toOrigin( `${env.HOST}:${env.PORT}`, !isOncloud() )
+        setTimeout( () => this.watcher( false, { started: true }), 1000 )
+        return this.getMetadata()
+      }
 
-                /**
-                 * TODO: Handle this with PM2 process.send & process.launchBus event manager
-                 * ISSUE: Razzle spawn the sandbox server process so PM2
-                 *        only run a script to start the process without
-                 *        managing it. Therefore process.send(...) & bus.on(...)
-                 *        between started sandbox-server and Emulator doen't work
-                 *
-                 * HACK: Check frequently whether the started
-                 *        process (server) has finished compiling
-                 *        and now listen.
-                 */
-                let
-                MAX_ATTEMPT = 45, // 45 seconds
-                untilServerUp = setInterval( async () => {
-                  try {
-                    const up = await ( await fetch( hostname, { method: 'GET' } ) ).text()
-                    // Server is up
-                    clearInterval( untilServerUp )
-                    resolve({ pid, cwd, name, hostname })
-                  }
-                  catch( error ) {
-                    MAX_ATTEMPT--
-                    this.debug(`Failed [${45 - MAX_ATTEMPT}]: `, error.message )
+      // Kill exiting processes
+      await killProcess( pids, this.debug.bind(this) )
+    }
 
-                    // Maximum attempt reached
-                    if( MAX_ATTEMPT == 0 ) {
-                      // Emulator server still not available: exit
-                      clearInterval( untilServerUp )
+    // Start process
+    this.esm = await runCommand( script, { cwd, env }, ( error, data, bytes ) => {
 
-                      this.exit()
-                          .then( () => reject('Emulator server failed to load.') )
-                          .catch( error => reject('Unexpected error occured: ', error.message ) )
-                    }
-                  }
-                }, 1000 )
-              } )
-            }
-            catch( error ) { reject( error ) }
-          } )
-          .catch( reject )
+      if( error ) return this.watcher( error )
+      if( data ) {
+        data = data.replace(/\s+/, ' ')
+        this.watcher( false, { percent: bytes, message: data } )
+
+        // Process server running signal
+        data.includes( env.PORT ) && this.watcher( false, { percent: 100, started: true })
+      }
     } )
+    this.esm.unref()
+
+    // Listen to unexpected exist
+    this.esm.on('close', code => this.watcher( false, { message: 'Emulator closed', killed: this.esm.killed, exit: code } ) )
+
+    this.metadata.pid = this.esm.pid
+    return this.getMetadata()
   }
 
-  reload(){
-    return new Promise( ( resolve, reject ) => {
-      this.connect()
-          .then( async () => {
-            try {
-              const config = await this.getConfig()
+  async stop(){
+    // Stop emulator
+    const config = await this.getConfig()
 
-              if( isValidEnv( config.env ) )
-                this.process.env = {
-                  ...this.process.env, // Default or previous `env`
-                  ...config.env, // Defined `env`
+    if( isValidEnv( config.env ) )
+      this.metadata.env = {
+        ...this.metadata.env, // Default or previous `env`
+        ...config.env, // Defined `env`
 
-                  // Set development server PORT
-                  PORT_DEV: Number( config.env.PORT || this.process.env.PORT ) + 1
-                }
+        // Set development server PORT
+        PORT_DEV: Number( config.env.PORT || this.metadata.env.PORT ) + 1
+      }
 
-              this.esm.reload( this.process.name, async ( error, metadata ) => {
-                if( error ) {
-                  this.disconnect()
-                  return reject( error )
-                }
+    // Kill emulator process
+    this.esm && this.esm.kill()
 
-                if( !Array.isArray( metadata ) || !metadata[0] )
-                  return reject('Process Not Found')
+    // Make sure processes running from this `{cwd}/.sandbox` directory are killed
+    const
+    { cwd, env } = this.metadata,
+    pids = await getProcess( cwd, [ env.PORT, env.PORT_DEV ], this.debug.bind(this) )
 
-                const config = await this.getConfig()
-                if( isValidEnv( config.env ) )
-                  this.process.env = {
-                    ...this.process.env, // Default or previous `env`
-                    ...config.env, // Defined `env`
+    if( Array.isArray( pids ) && pids.length ) {
+      // Kill exiting processes
+      try {
+        await killProcess( pids, this.debug.bind(this) )
+        this.watcher( false, { killed: true, message: `PORT [:${env.PORT}, :${env.PORT_DEV}] - PID: [${pids.join(', ')}]` } )
+      }
+      catch( error ) { this.watcher('Process Not Found: ', error ) }
+    }
 
-                    // Set development server PORT
-                    PORT_DEV: Number( config.env || this.process.env.PORT ) + 1
-                  }
-
-                const
-                { pid } = metadata[0],
-                { name, cwd, env } = this.process,
-                hostname = toOrigin( `${env.HOST}:${env.PORT}`, !isOncloud() )
-
-                /**
-                 * TODO: Handle this with PM2 process.send & process.launchBus event manager
-                 * ISSUE: Razzle spawn the sandbox server process so PM2
-                 *        only run a script to start the process without
-                 *        managing it. Therefore process.send(...) & bus.on(...)
-                 *        between started sandbox-server and Emulator doen't work
-                 *
-                 * HACK: Check frequently whether the started
-                 *        process (server) has finished compiling
-                 *        and now listen.
-                 */
-                let
-                MAX_ATTEMPT = 45, // 45 seconds
-                untilServerUp = setInterval( async () => {
-                  try {
-                    const up = await ( await fetch( hostname, { method: 'GET' } ) ).text()
-                    // Server is up
-                    clearInterval( untilServerUp )
-                    resolve({ pid, cwd, name, hostname })
-                  }
-                  catch( error ) {
-                    MAX_ATTEMPT--
-                    this.debug(`Failed [${45 - MAX_ATTEMPT}]: `, error.message )
-
-                    // Maximum attempt reached
-                    if( MAX_ATTEMPT == 0 ) {
-                      // Emulator server still not available: exit
-                      clearInterval( untilServerUp )
-
-                      this.exit()
-                          .then( () => reject('Emulator server failed to load.') )
-                          .catch( error => reject('Unexpected error occured: ', error.message ) )
-                    }
-                  }
-                }, 1000 )
-              } )
-            }
-            catch( error ) { reject( error ) }
-          } )
-          .catch( reject )
-    } )
+    return {}
   }
 
-  stop(){
-    return new Promise( ( resolve, reject ) => {
-
-      this.connect()
-          .then( () => {
-            this.esm.stop( this.process.name, ( error, _process ) => {
-              if( error ) {
-                this.disconnect()
-                return reject( error )
-              }
-
-              this.disconnect()
-              resolve( _process )
-            } )
-          } )
-          .catch( reject )
-    } )
-  }
-
-  metadata(){
-    return new Promise( ( resolve, reject ) => {
-
-      this.connect()
-          .then( () => {
-            this.esm.describe( this.process.name, ( error, metadata ) => {
-              if( error ) return reject( error )
-              resolve( metadata )
-            } )
-          } )
-          .catch( reject )
-    } )
-  }
-
-  exit(){
-    return new Promise( ( resolve, reject ) => {
-
-      this.connect()
-          .then( () => {
-            this.esm.delete( this.process.name, error => {
-              if( error ) {
-                this.disconnect()
-                return reject( error )
-              }
-
-              this.disconnect()
-              resolve()
-            } )
-          } )
-          .catch( reject )
-    } )
+  async restart(){
+    await this.stop()
+    return await this.start()
   }
 }

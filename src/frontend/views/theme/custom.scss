@@ -1,10 +1,14 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@600&family=Barlow&family=Quicksand:wght@600&family=Roboto&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@600&family=Barlow:wght@200;300;400;500&family=Quicksand:wght@600&family=Roboto&display=swap');
 
 
 /* Hide scrollbar for Chrome, Safari and Opera */
 ::-webkit-scrollbar { display: none!important; }
 
+html * {
+  font-family: 'Barlow', 'Roboto', sans-serif;
+  font-weight: 400;
+}
 .in-block * {
   font-family: 'Barlow', 'Roboto', sans-serif;
   
@@ -52,11 +56,11 @@ html{
 
 .btn-xl,
 .form-control-xl{
-    height: calc(1.6em + 1.734rem + 3.7px);
-    padding: 1.167rem 1.2rem;
-    font-size: 1.4rem;
-    line-height: 1.4;
-    border-radius: 0.267rem;
+  height: calc(1.6em + 1.734rem + 3.7px);
+  padding: 1.167rem 1.2rem;
+  font-size: 1.4rem;
+  line-height: 1.4;
+  border-radius: 0.267rem;
 }
 .round-xs{ border-radius:.6rem; }
 .round-sm{ border-radius:1.2rem; }

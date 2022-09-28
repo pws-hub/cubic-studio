@@ -23,7 +23,7 @@ import DefaultLogo from '~/images/logo/cubic-default.png'
 
 <if( input.description )>
   <br>
-  <p.font-medium-2>${input.description}</p>
+  <p.font-medium-2.text-muted>${input.description}</p>
 </if>
 
 <br>
@@ -48,7 +48,7 @@ import DefaultLogo from '~/images/logo/cubic-default.png'
   <h4.px-1.pb-50.font-small-3>
     <Locale.text-muted text="Team"/>
   </h4>
-  <div.border.round.py-2>
+  <div.border.round-sm.py-2>
     <ul.list-unstyled.m-0>
       <for|each, index| of=input.members>
         <TeamMember key=index ...each/>

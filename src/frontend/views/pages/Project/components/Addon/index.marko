@@ -1,7 +1,7 @@
 
 import FEATURES from './features.json'
 
-<Modal.p-3 width=40 noBackdrop=true on-dismiss( () => component.emit('dismiss') )>
+<Modal.p-3.border width=40 noBackdrop=true on-dismiss( () => component.emit('dismiss') )>
   <Row>
     <for|type, { label, description, icon }| in=FEATURES>
       <@col.col-4.py-50.cursor-pointer.scale-down key=type>

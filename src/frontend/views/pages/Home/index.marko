@@ -20,7 +20,7 @@ class {
     <div.text-center>
       <Bx.font-large-5 type="cube-alt"/>
       <h4.mb-1><strong>Cubic Studio</strong></h4>
-      <div.text-right.font-small-2 style="margin-right:4.5rem">${(window.providers[0] || '').toCapitalCase()}</div>
+      <div.text-right.font-small-3 style="margin-right:4.5rem">${(window.providers[0] || '').toCapitalCase()}</div>
     </div>
 
     <!-- Workspaces -->
@@ -29,7 +29,7 @@ class {
       <h4.px-1.font-small-3>
         <Locale text="Workspaces"/>
       </h4>
-      <div.theme-bg.theme-bg.border.round.px-0.py-2>
+      <div.theme-bg.theme-bg.border.round-sm.px-0.py-2>
         <if( !state.workspaces )>
           <div.text-center>
             <Preloader.font-medium-5 active=true/>
@@ -41,7 +41,10 @@ class {
               <li.position-relative.nav-item.cursor-pointer.px-2.py-50.d-flex.align-items-center.hover-toggle 
                   title=description
                   on-click('goTo', workspaceId )>
-                <h6.font-medium-2>${name}</h6>
+                <div.w-100.py-50>
+                  <h6.font-medium-2.mt-0>${name}</h6>
+                  <div.text-ellipsis.w-100.text-muted.font-small-3>${description}</div>
+                </div>
                 <!-- <Bx.position-absolute.right-0.font-medium-5.px-1.hover-show type="x" on-click('onRemoveWS', workspaceId )/> -->
               </li>
             </for>
@@ -87,7 +90,7 @@ class {
 
 <!-- Send invitation to team members -->
 <if( state.showWSForm )>
-  <Modal.px-4.py-2 width=25 noBackdrop=true on-dismiss( 'onCreateWS', false )>
+  <Modal.px-4.py-2.border width=25 noBackdrop=true on-dismiss( 'onCreateWS', false )>
     <h5><Locale text="Create Workspace"/></h5>
     <br>
     <CreateWorkspace on-dismiss( 'onCreateWS', false )/>

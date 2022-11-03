@@ -5,12 +5,9 @@
 /* Hide scrollbar for Chrome, Safari and Opera */
 ::-webkit-scrollbar { display: none!important; }
 
-html * {
+.in-block *:not(.code-editor) {
   font-family: 'Barlow', 'Roboto', sans-serif;
   font-weight: 400;
-}
-.in-block * {
-  font-family: 'Barlow', 'Roboto', sans-serif;
   
   /* Hide scrollbar for IE, Edge and Firefox */
   -ms-overflow-style: none!important;

@@ -29,6 +29,41 @@ Open your browser, enter **http://localhost:12120** and there you go.
 
 Full documentation of how to use it is upcoming, for now, enjoy playing with it.
 
+Roadmap
+-------
+
+- [x] Wildcard Saas Features
+- [ ] Github SSO by default
+- [ ] OneProfile support
+- [x] Create and manage workspaces
+- [ ] Workspace extensions
+- [x] Customization themes
+- [x] Setup/Import projects
+- [ ] Setup `.cubic` environment & sync
+- [x] Add/Import UI component, plugins, libraries, ... to project
+- [ ] Create and manage teams
+- [ ] Activity tracking & History
+- [x] View & Edit User account
+- [x] User roles & permissions
+- [x] Utilities Search
+- [x] In-build debug console & terminal
+- [ ] UI alert & prompt dialog messages
+- [x] Offline & Online synchronizer
+- [x] Settings (Share, `.cubic` functions, exports, invite, ...)
+- [x] Cubic Package Repository
+- [x] Cubic Package Manager
+- [ ] Cloud based studio extensions (fs, path, deps installer, emulator)
+- [ ] Live collaboration tools
+- [ ] Testing tools (API, scripts)
+- [ ] Publish App, Plugin, Library, Service, ...
+- [ ] Advanced project `.metadata` configuration
+- [x] Internationalization (Multiple language support)
+- [x] Emulator (Run & Test project)
+- [ ] Debug tools
+- [ ] Project documentation generator
+
+
+
 Feedback & Contribution
 -------
 

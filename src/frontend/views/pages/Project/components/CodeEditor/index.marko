@@ -152,7 +152,7 @@ class {
       // Load hightlighting language services
       await GMLoader.load()
       // New Editor
-      this.editor = monaco.editor.create( this.getEl(), this.editorOptions )
+      this.editor = monaco.editor.create( this.getEl('code-editor'), this.editorOptions )
       // Load grammars by editor instance
       await GMLoader.registerGrammar( monaco, this.editor )
 
@@ -216,14 +216,12 @@ class {
     // Display media files as image, video, ...
     if( !this.fs ) return
 
-    let base64 = await this.fs.readFile( file.path, { encoding: 'base64' })
-
-    base64 = `data:application/octet-stream;base64,${base64}`
-
+    const base64 = await this.fs.readFile( file.path, { encoding: 'base64' })
     this.media = {
       ...file,
-      src: URL.createObjectURL( await ( await window.fetch( base64 ) ).blob() )
+      src: URL.createObjectURL( await ( await window.fetch(`data:application/octet-stream;base64,${base64}`) ).blob() )
     }
+    
     this.state.isMediaFile = true
   }
   async getModel( path ){
@@ -306,12 +304,26 @@ class {
   }
 }
 
-<!-- Text content editor -->
-<div.code-editor no-update></div>
+<div.position-relative.h-100>
+  <!-- Text content editor -->
+  <div.code-editor key="code-editor" no-update></div>
 
-<!-- Media content display -->
-<if( Array.isArray( input.paths ) && input.paths.length && state.isMediaFile )>
-  <div.position-absolute.top-0.w-100.h-100.theme-bg.d-flex.align-items-center.justify-content-center style="z-index:30">
-    <Media ...component.media/>
-  </div>
-</if>
+  <!-- Media content display -->
+  <if( !Array.isArray( input.paths ) || !input.paths.length )>
+    <div.position-absolute.top-0.w-100.h-100.theme-bg.d-flex.align-items-center.justify-content-center.zindex-1>
+      <div.h-100.d-flex.align-items-center>
+        <div.w-100.text-center>
+          <!-- <img src="/images/logo/cubic-default.png" style="width:10%;opacity:0.1;"/> -->
+          <Bx.black-text type="cube-alt" style="font-size:12rem;opacity:0.2;"/>
+        </div>
+      </div>
+    </div>
+  </if>
+
+  <!-- Media content display -->
+  <else-if( state.isMediaFile )>
+    <div.position-absolute.top-0.w-100.h-100.theme-bg.d-flex.align-items-center.justify-content-center style="z-index:30">
+      <Media ...component.media/>
+    </div>
+  </else-if>
+</div>

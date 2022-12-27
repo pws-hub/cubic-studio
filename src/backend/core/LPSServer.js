@@ -1,5 +1,6 @@
 
 import fs from 'fs-extra'
+import Fastify from 'fastify'
 import { Router } from 'express'
 import { decrypt, encrypt } from '../lib/DTCrypt'
 
@@ -10,7 +11,8 @@ function ruuid(){
   })
 }
 
-const INTERFACES = {
+const
+STORAGES = {
   filesystem: configs => {
 
     const storePath = configs.path
@@ -186,86 +188,199 @@ const INTERFACES = {
       }
     }
   }
-}
-
-export default ( configs = {} ) => {
-
-  configs = {
-    type: 'filesystem',
-    path: `${process.cwd() }/.lpstore`,
-    table: null,
-    collection: null,
-    ...configs
-  }
-
-  if( !INTERFACES[ configs.type ] )
-    throw new Error(`LSP does not support <${configs.type}> interface`)
-
-  const
-  Interface = INTERFACES[ configs.type ]( configs ),
-  express = app => {
+},
+SERVERS = {
+  express: ( App, Storage ) => {
     const route = Router()
-    .use( ( req, res, next ) => {
-      if( req.headers['lps-user-agent'] !== 'LPS/RM'
-          || req.headers['lps-client-id'] !== 'OPAC-12-09HH--$0' )
+    .use((req, res, next) => {
+      if (req.headers['lps-user-agent'] !== 'LPS/RM' ||
+        req.headers['lps-client-id'] !== 'OPAC-12-09HH--$0')
         return res.status(403).send('Access Denied')
 
       next()
-    } )
-    .post('/', async ( req, res ) => {
+    })
+    .post('/', async (req, res) => {
       try {
-        if( !Object.keys( req.body ).length )
+        if (!Object.keys(req.body).length)
           throw new Error('Invalid Request Body')
 
-        const result = await Interface.insert( req.body )
-        res.json({ error: false, result })
+        const result = await Storage.insert(req.body)
+        res.json({
+          error: false,
+          result
+        })
+      } catch (error) {
+        res.json({
+          error: true,
+          message: error.message
+        })
       }
-      catch( error ) { res.json({ error: true, message: error.message }) }
     })
-    .get('/', async ( req, res ) => {
+    .get('/', async (req, res) => {
       try {
-        if( !Object.keys( req.query ).length )
+        if (!Object.keys(req.query).length)
           throw new Error('Undefined Request Query')
 
-        const result = await Interface.get( req.query )
-        res.json({ error: false, result })
+        const result = await Storage.get(req.query)
+        res.json({
+          error: false,
+          result
+        })
+      } catch (error) {
+        res.json({
+          error: true,
+          message: error.message
+        })
       }
-      catch( error ) { res.json({ error: true, message: error.message }) }
     })
-    .get('/fetch', async ( req, res ) => {
+    .get('/fetch', async (req, res) => {
       try {
-        const result = await Interface.fetch( req.query || {} )
-        res.json({ error: false, result })
+        const result = await Storage.fetch(req.query || {})
+        res.json({
+          error: false,
+          result
+        })
+      } catch (error) {
+        res.json({
+          error: true,
+          message: error.message
+        })
       }
-      catch( error ) { res.json({ error: true, message: error.message }) }
     })
-    .patch('/', async ( req, res ) => {
+    .patch('/', async (req, res) => {
       try {
-        const { sid, updates } = req.body
-        if( !sid || typeof updates !== 'object' )
+        const {
+          sid,
+          updates
+        } = req.body
+        if (!sid || typeof updates !== 'object')
           throw new Error('Invalid Request Parameters')
 
-        if( !Object.keys( updates ).length )
+        if (!Object.keys(updates).length)
           throw new Error('Undefined Update Fields')
 
-        const result = await Interface.update( sid, updates )
-        res.json({ error: false, result })
+        const result = await Storage.update(sid, updates)
+        res.json({
+          error: false,
+          result
+        })
+      } catch (error) {
+        res.json({
+          error: true,
+          message: error.message
+        })
       }
-      catch( error ) { res.json({ error: true, message: error.message }) }
     })
-    .delete('/', async ( req, res ) => {
+    .delete('/', async (req, res) => {
       try {
-        if( !req.query.sid )
+        if (!req.query.sid)
           throw new Error('Invalid Request Parameters')
 
-        const result = await Interface.delete( req.query.sid )
-        res.json({ error: false, result })
+        const result = await Storage.delete(req.query.sid)
+        res.json({
+          error: false,
+          result
+        })
+      } catch (error) {
+        res.json({
+          error: true,
+          message: error.message
+        })
       }
-      catch( error ) { res.json({ error: true, message: error.message }) }
     })
 
-    app.use('/lpstore', route )
+    App.use('/lpstore', route)
+  },
+  fastify: ( App, Storage ) => {
+
+    const route = async ( instance ) => {
+      instance
+      .addHook('preHandler', async ( req, rep ) => {
+        if (req.headers['lps-user-agent'] !== 'LPS/RM' ||
+            req.headers['lps-client-id'] !== 'OPAC-12-09HH--$0')
+          rep.code(403)
+          throw new Error('Access Denied')
+      })
+      .post('/', async req => {
+        try {
+          if( !Object.keys( req.body ).length )
+            throw new Error('Invalid Request Body')
+
+          const result = await Storage.insert( req.body )
+          return { error: false, result }
+        }
+        catch( error ) { return { error: true, message: error.message } }
+      })
+      .get('/', async req => {
+        try {
+          if( !Object.keys( req.query ).length )
+            throw new Error('Undefined Request Query')
+
+          const result = await Storage.get( req.query )
+          return { error: false, result }
+        }
+        catch( error ) { return { error: true, message: error.message } }
+      })
+      .get('/fetch', async req => {
+        try {
+          const result = await Storage.fetch( req.query || {} )
+          return { error: false, result }
+        }
+        catch( error ) { return { error: true, message: error.message } }
+      })
+      .patch('/', async req => {
+        try {
+          const { sid, updates } = req.body
+          if( !sid || typeof updates !== 'object' )
+            throw new Error('Invalid Request Parameters')
+
+          if( !Object.keys( updates ).length )
+            throw new Error('Undefined Update Fields')
+
+          const result = await Storage.update( sid, updates )
+          return { error: false, result }
+        }
+        catch( error ) { return { error: true, message: error.message } }
+      })
+      .delete('/', async req => {
+        try {
+          if( !req.query.sid )
+            throw new Error('Invalid Request Parameters')
+
+          const result = await Storage.delete( req.query.sid )
+          return { error: false, result }
+        }
+        catch( error ) { return { error: true, message: error.message } }
+      })
+    }
+
+    App.register( route, { prefix: '/lpstore' })
+  }
+}
+
+export default ( configs, App ) => {
+
+  configs = {
+    serverType: 'express',
+    storageType: 'filesystem',
+    path: `${process.cwd() }/.lpstore`,
+    table: null,
+    collection: null,
+    ...(configs || {})
   }
 
-  return { Interface, express }
+  if( !STORAGES[ configs.storageType ] )
+    throw new Error(`LPS does not support <${configs.storageType}> storage`)
+
+  const
+  Storage = STORAGES[configs.storageType]( configs ),
+  listen = () => {
+    if( !App ) throw new Error('Undefined HTTP Server')
+    SERVERS[configs.serverType]( App, Storage )
+  }
+
+  return {
+    Storage,
+    listen
+  }
 }

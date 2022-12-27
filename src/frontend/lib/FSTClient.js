@@ -19,7 +19,6 @@ function FSHandler( mode, client ){
   // Receive operation event and trigger listeners
   client.on( 'FS::EVENT', ( ...args ) => this.listeners.map( fn => fn( ...args ) ) )
 
-
   this.directory = async ( path, options = {} ) => {
     try {
       // Do not collect subdirs in explorer mode

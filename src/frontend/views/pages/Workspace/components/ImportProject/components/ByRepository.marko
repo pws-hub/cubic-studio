@@ -44,9 +44,9 @@ class {
     try {
       console.log('Fetch Repo: ', url )
       /*
-      const configJson = await window.Git.readFile(`${url}/config.json`, { encoding: 'json' })
+      const configJson = await window.Git.readFile(`${url}/.metadata`, { encoding: 'json' })
       if( !configJson )
-        throw new Error('No `config.json` file found in the project repository')
+        throw new Error('No `.metadata` file found in the project repository')
 
       const
       packageJson = await window.Git.readFile(`${url}/package.json`, { encoding: 'json' }),

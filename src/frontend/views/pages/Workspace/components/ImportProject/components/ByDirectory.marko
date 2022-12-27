@@ -43,9 +43,9 @@ class {
     try {
       this.state.importing = true
 
-      const configJson = await window.FSExplorer.readFile(`${path}/config.json`, { encoding: 'json' } )
+      const configJson = await window.FSExplorer.readFile(`${path}/.metadata`, { encoding: 'json' } )
       if( !configJson )
-        throw new Error('No `config.json` file found in the project directory')
+        throw new Error('No `.metadata` file found in the project directory')
 
       const 
       packageJson = await window.FSExplorer.readFile(`${path}/package.json`, { encoding: 'json' } ),

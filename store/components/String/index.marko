@@ -3,9 +3,11 @@ class {
 	onCreate(){ this.state = { locale: '', text: '' } }
 	onMount(){
 		// Pipe to context component in <Extension/>
-		const 
-		context = this.___context[1],
-		translate = () => {
+		// TODO: Better implementation to track ___context in production build
+		const context = (this.___context || this._i_ || [])[1]
+		if( !context ) return
+
+		const translate = () => {
 			const originalText = this.input.value || (typeof this.input.renderBody == 'function' ? this.innerBody() : '')
 			this.setState({
 				locale: context.data.locale,
@@ -22,8 +24,8 @@ class {
 		return this.input
 								.renderBody
 								.toString()
-								.replace( new RegExp('function\\(\\w+\\)\\s*\\{\\s*\\w+.t\\\("'), '')
-								.replace( new RegExp('"\\);?\\s*\\}'), '')
+								.replace( new RegExp('(function)?(\\(\\w+\\)|(\\w+\\s*=>\\s*))\\s*\\{\\s*\\w+.t\\\("'), '')
+								.replace( new RegExp('"(,\\s*\\w+)?\\);?\\s*\\}'), '')
 	}
 }
 

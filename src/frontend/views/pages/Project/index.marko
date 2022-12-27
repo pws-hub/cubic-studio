@@ -62,10 +62,11 @@ class {
       emulatorError: false,
       emulatorStatus: false,
       
-      showAddon: false,
       showSearch: false,
+      showFeatures: false,
       showExplorer: false,
       showSettings: false,
+      showPublisher: false,
       showResetProject: false,
       showDeleteProject: false,
       
@@ -145,16 +146,17 @@ class {
       case 'restart-emulator': this.RestartEmulator(); break
       case 'stop-emulator': this.StopEmulator(); break
       
-      case 'add-dependency': this.onAddonSelect('dependency'); break
+      case 'add-dependency': this.onFeatureSelect('dependency'); break
       case 'update-packages':
       case 'remove-packages': 
       case 'refresh-packages': this.PackageOperator( action, ...args ); break
       case 'delete-project': this.DeleteProject(); break
     }
   }
-  onAddonToggle( args ){ this.state.showAddon = args }
+  onFeatureToggle( args ){ this.state.showFeatures = args }
   onSearchToggle( args ){ this.state.showSearch = args }
   onSettingsToggle( type ){ this.state.showSettings = type }
+  onPublishToggle( status ){ this.state.showPublisher = status }
   onConsoleToggle( status ){ this.setSection('activeConsole', status ) }
   onShowResetProjectToggle( type ){ this.state.showResetProject = type }
   onShowDeleteProjectToggle( type ){ this.state.showDeleteProject = type }
@@ -164,16 +166,17 @@ class {
     this.state.layouts = blocks
     this.setStateDirty('layouts')
   }
-  onAddonSelect( type ){
+  onFeatureSelect( type ){
 
     switch( type ){
       case 'plugin':
       case 'component': this.onSearchToggle({ filters: { targets: [ type ] } }); break
       case 'dependency': this.onSearchToggle({ filters: { targets: ['package', 'library'] } }); break
       case 'share': this.onSettingsToggle('share'); break
+      case 'publish': this.onPublishToggle( true ); break
     }
 
-    this.onAddonToggle( false )
+    this.onFeatureToggle( false )
   }
   onChangeOccurance( element, changes ){
     // Awarness of changes occured on this active element
@@ -248,7 +251,7 @@ class {
                 workspace=state.workspace
                 sections=[ ...state.sections ]
                 activeSection=state.activeSection
-                on-add('onAddonToggle')
+                on-add('onFeatureToggle')
                 on-select('onMenuSelect')
                 on-search('onSearchToggle', true )/>
 
@@ -393,10 +396,16 @@ class {
   </Footer>
 </div>
 
+<!-- List of major features to perform on a project -->
+<if( state.showFeatures )>
+  <Features on-select('onFeatureSelect')
+            on-dismiss('onFeatureToggle', false )/>
+</if>
+
 <!-- List of element to app to project -->
-<if( state.showAddon )>
-  <Addon on-select('onAddonSelect')
-          on-dismiss('onAddonToggle', false )/>
+<if( state.showPublisher )>
+  <Publisher on-continue('onAction')
+              on-dismiss('onPublishToggle', false )/>
 </if>
 
 <!-- Project settings -->

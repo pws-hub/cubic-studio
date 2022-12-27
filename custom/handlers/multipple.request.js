@@ -3,7 +3,7 @@ import request from 'request'
 import jwt from 'jsonwebtoken'
 import LPSServer from '../../src/backend/core/LPSServer'
 
-const LPS = LPSServer().Interface
+const LPS = LPSServer().Storage
 
 async function getAuthConfig( req, type, sid ){
   // Get an auth configuration type of the app: OAuth, JWT, BAT, BAC, ...

@@ -134,7 +134,7 @@ app.use( session( sessionConfig ) )
 
 /* -------------------------------------------------------------------*/
 // Initialize LPS (Locale Package Store) Server
-LPSServer().express( app )
+LPSServer({ serverType: 'express' }, app ).listen()
 
 /* -------------------------------------------------------------------*/
 // Application Assets Manifest

@@ -4,7 +4,6 @@ function fullname( profile ){
 }
 
 export default ({ env }) => {
-
   return {
     // Customize request client handler for multipple API requests
     Request: CreateRequest('multipple'),

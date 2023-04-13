@@ -37,7 +37,7 @@ export default Self => {
     // Initialize project's coding section
     State.sections.push('Code')
     // Default section
-    if( !State.activeSection ) State.activeSection = 'Code'
+    !State.activeSection && Self.setState('activeSection', 'Code')
     // Coding workspace
     await initCodeWS()
 
@@ -113,7 +113,7 @@ export default Self => {
     // Initialize project's API Test section
     State.sections.push('API')
     // Default section
-    if( !State.activeSection ) State.activeSection = 'API'
+    !State.activeSection && Self.setState('activeSection', 'API')
     // API Test workspace
     await initAPIWS()
 
@@ -135,7 +135,7 @@ export default Self => {
     // Initialize project's Sockets Test section
     State.sections.push('Socket')
     // Default section
-    if( !State.activeSection ) State.activeSection = 'Socket'
+    !State.activeSection && Self.setState('activeSection', 'Socket')
     // Socket Test workspace
     await initSocketWS()
 
@@ -149,15 +149,13 @@ export default Self => {
   }
   async function initDocSection(){
     // Initialize project's Documentation Editor section
-    State.sections.push('documentation')
+    State.sections.push('Documentation')
     // Default section
-    if( !State.activeSection ) State.activeSection = 'Documentation'
+    !State.activeSection && Self.setState('activeSection', 'Documentation')
     // Documentation Editor workspace
     await initDocWS()
 
     // Mount project's last states of the active section
-    Self.initSection('tabs', [] )
-    // Self.initSection('activeConsole', [] )
     Self.initSection('activeElement', null )
   }
 

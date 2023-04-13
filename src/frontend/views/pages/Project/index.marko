@@ -53,6 +53,9 @@ class {
       Code: {},
       API: {},
       Socket: {},
+      Unit: {},
+      Roadmap: {},
+      Documentation: {},
 
       // Active indications
       sections: [],
@@ -275,16 +278,18 @@ class {
                     <!-- Main Block -->
                     <div.section-block.col.px-0.overflow-hidden>
                       <!-- Tabs Bar -->
-                      $ const tabs = component.getSection('tabs') || []
-                      <TabBar type=state.activeSection
-                              tabs=tabs
+                      $ const tabs = component.getSection('tabs')
+                      <if( tabs !== undefined )>
+                        <TabBar type=state.activeSection
+                              tabs=(tabs || [])
                               on-open('onOpen')
                               on-update('applyTabsChange')/>
+                      </if>
                       
                       <!-- Body Container -->
                       <div style="height:calc(100% - 3rem)">
                         $ const activeConsole = component.getSection('activeConsole')
-
+                        
                         <div.overflow-hidden class=(activeConsole ? 'h-75' : 'h-100')>
                           <Switch by=section>
                             <!-- Code editor -->
@@ -305,7 +310,7 @@ class {
 
                             <!-- Documentation Creator -->
                             <@case is="Documentation">
-                              <DocumentationEditor/>
+                              <DocEditor/>
                             </@case>
                           </Switch>
                         </div>

@@ -1,0 +1,59 @@
+{
+  "collections": [
+    {
+      "name": "Home API",
+      "template": {
+        "layout": {
+          "Header": true,
+          "Main": {
+            "Section": true,
+            "Aside": true
+          },
+          "Footer": true
+        },
+        "assets": [
+          {
+            "type": "html",
+            "name": "Header",
+            "body": "<html> or /path/to/file"
+          },
+          {
+            "type": "css",
+            "name": "main",
+            "body": "<css> or /path/to/file"
+          },
+          {
+            "type": "font",
+            "name": "Matrix",
+            "body": "<ttf,woff,eot, ...> or /path/to/file"
+          },
+          {
+            "type": "image",
+            "name": "app-logo",
+            "body": "<base64> or /path/to/file"
+          }
+        ],
+        "fonts": ["Matrix", "Sans serif"],
+        "theme": ["light", "dark"]
+      },
+      "content": [
+        {
+          "type": "md,txt,code,request, ...",
+          "title": "Overview",
+          "url": "/get-started#overview",
+          "body": "content type",
+          "subcontent": []
+        }
+      ]
+    }
+  ],
+  "templates": [],
+  "plugins": [
+    {
+      "contentType": "code, request",
+      "templates": [],
+      "scripts": [ "<path/to/file" ],
+      "interface": "DMXRequest"
+    }
+  ]
+}

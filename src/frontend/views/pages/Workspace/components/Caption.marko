@@ -1,6 +1,20 @@
 
 import DefaultLogo from '~/images/logo/cubic-default.png'
 
+static const Menu = [
+  {
+    id: 'VIEW_ACTIVITIES',
+    label: 'View Activities',
+    fn: onHandleMenu
+  },
+  {
+    id: 'EXPORT_WORKSPACE',
+    label: 'Export',
+    fn: onHandleMenu
+  }
+]
+static function onHandleMenu( id ){ console.log( id ) }
+
 <div>
   <route-link href="/">
     <h4.font-large-1.mt-0>
@@ -37,8 +51,7 @@ import DefaultLogo from '~/images/logo/cubic-default.png'
 
   <!-- More workspace options -->
   <li.position-relative.px-25.cursor-pointer>
-    <DropdownMenu.font-large-1.p-50
-                  menu=component.menu/>
+    <DropdownMenu.font-large-1.p-50 menu=Menu/>
   </li>
 </ul>
 

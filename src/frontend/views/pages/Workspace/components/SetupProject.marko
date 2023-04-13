@@ -1,6 +1,14 @@
 
 import FormHandler from 'markojs-form'
 
+static const ProjectTypes = [
+  { label: 'Application', value: 'application' },
+  { label: 'Plugin', value: 'plugin' },
+  { label: 'Library', value: 'library' },
+  { label: 'Testing', value: 'test' },
+  { label: 'Utils', value: 'utils' }
+]
+
 class {
   onCreate(){
     this.state = { submitting: false }
@@ -18,7 +26,8 @@ class {
         API: null,
         sockets: null,
         units: null,
-        roadmap: null
+        roadmap: null,
+        documentations: null
       }
     })
   }
@@ -60,11 +69,11 @@ class {
     if( Form.specs.sockets ) Form.specs.sockets = []
     if( Form.specs.units ) Form.specs.units = []
     if( Form.specs.roadmap ) Form.specs.roadmap = []
+    if( Form.specs.documentations ) Form.specs.documentations = []
 
     this.state.submitting = true
     
-    this.emit( 'submit', Form, (function( error, status ){
-      
+    this.emit('submit', Form, (function( error, status ){
       this.state.submitting = false
       if( error )
         return this.fhandler.alert( error, status )
@@ -90,12 +99,7 @@ class {
                 name="type"
                 validate="required"
                 placeholder=( Locale('Type*') )
-                options=[
-                  { label: 'Application', value: 'application' },
-                  { label: 'Plugin', value: 'plugin' },
-                  { label: 'Library', value: 'library' },
-                  { label: 'Testing', value: 'tests' }
-                ]
+                options=ProjectTypes
                 on-select('__onChange')/>
       </div>
     </div>
@@ -134,9 +138,9 @@ class {
   
   <!-- Project specs -->
   <if( state.form.type )>
-    <h5.pb-1><Locale.font-small-3.text-muted text="Project specs"/></h5>
-    
     <if( ['application', 'plugin', 'library'].includes( state.form.type ) )>
+      <h5.pb-1><Locale.font-small-3.text-muted text="Project specs"/></h5>
+      
       <div.form-row>
         <!-- Targeted platforms -->
         <div.col-4>
@@ -230,73 +234,122 @@ class {
       </div>
     </if>
 
-    <!-- Testing tools -->
-    <label><Locale text="Testing"/></label>
+    <label><Locale text="Testing & Utils"/></label>
     <br><br>
     <div.form-row>
-      <!-- API test -->
-      <div.col-4.mb-1>
-        <div class="checkbox checkbox-primary">
-          <input.disabled type="checkbox"
-                  no-update
-                  id="specs.API"
-                  name="specs.API"
-                  checked=state.form.specs.API
-                  on-change('__onChecked')/>
-          <label for="specs.API" class="font-medium-1">
-            <Locale>API Test</Locale>
-            <br>
-            <p.font-small-3.text-muted>
-              <Locale>
-                Create and test your API endpoints
-              </Locale>
-            </p>
-          </label>
+      <!-- Testing tools -->
+      <if( ['application', 'plugin', 'library', 'test'].includes( state.form.type ) )>
+        <!-- API test -->
+        <div.col-4.mb-50>
+          <div class="checkbox checkbox-primary">
+            <input.disabled type="checkbox"
+                    no-update
+                    id="specs.API"
+                    name="specs.API"
+                    checked=state.form.specs.API
+                    on-change('__onChecked')/>
+            <label for="specs.API" class="font-medium-1">
+              <Locale>API Test</Locale>
+              <br>
+              <p.font-small-3.text-muted>
+                <Locale>
+                  Create, test & document your API endpoints
+                </Locale>
+              </p>
+            </label>
+          </div>
         </div>
-      </div>
 
-      <!-- Socket test -->
-      <div.col-4.mb-1>
-        <div class="checkbox checkbox-primary">
-          <input type="checkbox"
-                  no-update
-                  id="specs.sockets"
-                  name="specs.sockets"
-                  checked=state.form.specs.sockets
-                  on-change('__onChecked')/>
-          <label for="specs.sockets" class="font-medium-1">
-            <Locale>Sockets Test</Locale>
-            <br>
-            <p.font-small-3.text-muted>
-              <Locale>
-                Websocket & Socket.io connection tests
-              </Locale>
-            </p>
-          </label>
+        <!-- Socket test -->
+        <div.col-4.mb-50>
+          <div class="checkbox checkbox-primary">
+            <input type="checkbox"
+                    no-update
+                    disabled
+                    id="specs.sockets"
+                    name="specs.sockets"
+                    checked=state.form.specs.sockets
+                    on-change('__onChecked')/>
+            <label for="specs.sockets" class="font-medium-1">
+              <Locale>Sockets Test</Locale>
+              <br>
+              <p.font-small-3.text-muted>
+                <Locale>
+                  Websocket & Socket.io connection tests
+                </Locale>
+              </p>
+            </label>
+          </div>
         </div>
-      </div>
 
-      <!-- Unit test -->
-      <div.col-4.mb-1>
-        <div class="checkbox checkbox-primary">
-          <input type="checkbox"
-                  no-update
-                  disabled
-                  id="specs.units"
-                  name="specs.units"
-                  checked=state.form.specs.units
-                  on-change('__onChecked')/>
-          <label for="specs.units" class="font-medium-1">
-            <Locale>Units Test</Locale>
-            <br>
-            <p.font-small-3.text-muted>
-              <Locale>
-                Create and maintain units tests of your code
-              </Locale>
-            </p>
-          </label>
+        <!-- Unit test -->
+        <div.col-4.mb-50>
+          <div class="checkbox checkbox-primary">
+            <input type="checkbox"
+                    no-update
+                    disabled
+                    id="specs.units"
+                    name="specs.units"
+                    checked=state.form.specs.units
+                    on-change('__onChecked')/>
+            <label for="specs.units" class="font-medium-1">
+              <Locale>Units Test</Locale>
+              <br>
+              <p.font-small-3.text-muted>
+                <Locale>
+                  Create and maintain unit tests of the project
+                </Locale>
+              </p>
+            </label>
+          </div>
         </div>
-      </div>
+      </if>
+
+      <!-- Utils -->
+      <if( ['application', 'plugin', 'library', 'test', 'utils'].includes( state.form.type ) )>
+        <!-- Documentation Editor test -->
+        <div.col-4.mb-50>
+          <div class="checkbox checkbox-primary">
+            <input.disabled type="checkbox"
+                    no-update
+                    id="specs.documentations"
+                    name="specs.documentations"
+                    checked=state.form.specs.documentations
+                    on-change('__onChecked')/>
+            <label for="specs.documentations" class="font-medium-1">
+              <Locale>Documentation</Locale>
+              <br>
+              <p.font-small-3.text-muted>
+                <Locale>
+                  Generate, manage & deploy documentations for your work
+                </Locale>
+              </p>
+            </label>
+          </div>
+        </div>
+
+        <!-- Roadmap -->
+        <div.col-4.mb-50>
+          <div class="checkbox checkbox-primary">
+            <input type="checkbox"
+                    no-update
+                    disabled
+                    id="specs.roadmap"
+                    name="specs.roadmap"
+                    checked=state.form.specs.roadmap
+                    on-change('__onChecked')/>
+            <label for="specs.roadmap" class="font-medium-1">
+              <Locale>Roadmap</Locale>
+              <br>
+              <p.font-small-3.text-muted>
+                <Locale>
+                  Plan, manage & track every aspect of the project
+                </Locale>
+              </p>
+            </label>
+          </div>
+        </div>
+      </if>
     </div>
   </if>
   

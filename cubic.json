@@ -2,10 +2,11 @@
   "APPNAME": "CubicStudio",
   "APPVERSION": "1.0",
 
-  "INSTANCE_PROVIDERS": ["multipple", "one-profile"],
+  "INSTANCE_PROVIDERS": ["github", "multipple", "one-profile"],
   
   "AUTH_HANDLERS": {
-    "multipple": "multipple.auth.js"
+    "multipple": "multipple.auth.js",
+    "github": "github.auth.js"
   },
 
   "REQUEST_HANDLERS": {
@@ -28,5 +29,7 @@
       "username": "",
       "token": ""
     }
-  ]
+  ],
+
+  "RUNTIME_ENVS": {}
 }

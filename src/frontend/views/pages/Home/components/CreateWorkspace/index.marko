@@ -38,8 +38,7 @@ class {
 
       // Refresh the list of workspaces
       GState.workspaces.refresh()
-
-      setTimeout( () => this.emit('dismiss'), 8000 )
+      setTimeout( () => this.emit('dismiss'), 2000 )
     }
     catch( error ){
       console.log('Failed creating workspace: ', error )

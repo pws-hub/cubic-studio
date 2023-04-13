@@ -1,6 +1,5 @@
 
 async function _initiate( provider, handler, req, res ){
-
   const
   origin = toOrigin( req.headers.host, !isOncloud() ),
   authURL = await handler( origin )
@@ -12,7 +11,9 @@ async function _initiate( provider, handler, req, res ){
 
 async function _callback( provider, handler, req, res ){
   // Handle auth callback process
-  const { error, message, user } = await handler( req.query )
+  const
+  origin = toOrigin( req.headers.host, !isOncloud() ),
+  { error, message, user } = await handler( req.query, origin )
 
   if( error ) {
     // Delete existing user session data
@@ -45,9 +46,7 @@ async function _callback( provider, handler, req, res ){
 
 export default async ( req, res ) => {
   try {
-    const
-    {phase} = req.params,
-    {provider} = req.query
+    const { phase, provider } = req.params
 
     if( !['initiate', 'callback'].includes( phase ) || !provider )
       throw new Error('Invalide Auth Parameters')
@@ -57,7 +56,7 @@ export default async ( req, res ) => {
       throw new Error(`Undefined <${provider}> Auth Handler`)
 
     // Get auth handler module for this provider
-    const { initiate, callback } = require(`handlers/${ Configs.AUTH_HANDLERS[ provider ]}` )
+    const { initiate, callback } = require(`handlers/${Configs.AUTH_HANDLERS[ provider ]}`)
 
     if( typeof initiate !== 'function'
         || typeof callback !== 'function' )

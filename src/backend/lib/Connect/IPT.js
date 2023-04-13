@@ -4,11 +4,10 @@ import IProcess from '../../core/IProcess'
 function initChannel( socket ){
   console.log('IPT New Connection: ', socket.id )
 
-  function create( options = {}, callback ){
+  function create( options = {}, callback = (() => {}) ){
 
-    if( options && typeof options !== 'object' ) {
-      typeof callback == 'function'
-      && callback({ error: true, message: 'Invalid IProcess Initialization Options'})
+    if( !options || typeof options !== 'object' ) {
+      callback({ error: true, message: 'Invalid IProcess Initialization Options'})
       return
     }
 
@@ -17,8 +16,7 @@ function initChannel( socket ){
     // New Process mamager
     socket.data.IProcess = new IProcess( options )
 
-    typeof callback == 'function'
-    && callback({ error: false })
+    callback({ error: false })
   }
 
   async function run( method, ...args ){
@@ -48,15 +46,14 @@ function initChannel( socket ){
     }
   }
 
-  async function close( callback ){
+  async function close( callback = (() => {}) ){
     // Close Process Handler and the communication channel
     socket.data.IProcess.close()
 
     delete socket.data
     socket.disconnect( true )
 
-    typeof callback == 'function'
-    && callback({ error: false, message: 'Closed' })
+    callback({ error: false, message: 'Closed' })
   }
 
   socket
@@ -67,6 +64,6 @@ function initChannel( socket ){
 
 export default ioServer => {
   ioServer
-  .of(`/${ process.env.IPT_NAMESPACE}` )
-  .on( 'connection', initChannel )
+  .of(`/${process.env.IPT_NAMESPACE}` )
+  .on('connection', initChannel )
 }

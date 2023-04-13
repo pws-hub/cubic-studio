@@ -144,6 +144,22 @@ export default Self => {
     Self.initSection('activeConsole', [] )
     Self.initSection('activeElement', null )
   }
+  async function initDocWS(){
+
+  }
+  async function initDocSection(){
+    // Initialize project's Documentation Editor section
+    State.sections.push('documentation')
+    // Default section
+    if( !State.activeSection ) State.activeSection = 'Documentation'
+    // Documentation Editor workspace
+    await initDocWS()
+
+    // Mount project's last states of the active section
+    Self.initSection('tabs', [] )
+    // Self.initSection('activeConsole', [] )
+    Self.initSection('activeElement', null )
+  }
 
   Self.fs = false
   Self.pm = false
@@ -224,6 +240,8 @@ export default Self => {
       Self.hasAPISection() && await initAPISection()
       // Init Socket related project's section
       Self.hasSocketSection() && await initSocketSection()
+      // Init Documentation related project's section
+      Self.hasDocSection() && await initDocSection()
 
       // Close active ResetProject modal
       Self.onShowResetProjectToggle( false )

@@ -6,13 +6,13 @@ import APIRequestHandler from '../lib/APIRequestHandler'
 export default require('express').Router()
 
 // Handle offsite authentication phases: <initiate> and <callback>
-.get( '/auth/:phase', AuthHandler )
+.get('/auth/:provider/:phase', AuthHandler )
 
 // Relay point for API request to 3rd party servers made from the UI
 .post('/api/:provider', APIRequestHandler )
 
 // CORS proxy router
-.get( '/proxy', ( req, res, next ) => {
+.get('/proxy', ( req, res, next ) => {
 
   const url = decodeURIComponent( req.query.url )
   if( !url )

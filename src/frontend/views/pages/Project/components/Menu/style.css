@@ -1,0 +1,9 @@
+
+.custom-col-1 {
+  position: relative;
+  width: 100%;
+  padding-right: 15px;
+  padding-left: 15px;
+  flex: 0 0 calc(8.33333% - 1.5rem);
+  max-width: calc(8.33333% - 1.5rem);
+}

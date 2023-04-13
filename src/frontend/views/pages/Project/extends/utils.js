@@ -4,7 +4,6 @@ export default Self => {
   const State = Self.state
 
   Self.ongoing = labels => {
-
     if( labels === false ) {
       State.ongoingSetup = false
       return
@@ -49,6 +48,7 @@ export default Self => {
   Self.hasAPISection = () => { return State.project && Array.isArray( State.project.specs.API ) }
   Self.hasSocketSection = () => { return State.project && Array.isArray( State.project.specs.sockets ) }
   Self.hasUnitSection = () => { return State.project && Array.isArray( State.project.specs.units ) }
+  Self.hasDocSection = () => { console.log( State.project ); return State.project && Array.isArray( State.project.specs.documentations ) }
 
   Self.initSection = ( key, defaultValue = null ) => {
     Self.setSection( key, Self.pstore.get( key ) || defaultValue )

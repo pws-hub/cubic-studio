@@ -1,9 +1,33 @@
 
+static const Menu = [
+  {
+    id: 'VIEW_ACTIVITIES',
+    label: 'Activities',
+    fn: onHandleMenu
+  },
+  {
+    id: 'DELETE_PROJECT',
+    label: 'Delete Project',
+    fn: onHandleMenu,
+    divider: true
+  }
+]
+static function onHandleMenu( id ){ console.log( id ) }
+
 <li.nav-item.cursor-pointer.w-100.round-sm>
-  <route-link.d-block.w-100.px-2.py-25 href=input.link>
-    <Row.d-flex.align-items-center>
-      <@col><span.font-medium-2>${input.name}</span></@col>
-      <@col.col-5.text-right><Members list=input.members/></@col>
-    </Row>
-  </route-link>
+  <Row.m-0.d-flex.align-items-center>
+    <@col.col.p-0>
+      <route-link.font-medium-2.d-block.px-2.py-1 href=input.link>${input.name}</route-link>
+    </@col>
+    <@col.col-4.text-right.d-inline-flex.align-items-center.justify-content-end>
+      <Members list=input.members/>
+
+      <span.position-relative.px-25.cursor-pointer>
+        <DropdownMenu.font-large-1.p-50
+                      vertical
+                      right
+                      menu=Menu/>
+      </span>
+    </@col>
+  </Row>
 </li>

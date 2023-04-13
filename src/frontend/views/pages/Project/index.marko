@@ -287,6 +287,7 @@ class {
 
                         <div.overflow-hidden class=(activeConsole ? 'h-75' : 'h-100')>
                           <Switch by=section>
+                            <!-- Code editor -->
                             <@case is="Code">
                               <CodeEditor file=component.getSection('activeElement')
                                           paths=tabs.map( ({ path }) => { return path } )
@@ -297,8 +298,14 @@ class {
                                           on-cursor-position('onAction', 'cursor-position')/>
                             </@case>
 
+                            <!-- API Creator & Testor -->
                             <@case is="API">
-                              <APITestor />
+                              <APITestor/>
+                            </@case>
+
+                            <!-- Documentation Creator -->
+                            <@case is="Documentation">
+                              <DocumentationEditor/>
                             </@case>
                           </Switch>
                         </div>

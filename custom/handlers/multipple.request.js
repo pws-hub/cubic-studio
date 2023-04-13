@@ -36,7 +36,7 @@ async function ProcessOAuth2( req, sid ){
         form = {
           grant_type: 'authorization_code',
           // Code: $code,
-          redirect_uri: `${toOrigin(req.headers.host)}/service/oauth2/callback`
+          redirect_uri: `${toOrigin( req.headers.host )}/service/oauth2/callback`
         }
 
         // Retreive OAuth2.0 configuration of this service
@@ -75,7 +75,7 @@ async function ProcessOAuth2( req, sid ){
     }
 
     // Retreive OAuth2.0 configuration of this service
-    request(`${toOrigin( process.env.MULTIPPLE_API_SERVER )}/service/${sid}/oauth2`,
+    request(`${process.env.MULTIPPLE_API_SERVER}/service/${sid}/oauth2`,
               { headers, method: 'GET', json: true },
               async ( error, response, body ) => {
 
@@ -269,7 +269,7 @@ export default async ( req, res ) => {
 
       const { domain, token, deviceId, role } = req.session.credentials.multipple
 
-      options.url = toOrigin( process.env.MULTIPPLE_API_SERVER ) + options.url
+      options.url = process.env.MULTIPPLE_API_SERVER + options.url
       options.headers = {
         'Origin': decodeURIComponent( domain ),
         'MP-User-Agent': 'MP.studio/1.0',
@@ -301,6 +301,7 @@ export default async ( req, res ) => {
                       if( error ) return onError( error )
                       res.send(`data:${response.headers['content-type']};base64,${Buffer.from( body, 'binary' ).toString('base64')}`)
                     })
+      break
 
     default: options.json = true
               request( options, ( error, response, body ) => {

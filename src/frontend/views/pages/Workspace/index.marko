@@ -27,22 +27,8 @@ class {
 
       fetching: false
     }
-
-    this.menu = [
-      {
-        id: 'VIEW_ACTIVITIES',
-        label: 'View Activities',
-        fn: this.onHandleMenu.bind(this)
-      },
-      {
-        id: 'EXPORT_WORKSPACE',
-        label: 'Export',
-        fn: this.onHandleMenu.bind(this)
-      }
-    ]
   }
   onMount(){ this.fetchProjects() }
-  onHandleMenu( id ){ console.log( id ) }
   onAddMemberToggle( status ){ this.state.showInviteForm = status }
   onCreateProjectToggle( type ){ this.state.showSetupProject = type }
   onImportProjectToggle( type ){ this.state.showImportProject = type }

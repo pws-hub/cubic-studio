@@ -90,7 +90,7 @@ app = express()
 // Session management Configuration
 const sessionConfig = {
   secret: process.env.SESSION_ENCRYPT_SECRET,
-  name: `${Configs.APPNAME }-CST33`,
+  name: `${Configs.APPNAME}-CST33`,
   saveUninitialized: true,
   resave: false,
   cookie: {

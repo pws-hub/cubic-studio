@@ -86,15 +86,15 @@ export default Self => {
       // Automatically run project in 3 second
       await delay(3)
       Self.ongoing( false )
-      AUTORUN && Self.StartEmulator( true )
+      AUTORUN && Self.EmulatorOperator('start', true )
     }
     // Reload cached emulator state of this project
     else {
       const cachedEMImage = Self.pstore.get('emulator')
       if( AUTORUN && cachedEMImage )
         window.env == 'production' ?
-                      Self.RestartEmulator() // Reload backend process
-                      : Self.StartEmulator() // Connect frontend to process or run process if not available
+                      Self.EmulatorOperator('restart') // Reload backend process
+                      : Self.EmulatorOperator('start') // Connect frontend to process or run process if not available
     }
 
     // Mount project's last states of the active section
@@ -103,7 +103,7 @@ export default Self => {
     Self.initSection('activeElement', null )
 
     // Load project dependencies
-    await Self.getDependencies()
+    await Self.getDependencies('Code')
   }
 
   async function initAPIWS(){
@@ -157,6 +157,9 @@ export default Self => {
 
     // Mount project's last states of the active section
     Self.initSection('activeElement', null )
+
+    // Load project dependencies
+    await Self.getDependencies('Documentation')
   }
 
   Self.fs = false
@@ -194,39 +197,50 @@ export default Self => {
     State.Code.directories = await Self.fs.directory( path || null, dirOptions )
     State.Code = newObject( State.Code )
   }
-  Self.getDependencies = async () => {
+  Self.getDependencies = async section => {
     // Get project dependencies in package.json
     if( !Self.fs ) return
 
-    const packageJson = await Self.fs.readFile( 'package.json', { encoding: 'json' } )
-    if( !packageJson )
-      throw new Error('[Dependency] No package.json file found at the project root')
+    switch( section ) {
+      // JS/TS project dependencies
+      case 'Code': {
+        const packageJson = await Self.fs.readFile( 'package.json', { encoding: 'json' } )
+        if( !packageJson )
+          throw new Error('[Dependency] No package.json file found at the project root')
 
-    const
-    { dependencies, devDependencies } = packageJson,
-    deps = [],
-    collector = async ( name, version, dev ) => {
-      // Get more information about the package in node_modules
-      let dep = { name, version: version.replace('^', ''), dev }
-      try {
-        const { description, repository } = await Self.fs.readFile(`./node_modules/${name}/package.json`, { encoding: 'json' } )
-        dep = { ...dep, description, repository }
-      }
-      catch( error ) {
-        // Failed fetching package.json of the dependency
-      }
+        const
+        { dependencies, devDependencies } = packageJson,
+        deps = [],
+        collector = async ( name, version, dev ) => {
+          // Get more information about the package in node_modules
+          let dep = { name, version: version.replace('^', ''), dev }
+          try {
+            const { description, repository } = await Self.fs.readFile(`./node_modules/${name}/package.json`, { encoding: 'json' } )
+            dep = { ...dep, description, repository }
+          }
+          catch( error ) {
+            // Failed fetching package.json of the dependency
+          }
 
-      deps.push( dep )
+          deps.push( dep )
+        }
+
+        for( const name in dependencies )
+          await collector( name, dependencies[ name ] )
+
+        for( const name in devDependencies )
+          await collector( name, devDependencies[ name ], true )
+
+        State.Code.dependencies = deps
+        State.Code = newObject( State.Code )
+      } break
+
+      // Documentation templates/plugins dependencies
+      case 'Documentation': {
+
+        State.Documentation.dependencies = []
+      }
     }
-
-    for( const name in dependencies )
-      await collector( name, dependencies[ name ] )
-
-    for( const name in devDependencies )
-      await collector( name, devDependencies[ name ], true )
-
-    State.Code.dependencies = deps
-    State.Code = newObject( State.Code )
   }
   Self.SetupProject = async flag => {
     try {
@@ -256,7 +270,7 @@ export default Self => {
   Self.DeleteProject = async () => {
     // Close running emulator
     Self.ongoing({ headline: 'Dropping all running emulator instances' })
-    await Self.StopEmulator()
+    await Self.EmulatorOperator('stop')
     await delay(2)
 
     // Clear store

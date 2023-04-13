@@ -2,12 +2,12 @@
 class {
   onCreate({ name }){
     this.storeAttr = 'category--'+ name
-    this.state = { open: uiStore.get( this.storeAttr ) }
+    this.state = { open: window.Store.get( this.storeAttr ) }
   }
   onShowContent(){
     ( this.state.open = !this.state.open ) ? 
-                    uiStore.set( this.storeAttr, true )
-                    : uiStore.clear( this.storeAttr ) 
+                    window.Store.set( this.storeAttr, true )
+                    : window.Store.clear( this.storeAttr ) 
   }
 }
 

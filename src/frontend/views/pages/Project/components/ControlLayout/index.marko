@@ -5,7 +5,7 @@ static const Tabs = [
 ]
 
 class {
-  onCreate(){ this.state = { actives: uiStore.get('active-layouts') || [ 'menu', 'sidebar' ] }}
+  onCreate(){ this.state = { actives: window.Store.get('active-layouts') || [ 'menu', 'sidebar' ] }}
   onMount(){ this.state.actives.length && this.emit( 'change', this.state.actives ) }
   onToggle( name ){
     !this.state.actives.includes( name ) ? 
@@ -16,8 +16,8 @@ class {
     this.emit( 'change', this.state.actives )
 
     this.state.actives.length ?
-            uiStore.set('active-layouts', this.state.actives )
-            : uiStore.clear('active-layouts')
+            window.Store.set('active-layouts', this.state.actives )
+            : window.Store.clear('active-layouts')
   }
 }
 

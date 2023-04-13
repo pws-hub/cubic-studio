@@ -5,7 +5,7 @@ class {
       active: null,
       showMenu: true,
       showSettings: false,
-      extendedBlocks: uiStore.get('extended-blocks') || []
+      extendedBlocks: window.Store.get('extended-blocks') || []
     }
     GState.bind( this, ['ws'])
 
@@ -13,22 +13,32 @@ class {
     this.Actives = {}
   }
   onInput({ type, dataset }){
-    
     if( !dataset ) return
+    
     switch( type ){
-      case 'Code': if( isEmpty( dataset ) ) return
-                  this.Actives[ type ] = { 
-                    directories: [ dataset.directories ],
-                    dependencies: dataset.dependencies
-                  }
-          break
+      case 'Code': {
+        if( isEmpty( dataset ) ) return
+        this.Actives[ type ] = { 
+          directories: [ dataset.directories ],
+          dependencies: dataset.dependencies
+        }
+      } break
           
-      case 'API': if( isEmpty( dataset ) ) return
-                  this.Actives[ type ] = { 
-                    collections: dataset.collections,
-                    environments: dataset.environments
-                  }
-          break
+      case 'API': {
+        if( isEmpty( dataset ) ) return
+        this.Actives[ type ] = { 
+          collections: dataset.collections,
+          environments: dataset.environments
+        }
+      } break
+          
+      case 'Documentation': {
+        if( isEmpty( dataset ) ) return
+        this.Actives[ type ] = {
+          collections: dataset.collections,
+          dependencies: dataset.dependencies
+        }
+      } break
     }
     
     this.state.active = type
@@ -44,7 +54,7 @@ class {
               : !this.state.extendedBlocks.includes( block ) ? this.state.extendedBlocks.push( block ) : null
    
    this.setStateDirty('extendedBlocks')
-   uiStore.set( 'extended-blocks', this.state.extendedBlocks )
+   window.Store.set( 'extended-blocks', this.state.extendedBlocks )
   }
 }
 
@@ -61,31 +71,39 @@ class {
                             status=input.status
                             extended=(!state.extendedBlocks.includes('dependencies'))
                             on-show-settings('onShowSettings')
-                            on-start( () => component.emit( 'action', 'start-emulator', false ) )
-                            on-stop( () => component.emit( 'action', 'stop-emulator' ) )
                             on-open( element => component.emit( 'action', 'open', element ) )
-                            on-new-dir( element => component.emit( 'action', 'new-dir', element ) )
-                            on-new-file( element => component.emit( 'action', 'new-file', element ) )
-                            on-move( element => component.emit( 'action', 'move-element', element ) )
-                            on-rename( element => component.emit( 'action', 'rename-element', element ) )
-                            on-remove( element => component.emit( 'action', 'remove-element', element ) )/>
+                            on-emulator-action( ( ...args ) => component.emit( 'action', 'emulator', ...args ) )
+                            on-directory-action( ( ...args ) => component.emit( 'action', 'directories', ...args ) )/>
 
               <Dependencies deps=dataset.dependencies
                             extended=state.extendedBlocks.includes('dependencies')
                             on-extends('onExtendExtraBlock', 'dependencies')
-                            on-add( () => component.emit( 'action', 'add-dependency' ) )
-                            on-refresh( () => component.emit( 'action', 'refresh-packages' ) )
-                            on-update( packages => component.emit( 'action', 'update-packages', packages ) )
-                            on-remove( packages => component.emit( 'action', 'remove-packages', packages ) )/>
+                            on-add( () => component.emit( 'action', 'features', 'dependency' ) )
+                            on-action( ( ...args ) => component.emit( 'action', 'packages', ...args ) )/>
             </@case>
 
             <@case is="API">
-              <Collections cols=dataset.collections
+              <Collections type="API"
+                            cols=dataset.collections
                             extended=(!state.extendedBlocks.includes('environments'))/>
 
               <Environments envs=dataset.environments
                             extended=state.extendedBlocks.includes('environments')
                             on-extends('onExtendExtraBlock', 'environments')/>
+            </@case>
+
+            <@case is="Documentation">
+              <Collections ...dataset
+                            type="Documentation"
+                            cols=dataset.collections
+                            extended=(!state.extendedBlocks.includes('dependencies'))
+                            on-action( ( ...args ) => component.emit('action', 'collections', ...args ) )/>
+
+              <Dependencies deps=dataset.dependencies
+                            extended=state.extendedBlocks.includes('dependencies')
+                            on-extends('onExtendExtraBlock', 'dependencies')
+                            on-add( () => component.emit( 'action', 'features', 'dependency' ) )
+                            on-action( ( ...args ) => component.emit( 'action', 'packages', ...args ) )/>
             </@case>
           </Switch>
         </div>

@@ -3,7 +3,7 @@ static const Tabs = [ 'terminal', 'debug', 'build', 'error' ]
 
 class {
   onCreate(){
-    this.state = { active: uiStore.get('console-active-tab') || 'debug' }
+    this.state = { active: window.Store.get('console-active-tab') || 'debug' }
     GState.bind( this, ['logs'] )
   }
   onUpdate(){
@@ -12,7 +12,7 @@ class {
   }
   onToggle( type ){
     this.state.active = type
-    uiStore.set('console-active-tab', type )
+    window.Store.set('console-active-tab', type )
   }
   getCountBy( type ){
     return {

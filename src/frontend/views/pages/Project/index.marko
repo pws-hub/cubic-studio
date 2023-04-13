@@ -2,7 +2,7 @@
 import Utils from './extends/utils'
 import Operators from './extends/operators'
 import Initializer from './extends/initializer'
-import EmulatorManager from './extends/emulator'
+// import EmulatorManager from './extends/emulator'
 
 static const APITabs = [
   {
@@ -83,10 +83,10 @@ class {
     new Utils( this )
     new Operators( this )
     new Initializer( this )
-    new EmulatorManager( this )
+    // new EmulatorManager( this )
 
     // Inherit flag from precedent page
-    this.flag = uiStore.get('action-flag')
+    this.flag = window.Store.get('action-flag')
   }
   async onInput({ params }){
     // Fetch project metadata
@@ -134,25 +134,19 @@ class {
 
     this.setSection('tabs', tabs )
   }
-  onAction( action, ...args ){
-    switch( action ){
-      case 'open': this.onOpen( ...args ); break
-      
-      case 'new-dir': 
-      case 'new-file':
-      case 'move-element':
-      case 'rename-element':
-      case 'remove-element': this.FSOperator( action, ...args ); break
+  onAction( target, ...args ){
+    switch( target ){
       case 'cursor-position': this.state.editorCursorPosition = args[0]; break
 
-      case 'start-emulator': this.StartEmulator( ...args ); break
-      case 'restart-emulator': this.RestartEmulator(); break
-      case 'stop-emulator': this.StopEmulator(); break
+      case 'open': this.onOpen( ...args ); break
       
-      case 'add-dependency': this.onFeatureSelect('dependency'); break
-      case 'update-packages':
-      case 'remove-packages': 
-      case 'refresh-packages': this.PackageOperator( action, ...args ); break
+      case 'directories': this.FSOperator( ...args ); break
+      case 'collections': this.CollectionOperator( ...args ); break
+      case 'packages': this.PackageOperator( ...args ); break
+
+      case 'emulator': this.EmulatorOperator( ...args ); break
+      case 'features': this.onFeatureSelect( ...args ); break
+
       case 'delete-project': this.DeleteProject(); break
     }
   }
@@ -170,7 +164,6 @@ class {
     this.setStateDirty('layouts')
   }
   onFeatureSelect( type ){
-
     switch( type ){
       case 'plugin':
       case 'component': this.onSearchToggle({ filters: { targets: [ type ] } }); break
@@ -295,7 +288,7 @@ class {
                             <!-- Code editor -->
                             <@case is="Code">
                               <CodeEditor file=component.getSection('activeElement')
-                                          paths=tabs.map( ({ path }) => { return path } )
+                                          paths=(tabs || []).map( ({ path }) => { return path } )
                                           language=null
                                           fs=component.fs
                                           on-save('onSave')
@@ -350,14 +343,14 @@ class {
         <EIS8 metadata=state.emulator
               status=state.emulatorStatus
               error=state.emulatorError
-              on-start( 'onAction', 'start-emulator' )
-              on-restart( 'onAction', 'restart-emulator' )
-              on-stop( 'onAction', 'stop-emulator' )/>        
+              on-start( 'onAction', 'emulator', 'start' )
+              on-restart( 'onAction', 'emulator', 'restart' )
+              on-stop( 'onAction', 'emulator', 'stop' )/>        
       </WSAdapt>
     </Row>
   </div>
   
-  <Toolbar />
+  <Toolbar/>
 
   <Footer>
     <Row.d-flex.align-items-center>

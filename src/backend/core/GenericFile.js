@@ -19,7 +19,7 @@ export const dotCubic = async ({ specs }) => {
       test: `@npm/lib:${Configs.INSTANCE_PROVIDER}:${language}.unit-test~1.0.0`
     },
     emulator: {
-		  model: 'EIS8',
+      model: 'EIS8',
       version: '1.0.0',
       env: {
         NODE_ENV: 'development',

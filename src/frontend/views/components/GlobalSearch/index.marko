@@ -23,7 +23,7 @@ class {
       } )
     }
   }
-  onMount(){ this.state.memory = uiStore.get( this.getAttr('memory') ) || [] }
+  onMount(){ this.state.memory = window.Store.get( this.getAttr('memory') ) || [] }
 
   getAttr( attr ){ return `${this.input.project.name}--gsearch-${attr}` }
   noTargetFilter(){
@@ -97,7 +97,7 @@ class {
     // Memorize selected search items: For bulk return or install
     if( data === 'clear' ){
       this.state.memory = []
-      uiStore.clear( this.getAttr('memory') )
+      window.Store.clear( this.getAttr('memory') )
       return
     }
     
@@ -107,7 +107,7 @@ class {
                                                   this.state.memory = [ ...(this.state.memory), data ] : null
     
     this.setStateDirty('memory')
-    uiStore.set( this.getAttr('memory'), this.state.memory )
+    window.Store.set( this.getAttr('memory'), this.state.memory )
   }
   onReturn(){
     // Return search memory content

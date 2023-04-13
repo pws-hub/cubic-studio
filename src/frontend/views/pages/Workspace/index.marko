@@ -59,7 +59,7 @@ class {
       setTimeout( () => {
         this.onCreateProjectToggle( false )
         // Open the project
-        uiStore.flash('action-flag', 'setup')
+        window.Store.flash('action-flag', 'setup')
         navigate(`/workspace/${this.input.params.id}/${projectId}`)
       }, 8000 )
     }
@@ -89,7 +89,7 @@ class {
                 made if no repository specified in the 
                 specs and no local directory found.
         */
-        uiStore.flash('action-flag', 'import')
+        window.Store.flash('action-flag', 'import')
         navigate(`/workspace/${this.input.params.id}/${projectId}`)
       }, 8000 )
     }

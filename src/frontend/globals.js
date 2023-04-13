@@ -4,7 +4,7 @@ import moment from 'moment'
 import numeral from 'numeral'
 import SS from 'markojs-shared-state'
 import { navigate } from 'marko-router5'
-import UIStore from 'all-localstorage'
+import Store from 'all-localstorage'
 
 String.prototype.toCapitalCase = function(){
   // Fonction de capitalisation du premier caractère d'un mot
@@ -22,7 +22,7 @@ String.prototype.toCapitalCase = function(){
 window.$ =
 window.jQuery = jQuery
 window.navigate = navigate // To navigate routers by function call
-window.uiStore = new UIStore({ prefix: 'CSUS-70', encrypt: true })
+window.Store = new Store({ prefix: 'CSUS-70', encrypt: true })
 
 /* --------------------------------------------------------------------------*/
 // Add to shared-state library an easy DX API
@@ -77,7 +77,7 @@ window.debugLog = ( ...args ) => {
   if( window.env == 'production' ) return
   console.log( ...args )
 }
-window.cleanLog = str => { return (str || '').replace( new RegExp('\s?\[[1-9]+[KGm]', 'g'), '') }
+window.cleanLog = str => { return (str || '').replace( new RegExp('\\s?\\[[1-9]+[KGm]', 'g'), '') }
 window.delay = time => { return new Promise( resolve => setTimeout( resolve, ( time || 1 ) * 1000 ) ) }
 window.newObject = obj => { return typeof obj == 'object' && JSON.parse( JSON.stringify( obj ) ) }
 window.deepAssign = ( obj1, obj2 ) => { return Object.assign( newObject( obj1 ), obj2 || {} ) }

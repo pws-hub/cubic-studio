@@ -2,12 +2,12 @@
 class {
   onCreate({ name }){
     this.storeAttr = 'request--'+ name
-    this.state = { dropdown: uiStore.get( this.storeAttr ) }
+    this.state = { dropdown: window.Store.get( this.storeAttr ) }
   }
   onDropdown(){
     ( this.state.dropdown = !this.state.dropdown ) ? 
-                    uiStore.set( this.storeAttr, true )
-                    : uiStore.clear( this.storeAttr ) 
+                    window.Store.set( this.storeAttr, true )
+                    : window.Store.clear( this.storeAttr ) 
   }
 }
 

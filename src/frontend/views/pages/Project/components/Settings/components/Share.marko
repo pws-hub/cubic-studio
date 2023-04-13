@@ -2,7 +2,7 @@
 class {
   onCreate({ project }){ 
     this.state = {
-      shareLink: uiStore.get(`${project.name}-share-link`),
+      shareLink: window.Store.get(`${project.name}-share-link`),
       generating: false,
       error: false
     }
@@ -19,7 +19,7 @@ class {
       this.state.generating = false
       this.state.shareLink = shareLink
 
-      uiStore.set(`${this.input.project.name}-share-link`, shareLink )
+      window.Store.set(`${this.input.project.name}-share-link`, shareLink )
     }
     catch( error ){
       console.log('Failed generating link: ', error )

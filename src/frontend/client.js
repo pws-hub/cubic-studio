@@ -53,7 +53,7 @@ function getInitialScope(){
 
 	return new Promise( ( resolve, reject ) => {
 			// Scope set at www. page rendereing
-			const data = uiStore.get('init')
+			const data = window.Store.get('init')
 			if( data ) return resolve( resolveScope( data ) )
 
 			// Explicitly fetch the scope
@@ -182,6 +182,7 @@ async function Client(){
 		env,
 		asm,
 		mode,
+		instance,
 		providers,
 		namespaces,
 		isConnected,
@@ -191,6 +192,7 @@ async function Client(){
 	window.env = env
 	window.asm = asm
 	window.mode = mode
+	window.instance = instance
 	window.providers = providers
 
 	/* ----------------------------------------------------------------*/
@@ -220,7 +222,7 @@ async function Client(){
 	 */
 	const wsStoreAttr = 'ws-studio'
 
-	GState.set('ws', { mode: 'ns', ...(uiStore.get( wsStoreAttr ) || {}) })
+	GState.set('ws', { mode: 'ns', ...(window.Store.get( wsStoreAttr ) || {}) })
 	GState
 	.define('ws')
 	// Update workspace Layout
@@ -236,7 +238,7 @@ async function Client(){
 		newState = Object.assign( {}, recentState, newState )
 
 		GState.dirty( 'ws', newState )
-		uiStore.set( wsStoreAttr, newState )
+		window.Store.set( wsStoreAttr, newState )
 	} )
 	// Set/Define workspace context
 	.action( 'context', newState => {

@@ -3,7 +3,7 @@ class {
   onCreate(){
     this.histories = []
     this.state = {
-      current: uiStore.get('explorer-entry-dir') || {},
+      current: window.Store.get('explorer-entry-dir') || {},
       dirs: [],
       files: [],
       history: [],
@@ -24,7 +24,7 @@ class {
 
     // Open a new directory
     this.state.current = directory
-    uiStore.set('explorer-entry-dir', directory )
+    window.Store.set('explorer-entry-dir', directory )
 
     await this.fetchDirectory()
   }
@@ -36,7 +36,7 @@ class {
     console.log(  this.state.current )
     await this.fetchDirectory()
     
-    uiStore.set('explorer-entry-dir', this.state.current )
+    window.Store.set('explorer-entry-dir', this.state.current )
   }
   async fetchDirectory(){
     // Fetch directory content

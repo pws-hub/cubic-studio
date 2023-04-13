@@ -2,11 +2,11 @@
 <!-- Directory row -->
 <context active=input.active 
           on-open( element => component.emit( 'open', element ) )
-          on-move( element => component.emit( 'move', element ) )
-          on-rename( element => component.emit( 'rename', element ) )
-          on-remove( element => component.emit( 'remove', element ) )
-          on-new-dir( element => component.emit( 'new-dir', element ) )
-          on-new-file( element => component.emit( 'new-file', element ) )>
+          on-move( element => component.emit( 'directory-action', 'move', element ) )
+          on-rename( element => component.emit( 'directory-action', 'rename', element ) )
+          on-remove( element => component.emit( 'directory-action', 'remove', element ) )
+          on-new-dir( element => component.emit( 'directory-action', 'new-dir', element ) )
+          on-new-file( element => component.emit( 'directory-action', 'new-file', element ) )>
   <div.directories.position-relative.overflow-auto
       style=`height:${!input.extended ? '60%' : 'calc(100% - 3rem)'}`>
     <div.position-sticky.zindex-2.top-0.w-100.theme-bg.d-flex.align-items-center.border-bottom style="height:3rem">
@@ -35,7 +35,7 @@
               <Bx.font-medium-5.px-75.cursor-pointer
                   title=Locale( !input.status.emulator ? 'Start' : 'Stop' )
                   type=`${!input.status.emulator ? 'play' : 'pause'}`
-                  on-click( () => component.emit( !input.status.emulator ? 'start' : 'stop' ) )/>
+                  on-click( () => component.emit('emulator-action', !input.status.emulator ? 'start' : 'stop', false ) )/>
             </li>
           </if>
         </ul>

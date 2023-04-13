@@ -22,7 +22,8 @@ getInitialScope = async ( req, res ) => {
     env: process.env.NODE_ENV,
     mode: process.env.MODE,
     asm: String( process.env.LOCALHOST_API ) === 'true' ? 'local' : 'cloud', // Api server mode
-    providers: Configs.INSTANCE_PROVIDERS,
+    instance: Configs.INSTANCE_PROVIDER,
+    providers: Configs.AUTH_PROVIDERS,
     namespaces: {
       CAR: process.env.CAR_NAMESPACE, // Cubic API Request namespace
       FST: process.env.FST_NAMESPACE, // File System Transaction namespace

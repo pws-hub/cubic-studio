@@ -1,7 +1,7 @@
 
 <!-- Dependencies Block -->
-<context on-update( packages => component.emit( 'update', packages ) )
-          on-remove( packages => component.emit( 'remove', packages ) )>
+<context on-update( packages => component.emit('action', 'update', packages ) )
+          on-remove( packages => component.emit('action', 'remove', packages ) )>
   <div.position-relative.border-top.overflow-auto
       style=`height:${input.extended ? '40%' : '3rem'}`>
     <div.position-sticky.zindex-2.top-0.w-100.theme-bg.d-flex.align-items-center.border-bottom.px-1 style="height:3rem">
@@ -15,7 +15,7 @@
           <Bx.font-medium-5.cursor-pointer.px-50
               type="sync"
               title="Refresh"
-              on-click( () => component.emit('refresh') )/>
+              on-click( () => component.emit('action', 'refresh') )/>
 
           <!-- Add new dependency button -->
           <Bx.font-medium-5.cursor-pointer.px-50

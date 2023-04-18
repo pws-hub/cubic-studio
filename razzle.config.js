@@ -26,8 +26,10 @@ module.exports = {
     webpackConfig.resolve.extensions = [ ...webpackConfig.resolve.extensions, '.css', '.scss', '.marko' ]
     webpackConfig.resolve.alias = {
       ...webpackConfig.resolve.alias,
-      ['~']: path.resolve(__dirname, './public'),
+      'test': path.resolve(__dirname, './test'),
+      'public': path.resolve(__dirname, './public'),
       'frontend': path.resolve(__dirname, './src/frontend'),
+      'assets': path.resolve(__dirname, './src/frontend/views/assets'),
       // Important modules
       'vscode': require.resolve('@codingame/monaco-languageclient/lib/vscode-compatibility'),
       'fs-inter': require.resolve('./src/backend/lib/Inter/fs'),

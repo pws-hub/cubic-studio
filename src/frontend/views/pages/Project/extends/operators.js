@@ -73,11 +73,31 @@ export default Self => {
     await Self.getDependencies()
   }
 
-  Self.CollectionOperator = async ( action, dataset ) => {
+  Self.CollectionOperator = async ( action, key, element ) => {
     switch( action ) {
-      case 'new-collection': if( !element.path || !Self.fs ) return
-                      await Self.Documentation.push({})
-          break
+      case 'add': {
+        if( !State[ State.activeSection ].collections )
+          State[ State.activeSection ].collections = []
+
+        State[ State.activeSection ].collections.push({ type: State.activeSection.toLowerCase(), _new: true, name: '' })
+        Self.setStateDirty( State.activeSection )
+      } break
+
+      case 'rename': {
+        if( !Array.isArray( State[ State.activeSection ].collections )
+            || !State[ State.activeSection ].collections.length ) return
+
+        State[ State.activeSection ].collections[ key ] = element
+        Self.setStateDirty( State.activeSection )
+      } break
+
+      case 'delete': {
+        if( !Array.isArray( State[ State.activeSection ].collections )
+            || !State[ State.activeSection ].collections.length ) return
+
+        State[ State.activeSection ].collections.splice( key, 1 )
+        Self.setStateDirty( State.activeSection )
+      } break
     }
   }
 

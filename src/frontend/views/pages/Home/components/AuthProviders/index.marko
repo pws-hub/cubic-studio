@@ -1,6 +1,6 @@
 
 
-import DefaultAvatar from '~/images/profile/default.png'
+import DefaultAvatar from 'assets/images/profile/default.png'
 
 class {
   onCreate(){ 
@@ -15,10 +15,10 @@ class {
   </h4>
 
   <for|provider, index| of=window.providers>
-    <div.cursor-pointer.nav-item.border.round-sm.overflow-hidden.my-75>
+    <div.nav-item.border.round-sm.overflow-hidden.my-75>
       <!-- Show connected user info -->
       <if( state.isConnected && state.user.provider == provider )>
-        <div.d-flex.align-items-center.px-0.py-1.theme-bg-transparent>
+        <div.d-flex.align-items-center.px-0.py-1.theme-bg-transparent.cursor-default>
           <Image.mx-2.round-xs src=(state.user.photo || DefaultAvatar ) style="width:26px;height:26px"/>
           <span.font-medium-2.px-2>${state.user.name}</span><br>
           <span.font-small-1.px-2.text-muted>${proName( provider )}</span>
@@ -30,7 +30,7 @@ class {
         <a.d-block.d-flex.align-items-center.px-0.py-1
             class=(!state.isConnected ? 'theme-bg-transparent' : false)
             href=`/auth/${provider}/initiate`>
-          <Image.mx-2 src=`/images/logo/${provider}.png` style="width:26px;height:26px"/>
+          <Image.mx-2 src=`/logo/${provider}.png` style="width:26px;height:26px"/>
           <span.font-medium-2.px-2>${proName( provider )}</span>
         </a>
       </else>

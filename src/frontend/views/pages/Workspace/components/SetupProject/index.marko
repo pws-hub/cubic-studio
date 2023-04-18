@@ -64,7 +64,7 @@ class {
     ]
     Form.icon = false
 
-    if( !['application', 'plugin'].includes( Form.type ) ) Form.specs.code = null
+    if( !['application', 'plugin'].includes( Form.type ) ) Form.specs.code = undefined
     if( Form.specs.API ) Form.specs.API = []
     if( Form.specs.sockets ) Form.specs.sockets = []
     if( Form.specs.units ) Form.specs.units = []

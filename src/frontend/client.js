@@ -12,8 +12,8 @@ import RequestClient from './lib/CARClient'
 import FileSystemClient from './lib/FSTClient'
 import IProcessClient from './lib/IPTClient'
 
-import LPSTest from '../../test/lps.client.test'
-import ProcessManagerTest from '../../test/fpm.test'
+import LPSTest from 'test/lps.client.test'
+import ProcessManagerTest from 'test/fpm.test'
 
 function getInitialScope(){
 

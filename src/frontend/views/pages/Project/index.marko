@@ -141,11 +141,11 @@ class {
       case 'open': this.onOpen( ...args ); break
       
       case 'directories': this.FSOperator( ...args ); break
-      case 'collections': this.CollectionOperator( ...args ); break
       case 'packages': this.PackageOperator( ...args ); break
+      case 'collections': this.CollectionOperator( ...args ); break
 
-      case 'emulator': this.EmulatorOperator( ...args ); break
       case 'features': this.onFeatureSelect( ...args ); break
+      case 'emulator': this.EmulatorOperator( ...args ); break
 
       case 'delete-project': this.DeleteProject(); break
     }

@@ -5,8 +5,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui"/>
     <title>${input.title}</title>
-    <link rel="apple-touch-icon" href="/images/logo/cubic-default.png">
-    <link rel="shortcut icon" type="image/x-icon" href="/images/logo/cubic-default.png">
+    <link rel="apple-touch-icon" href="/favicon/cubic.png">
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon/cubic.png">
     <if( Array.isArray( input.Assets.client.css ) )>
       <for|href| of=input.Assets.client.css>
         <link rel="stylesheet" href=href>
@@ -17,8 +17,8 @@
 				data-store-type="temp"
 				data-store-value=input.init
         style="overflow:hidden">
-    <!-- Loading Root Placeholder -->
     <div#root>
+      <!-- Loading Root Placeholder -->
       <!-- <div.vh-100.d-flex.align-items-center.justify-content-center>
         <div.col-2.text-center>
           <Bx.font-large-5 type="cube-alt"/>

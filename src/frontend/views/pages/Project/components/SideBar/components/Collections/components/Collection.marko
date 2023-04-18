@@ -1,8 +1,117 @@
 
 class {
-  onCreate({ name }){
+  onInput({ type, _new, name, content, lock }){
+    this.initialName = name
     this.storeAttr = 'collection--'+ name
-    this.state = { open: window.Store.get( this.storeAttr ) }
+    
+    this.setState({
+      type,
+      name,
+      open: window.Store.get( this.storeAttr ) || false,
+      rename: _new || false,
+      content: content || []
+    })
+
+    this.setMenu( lock )
+  }
+  setMenu( lock ){
+    this.menu = [
+      {
+        id: 'ADD_CATEGORY',
+        label: 'Add category',
+        fn: () => this.onAddNew('category')
+      },
+      {
+        id: 'ADD_CONTENT',
+        label: 'Add '+ this.state.type,
+        fn: () => this.onAddNew( this.state.type )
+      }
+    ]
+
+    if( !lock )
+      this.menu = [
+        ...(this.menu),
+        {
+          id: 'RENAME_COLLECTION',
+          label: 'Rename',
+          fn: (function(){ this.onRenameToggle( true ) }).bind(this)
+        },
+        {
+          id: 'DELETE_COLLECTION',
+          label: 'Delete',
+          divider: true,
+          fn: (function(){ this.contextEmit( 'delete', this.input.itemkey ) }).bind(this) // Apply change via FS
+        }
+      ]
+  }
+
+  onAddNew( type ){
+    // Add new content: Empty input
+    this.state.content.push({ type, _new: true, name: '', content: [] })
+    this.setStateDirty('content')
+    
+    this.state.open = true
+    window.Store.set( this.storeAttr, true )
+  }
+  onMove( source, idx, destination ){
+    if( !source || !destination ) return
+    this.contextEmit( 'move', { source, destination } )
+  }
+  onUpdateNew( element ){
+    // Update new content details
+    element.content = []
+
+    // Is still the first item of the folder at this point
+    this.state.content[ this.state.content.length - 1 ] = element
+    this.setStateDirty('content')
+  }
+  onRemove(){
+    // Delete content
+    this.contextEmit('delete', this.input.itemkey )
+  }
+
+  onRenameInput( e ){ this.state.name = e.target.value }
+  onRenameToggle( status ){ 
+    this.initialName = this.state.name
+    this.state.rename = status
+  }
+  onPressEnter( e ){
+    if( e.keyCode !== 13 ) return
+    e.target.blur() // Trigger blur to save changes
+  }
+  onSaveChanges(){
+    this.state.rename = false
+
+    // Undefined name
+    if( !this.state.name ){
+      this.input._new ?
+              // Cancel new content creation
+              this.onRemove()
+              // Revert to initial name
+              : this.state.name = this.initialName
+
+      return
+    }
+    
+    // No modification recorded
+    if( this.state.name === this.initialName ) return
+    
+    // Update opened content store attribute
+    if( this.state.open ){
+      window.Store.clear( this.storeAttr )
+      
+      this.storeAttr = 'collection--'+ this.state.name
+      window.Store.set( this.storeAttr, true )
+    }
+
+    // Apply changes
+    this.initialName = this.state.name
+    
+    const element = this.state.toJSON()
+    delete element.open
+
+    // this.input._new && this.emit( 'update-new', element )
+    this.contextEmit('rename', this.input.itemkey, element )
   }
   onShowContent(){
     ( this.state.open = !this.state.open ) ? 
@@ -11,25 +120,61 @@ class {
   }
 }
 
-<li.position-relative.overflow-hidden>
-  <div.position-relative.zindex-1.hover-toggle.d-flex.align-items-center.nav-item.cursor-pointer 
-      class=(state.open ? 'theme-bg-fade' : false )>
-    <Bx.font-medium-5
-        type=`list-minus`
-        style="padding:0 .4rem 0 .95rem"
-        on-click('onShowContent')/>
-    <div.font-medium-1.text-ellipsis.w-75.py-75 on-click('onShowContent')>${input.name}</div>
-    
-    <Bx.hover-show.font-medium-2.px-50.float-right type="star"/>
-    <Bx.hover-show.font-medium-5.px-75.float-right type="dots-vertical-rounded"/>
-  </div>
+<context|{ active }, emit| from="Collections">
+  <!-- Attach context emitter to class component -->
+  $ component.contextEmit = emit
+  
+  <li.hover-tree data-item-key=input.itemkey>
+    <div.position-relative.zindex-1.hover-toggle.py-75.d-flex.align-items-center.nav-item.cursor-pointer 
+        class=(state.open ? 'theme-bg-fade' : false )>
+      <Bx.font-medium-5
+          type=`list-minus`
+          style="padding:0 .4rem 0 .95rem"
+          on-click('onShowContent')/>
+          
+      <if( state.rename )>
+        <input.w-100.px-50.mr-75.theme-bg.border.shadow-none 
+              type="text" 
+              value=state.name
+              autofocus
+              on-keyup('onPressEnter')
+              on-blur('onSaveChanges')
+              on-input('onRenameInput')/>
+      </if>
+      <else>
+        <!-- Name -->
+        <div.font-medium-1.text-ellipsis.w-75 on-click('onShowContent')>${state.name}</div>
+        <!-- Favorite -->
+        <Bx.hover-show.font-medium-2.px-50.float-right type="star"/>
+        <!-- Collection options menu -->
+        <DropdownMenu.hover-show.font-medium-5.px-75.float-right
+                      vertical
+                      right
+                      menu=component.menu/>
+      </else>
+    </div>
 
-  <if( state.open )>
-    <ul.list-unstyled.mb-3.ml-3.animated.slideInDown.faster>
-      <Category ...{ name: 'Category One Name' }/>
-      <Category ...{ name: 'Category Two Name' }/>
-      
-      <RequestOutline ...{ type: 'POST', name: 'Request Two Name' }/>
-    </ul>
-  </if>
-</li>
+    <if( state.open )>
+      <ul.move-element.list-unstyled.mb-3.ml-3.animated.slideInDown.faster style="padding-left:2rem"
+          data-parent-key=input.itemkey>
+        <Sortable containerClass="move-element"
+                  axis="Y"
+                  on-change('onMove')>
+          <for|element, index| of=state.content>
+            <@item>
+              <Switch by=element.type>
+                <@case is="category">
+                  <Category key=index
+                            contentType=state.type
+                            ...element/>
+                </@case>
+                <@case is="request"><RequestOutline key=index ...element/></@case>
+                <@case is="documentation"><DocumentationOutline key=index ...element/></@case>
+              </Switch>
+            </@item>
+          </for>
+        </Sortable>
+      </ul>
+    </if>
+  </li>
+</context>

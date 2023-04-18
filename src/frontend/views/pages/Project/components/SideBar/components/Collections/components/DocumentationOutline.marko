@@ -1,11 +1,11 @@
 
 class {
-  onInput({ contentType, _new, name, content, lock }){
+  onInput({ type, _new, name, content, lock }){
     this.initialName = name
-    this.storeAttr = 'category--'+ name
+    this.storeAttr = 'collection--'+ name
     
     this.setState({
-      type: 'category',
+      type,
       name,
       open: window.Store.get( this.storeAttr ) || false,
       rename: _new || false,
@@ -14,7 +14,7 @@ class {
 
     this.setMenu( lock )
   }
-  setMenu( contentType, lock ){
+  setMenu( lock ){
     this.menu = [
       {
         id: 'ADD_CATEGORY',
@@ -23,8 +23,8 @@ class {
       },
       {
         id: 'ADD_CONTENT',
-        label: 'Add '+ contentType,
-        fn: () => this.onAddNew( contentType )
+        label: 'Add '+ this.state.type,
+        fn: () => this.onAddNew( this.state.type )
       }
     ]
 
@@ -32,12 +32,12 @@ class {
       this.menu = [
         ...(this.menu),
         {
-          id: 'RENAME_CATEGORY',
+          id: 'RENAME_COLLECTION',
           label: 'Rename',
           fn: (function(){ this.onRenameToggle( true ) }).bind(this)
         },
         {
-          id: 'DELETE_CATEGORY',
+          id: 'DELETE_COLLECTION',
           label: 'Delete',
           divider: true,
           fn: (function(){ this.contextEmit( 'delete', this.input.itemkey ) }).bind(this) // Apply change via FS
@@ -100,7 +100,7 @@ class {
     if( this.state.open ){
       window.Store.clear( this.storeAttr )
       
-      this.storeAttr = 'category--'+ this.state.name
+      this.storeAttr = 'collection--'+ this.state.name
       window.Store.set( this.storeAttr, true )
     }
 
@@ -120,48 +120,29 @@ class {
   }
 }
 
-<context|{ active }, emit| from="Collections">
-  <!-- Attach context emitter to class component -->
-  $ component.contextEmit = emit
-  
-  <li.hover-tree
-      data-item-key=input.itemkey
-      style="padding-left:1rem">
-    <div.position-relative.py-75.zindex-1.hover-toggle.d-flex.align-items-center.cursor-pointer.theme-bg>
-      <Bx.font-medium-5.pl-50.pr-2 
-          type=`chevron-${state.open ? 'down' : 'right'}`
-          on-click('onShowContent')/>
+<li.position-relative.overflow-hidden>
+  <div.position-relative.py-25.zindex-1.hover-toggle.d-flex.align-items-center.cursor-pointer.theme-bg>
+    <!-- Request type -->
+    <span.font-small-1.px-1>
+      <Bx.font-medium-5
+          type="file-doc"
+          style="padding:0 .4rem 0 .95rem"/>
+    </span>
 
-      <if( state.rename )>
-        <input.w-100.px-50.mr-75.theme-bg.border.shadow-none 
-              type="text" 
-              value=state.name
-              autofocus
-              on-keyup('onPressEnter')
-              on-blur('onSaveChanges')
-              on-input('onRenameInput')/>
-      </if>
-      <else>
-        <!-- Name -->
-        <div.font-medium-1.text-ellipsis.w-75 on-click('onShowContent')>${state.name}</div>
-        <!-- Collection options menu -->
-        <DropdownMenu.hover-show.font-medium-5.px-75.float-right
-                      vertical
-                      right
-                      menu=component.menu/>
-      </else>
-    </div>
-
-    <if( state.open )>
-      <ul.move-element.list-unstyled.mb-3.my-0.animated.slideInDown.faster style="padding-left:2rem"
-          data-parent-key=input.itemkey>
-        <Sortable containerClass="move-element"
-                  axis="Y"
-                  on-change('onMove')>
-          <RequestOutline ...{ type: 'GET', name: 'Request One Name', saves: [ 'hello' ] }/>
-          <RequestOutline ...{ type: 'PUT', name: 'Request Three Name' }/>
-        </Sortable>
-      </ul>
+    <if( state.rename )>
+      <input.w-100.px-50.mr-75.theme-bg.border.shadow-none 
+            type="text" 
+            value=state.name
+            autofocus
+            on-keyup('onPressEnter')
+            on-blur('onSaveChanges')
+            on-input('onRenameInput')/>
     </if>
-  </li>
-</context>
+    <else>
+      <!-- Name -->
+      <div.font-medium-1.text-ellipsis.w-75>${state.name}</div>
+      <!-- Option Menu toggler -->
+      <Bx.hover-show.font-medium-5.px-75.float-right type="dots-vertical-rounded"/>
+    </else>
+  </div>
+</li>

@@ -27,7 +27,6 @@ class {
     }
 
     this.initialName = null
-    
   }
   onInput({ _new, name, path, content, lock }){
     this.initialName = name
@@ -199,8 +198,8 @@ class {
         <div.font-medium-1.text-ellipsis.w-75 on-click('onShowContent')>${state.name}</div>
         <!-- Folder options menu -->
         <DropdownMenu.hover-show.font-medium-5.px-75.float-right
-                      vertical=true
-                      right=true
+                      vertical
+                      right
                       menu=component.menu/>
       </else>
     </div>

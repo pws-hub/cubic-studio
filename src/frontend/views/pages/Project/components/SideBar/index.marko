@@ -65,6 +65,7 @@ class {
         <div.position-absolute.theme-bg.h-100.top-0.left-0.right-0 key=type
             class=( state.active == type ? 'zindex-2' : 'zindex-1')>
           <Switch by=type>
+            <!-- Code Editor -->
             <@case is="Code">
               <Directories ...dataset
                             active=input.active
@@ -82,9 +83,9 @@ class {
                             on-action( ( ...args ) => component.emit( 'action', 'packages', ...args ) )/>
             </@case>
 
+            <!-- API Testor -->
             <@case is="API">
-              <Collections type="API"
-                            cols=dataset.collections
+              <Collections cols=dataset.collections
                             extended=(!state.extendedBlocks.includes('environments'))/>
 
               <Environments envs=dataset.environments
@@ -92,10 +93,9 @@ class {
                             on-extends('onExtendExtraBlock', 'environments')/>
             </@case>
 
+            <!-- Documentation Editor -->
             <@case is="Documentation">
-              <Collections ...dataset
-                            type="Documentation"
-                            cols=dataset.collections
+              <Collections cols=newObject( dataset.collections )
                             extended=(!state.extendedBlocks.includes('dependencies'))
                             on-action( ( ...args ) => component.emit('action', 'collections', ...args ) )/>
 

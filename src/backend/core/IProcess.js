@@ -120,7 +120,7 @@ export default class IProcess {
     // Active emulators
     this.emulators = {}
     // Locale Package Store
-    this.LPS = LPSServer().Interface
+    this.LPS = LPSServer().Storage
   }
 
   // Internal operation log: Debug mode

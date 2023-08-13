@@ -98,7 +98,6 @@ export default class PackageManager extends CUP {
     return new Promise( ( resolve, reject ) => {
       // Specified packages to uninstall
       packages = Array.isArray( packages ) ? packages.join(' ') : packages || ''
-
       rs(`${this.manager} ${verb} ${packages} ${params}`, this.rsOptions, progress )
         .then( resolve )
         .catch( reject )

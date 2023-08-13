@@ -10,7 +10,7 @@ import * as GenericFile from './GenericFile'
 
 async function processJSPackage( action, packages, directory, source, _process ){
 
-  const processName = `${action }-packages`
+  const processName = `${action}-packages`
   source = source || 'cpm'
 
   try {
@@ -30,7 +30,9 @@ async function processJSPackage( action, packages, directory, source, _process )
 
     const pm = new PackageManager({ cwd: directory, manager: Configs.NODE_PACKAGE_MANAGER, debug: _process.debugMode })
 
-    packages = packages.map( ({ name, version }) => { return name +( action == 'install' && version ? `@${ version}` : '' ) } )
+    packages = packages.map( ({ item }) => {
+      return item.name +( action == 'install' && item.version ? `@${item.version}` : '' )
+    } )
 
     await pm[ action ]( packages, '-W', ( error, message, bytes ) => {
       // Installation progress tracking
@@ -188,9 +190,9 @@ export default class IProcess {
         dotMetadata = await GenericFile.dotMetadata( dataset ),
         dotGitignore = await GenericFile.dotGitignore( directory )
 
-        await fs.newFile( `${directory }/.cubic`, JSON.stringify( dotCubic, null, '\t' ) )
-        await fs.newFile( `${directory }/.metadata`, JSON.stringify( dotMetadata, null, '\t' ) )
-        await fs.newFile( `${directory }/.gitignore`, dotGitignore )
+        await fs.newFile( `${directory}/.cubic`, JSON.stringify( dotCubic, null, '\t' ) )
+        await fs.newFile( `${directory}/.metadata`, JSON.stringify( dotMetadata, null, '\t' ) )
+        await fs.newFile( `${directory}/.gitignore`, dotGitignore )
 
         /* -------------------------------------------------------------------------*/
         // Clone sandbox by language from Git

@@ -31,7 +31,7 @@ export default class FileSystem {
 
     await Promise.all( dir.map( name => {
       const
-      contentPath = `${path }/${ name}`,
+      contentPath = `${path }/${name}`,
       ignoreRegex = ignore && new RegExp( ignore )
 
       // Ignore file/directory regular expression

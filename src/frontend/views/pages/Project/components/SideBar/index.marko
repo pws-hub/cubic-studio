@@ -14,7 +14,7 @@ class {
   }
   onInput({ type, dataset }){
     if( !dataset ) return
-    
+
     switch( type ){
       case 'Code': {
         if( isEmpty( dataset ) ) return
@@ -73,7 +73,7 @@ class {
                             extended=(!state.extendedBlocks.includes('dependencies'))
                             on-show-settings('onShowSettings')
                             on-open( element => component.emit( 'action', 'open', element ) )
-                            on-emulator-action( ( ...args ) => component.emit( 'action', 'emulator', ...args ) )
+                            on-device-action( ( ...args ) => component.emit( 'action', 'device', ...args ) )
                             on-directory-action( ( ...args ) => component.emit( 'action', 'directories', ...args ) )/>
 
               <Dependencies deps=dataset.dependencies

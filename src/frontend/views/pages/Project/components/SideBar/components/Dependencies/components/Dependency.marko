@@ -6,13 +6,27 @@ class {
       {
         id: 'UPDATE_DEPENDENCY',
         label: 'Update',
-        fn: (function(){ this.contextEmit( 'update', [{ name: this.input.name, version: this.input.version }] ) }).bind(this)
+        fn: (function(){ 
+          this.contextEmit( 'update', [
+            {
+              item: { name: this.input.name },
+              version: this.input.version
+            }
+          ] ) 
+        }).bind(this)
       },
       {
         id: 'REMOVE_DEPENDENCY',
         label: 'Remove',
         important: true,
-        fn: (function(){ this.contextEmit( 'remove', [{ name: this.input.name, version: this.input.version }] ) }).bind(this)
+        fn: (function(){
+          this.contextEmit( 'remove', [
+            {
+              item: { name: this.input.name },
+              version: this.input.version
+            }
+          ] )
+        }).bind(this)
       }
     ]
   }

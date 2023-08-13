@@ -2,7 +2,6 @@
 import Utils from './extends/utils'
 import Operators from './extends/operators'
 import Initializer from './extends/initializer'
-// import EmulatorManager from './extends/emulator'
 
 static const APITabs = [
   {
@@ -48,6 +47,7 @@ class {
     this.state = {
       workspace: GState.workspaces.get( params.id ),
       project: false,
+      env: null,
       
       // Sections dataset
       Code: {},
@@ -61,9 +61,9 @@ class {
       sections: [],
       activeSection: null,
       
-      emulator: false,
-      emulatorError: false,
-      emulatorStatus: false,
+      device: false,
+      deviceError: false,
+      deviceStatus: false,
       
       showSearch: false,
       showFeatures: false,
@@ -83,7 +83,6 @@ class {
     new Utils( this )
     new Operators( this )
     new Initializer( this )
-    // new EmulatorManager( this )
 
     // Inherit flag from precedent page
     this.flag = window.Store.get('action-flag')
@@ -145,7 +144,7 @@ class {
       case 'collections': this.CollectionOperator( ...args ); break
 
       case 'features': this.onFeatureSelect( ...args ); break
-      case 'emulator': this.EmulatorOperator( ...args ); break
+      case 'device': this.DeviceOperator( ...args ); break
 
       case 'delete-project': this.DeleteProject(); break
     }
@@ -263,7 +262,7 @@ class {
                               dataset=component.getSection()
                               active=component.getSection('activeElement')
                               status={
-                                emulator: state.emulatorStatus
+                                device: state.deviceStatus
                               }
                               on-action('onAction')
                               on-show-settings('onSettingsToggle')/>
@@ -334,19 +333,12 @@ class {
         <!-- <Plugin name="LiveShare"/> -->
       </div>
       
-      <WSAdapt.section-block.px-0.border-left.theme-bg-fade
-              ns="d-none"
-              qs="col-3"
-              hs="col-6"
-              fs="position-absolute col-12">
-        <!-- Sandbox Emulator: Model EIS8 -->
-        <EIS8 metadata=state.emulator
-              status=state.emulatorStatus
-              error=state.emulatorError
-              on-start( 'onAction', 'emulator', 'start' )
-              on-restart( 'onAction', 'emulator', 'restart' )
-              on-stop( 'onAction', 'emulator', 'stop' )/>        
-      </WSAdapt>
+      <DeviceManager env=state.env
+                      workspace=state.workspace
+                      device=state.device
+                      status=state.deviceStatus
+                      error=state.deviceError
+                      on-action('onAction')/>
     </Row>
   </div>
   

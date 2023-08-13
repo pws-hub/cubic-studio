@@ -33,7 +33,7 @@ Roadmap
 -------
 
 - [x] Wildcard Saas Features
-- [ ] Github SSO by default
+- [x] Github SSO by default
 - [ ] OneProfile support
 - [x] Create and manage workspaces
 - [ ] Workspace extensions

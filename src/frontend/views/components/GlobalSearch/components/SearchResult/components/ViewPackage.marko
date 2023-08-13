@@ -17,7 +17,6 @@ class {
     this.fetchManifest() 
   }
   async fetchManifest( name ){
-
     this.state.manifest = null
     try {
       const manifest = await ( await fetch(`/proxy?url=https://registry.npmjs.org/${this.current}&responseType=json`) ).json()

@@ -9,6 +9,9 @@ export default Self => {
     const cwd = State.project.specs.code.directory
 
     Self.fs = await window.FileSystem.init( 'project', { cwd, debug: true } )
+
+    // Get project environment configuration
+    State.env = await Self.fs.readFile( '.cubic', { encoding: 'json' } )
     // Declare Project's background Process Manager
     Self.pm = await window.IProcess.create({ debug: true })
 
@@ -86,15 +89,15 @@ export default Self => {
       // Automatically run project in 3 second
       await delay(3)
       Self.ongoing( false )
-      AUTORUN && Self.EmulatorOperator('start', true )
+      AUTORUN && Self.DeviceOperator('start', true )
     }
-    // Reload cached emulator state of this project
+    // Reload cached device state of this project
     else {
-      const cachedEMImage = Self.pstore.get('emulator')
+      const cachedEMImage = Self.pstore.get('device')
       if( AUTORUN && cachedEMImage )
         window.env == 'production' ?
-                      Self.EmulatorOperator('restart') // Reload backend process
-                      : Self.EmulatorOperator('start') // Connect frontend to process or run process if not available
+                      Self.DeviceOperator('restart') // Reload backend process
+                      : Self.DeviceOperator('start') // Connect frontend to process or run process if not available
     }
 
     // Mount project's last states of the active section
@@ -144,6 +147,7 @@ export default Self => {
     Self.initSection('activeConsole', [] )
     Self.initSection('activeElement', null )
   }
+
   async function initDocWS(){
 
   }
@@ -201,7 +205,7 @@ export default Self => {
     // Get project dependencies in package.json
     if( !Self.fs ) return
 
-    switch( section ) {
+    switch( section || State.activeSection ) {
       // JS/TS project dependencies
       case 'Code': {
         const packageJson = await Self.fs.readFile( 'package.json', { encoding: 'json' } )
@@ -268,9 +272,9 @@ export default Self => {
     }
   }
   Self.DeleteProject = async () => {
-    // Close running emulator
-    Self.ongoing({ headline: 'Dropping all running emulator instances' })
-    await Self.EmulatorOperator('stop')
+    // Close running device
+    Self.ongoing({ headline: 'Dropping all running device instances' })
+    await Self.DeviceOperator('stop')
     await delay(2)
 
     // Clear store
@@ -307,7 +311,7 @@ export default Self => {
     // Reset operators
     Self.fs = false // File System (fs)
     Self.pm = false // Process Manager (pm)
-    Self.em = false // Emulator Manager (em)
+    Self.em = false // Device Manager (em)
     Self.dpm = false // Dependency Package Manager (dpm)
     await delay(2)
 

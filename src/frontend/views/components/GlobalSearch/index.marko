@@ -32,7 +32,8 @@ class {
             || !this.input.filters.targets.length
   }
   launchSearch( query ){
-    console.log( query, this.TARGETS )
+    // console.log( query, this.TARGETS )
+    
     // Search on all target by default
     if( !Object.keys( this.TARGETS ).length )
       this.TARGETS = AVAILABLE_TARGETS
@@ -104,7 +105,8 @@ class {
     status === false ? 
           this.state.memory = this.state.memory.filter( ({ item, version }) => { return data.item.name != item.name || data.version != version } )
           : !this.state.memory.filter( ({ item, version }) => { return data.item.name == item.name && data.version == version } ).length ? 
-                                                  this.state.memory = [ ...(this.state.memory), data ] : null
+                                                  this.state.memory = [ ...(this.state.memory), data ]
+                                                  : null
     
     this.setStateDirty('memory')
     window.Store.set( this.getAttr('memory'), this.state.memory )
@@ -115,12 +117,10 @@ class {
 
     // Group items by source
     const bySource = {}
-    this.state.memory.map( each => {
-
-      if( !bySource[ each.source ] ) 
-        bySource[ each.source ] = [ each ]
-
-      bySource[ each.source ].push( each )
+    this.state.memory.forEach( each => {
+      !bySource[ each.source ] ?
+              bySource[ each.source ] = [ each ]
+              : bySource[ each.source ].push( each )
     } )
 
     // Emit return each source group seperately

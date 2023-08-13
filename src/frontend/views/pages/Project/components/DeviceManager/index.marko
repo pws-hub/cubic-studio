@@ -1,0 +1,32 @@
+
+static function getEmulatorModule({ os, model, version }){
+  try { return require(`plugins/${os || window.instance.toCapitalCase()}:${model}~${version}`) }
+  catch( error ){ console.log('Failed fetching Emulator') }
+}
+
+<WSAdapt.section-block.px-0.border-left.theme-bg-fade
+        ns="d-none"
+        qs="col-3"
+        hs="col-6"
+        fs="position-absolute col-12">
+  <!-- Sandbox Device/UI Emulator -->
+  <if( input.env && input.env.emulator && input.env.emulator.model )>
+    $ const { os, model, version, env } = input.env.emulator
+    $ let eModule = getEmulatorModule({ os, model, version })
+
+    <if( eModule )>
+      <${eModule} env=env
+                  metadata=input.device
+                  status=input.status
+                  error=input.error
+                  on-stop( ( ...args ) => component.emit('action', 'device', 'stop', ...args ) )
+                  on-start( ( ...args ) => component.emit('action', 'device', 'start', ...args ) )
+                  on-restart( ( ...args ) => component.emit('action', 'device', 'restart', ...args ) )/>  
+    </if>
+    <else>
+      No Emulator module found
+    </else>
+  </if>
+
+
+</WSAdapt>

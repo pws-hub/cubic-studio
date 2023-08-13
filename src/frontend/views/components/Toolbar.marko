@@ -41,8 +41,8 @@ class {
 		<!-- List of plugins icons -->
 		<if( Array.isArray( Plugins ) && Plugins.length )>
 			<for|{ name, icon }| of=Plugins>
-				<li.cursor-pointer>
-					<i.px-75.py-2.font-medium-5 
+				<li>
+					<i.px-75.py-2.font-medium-5.cursor-pointer 
 						class=icon 
 						title=name
 						on-click('onToggle', name )></i>

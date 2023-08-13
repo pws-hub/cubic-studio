@@ -13,8 +13,8 @@ export default Self => {
     if( killed ) return
 
     // Process Started
-    State.emulator = {
-      ...State.emulator,
+    State.device = {
+      ...State.device,
       process: {
         exit,
         started,
@@ -101,74 +101,74 @@ export default Self => {
     }
   }
 
-  Self.EmulatorOperator = async ( action, options ) => {
+  Self.DeviceOperator = async ( action, options ) => {
     switch( action ) {
       case 'start': {
-        // Start emulator
+        // Start device
         if( !Self.pm ) {
-          debugLog('[Emulator Event] error: Undeclared process manager')
+          debugLog('[Device Event] error: Undeclared process manager')
           return
         }
 
-        // Create emulator instance
+        // Create device instance
         if( !Self.em )
           Self.em = Self.pm.Emulator( State.project, EMWatcher )
 
         // Start
-        State.emulatorStatus = 'loading'
+        State.deviceStatus = 'loading'
         GState.ws.layout({ mode: 'auto' })
 
         /**
-         * TODO: Re-implement emulator metadata cache
+         * TODO: Re-implement device metadata cache
          *
-         * Try cached metadata to reconnect emulator without
+         * Try cached metadata to reconnect device without
          * restarting it, when project got refreshed and
          * servers are up
          */
         const metadata = await Self.em.start()
         if( !metadata ) {
-          State.emulatorStatus = false
-          State.emulatorError = 'Emulator failed to start. Check your code and retry'
+          State.deviceStatus = false
+          State.deviceError = 'Device failed to start. Check your code and retry'
           return
         }
 
-        State.emulator = metadata
+        State.device = metadata
       } break
 
       case 'restart': {
-        // Restart emulator
+        // Restart device
         if( !Self.pm ) {
-          debugLog('[Emulator Event] error: Undeclared process manager')
+          debugLog('[Device Event] error: Undeclared process manager')
           return
         }
 
-        // Create emulator instance
+        // Create device instance
         if( !Self.em )
           Self.em = Self.pm.Emulator( State.project, EMWatcher )
 
-        State.emulatorStatus = 'restarting'
-        State.emulator = await Self.em.restart()
+        State.deviceStatus = 'restarting'
+        State.device = await Self.em.restart()
       } break
 
       case 'stop': {
-        // Stop emulator
+        // Stop device
         if( !Self.pm ) {
-          debugLog('[Emulator Event] error: Undeclared process manager')
+          debugLog('[Device Event] error: Undeclared process manager')
           return
         }
 
         if( !Self.em ) {
-          debugLog('[Emulator Event] error: No active Emulator found')
+          debugLog('[Device Event] error: No active Device found')
           return
         }
 
         // Stop
-        State.emulator = false
-        State.emulatorStatus = 'stopping'
+        State.device = false
+        State.deviceStatus = 'stopping'
 
         await Self.em.stop()
 
-        State.emulatorStatus = false
+        State.deviceStatus = false
         GState.ws.layout({ mode: 'ns' })
       }
     }

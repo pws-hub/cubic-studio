@@ -47,7 +47,7 @@ function getProcess( cwd, ports, debug ){
     lsof = shell.exec(`lsof -t ${cwd}/.sandbox`, options )
     let pids = []
 
-    console.log(`-------------lsof -t ${cwd}.sandbox && lsof -t -i :${ports.join(',')}` )
+    // console.log(`-------------lsof -t ${cwd}.sandbox && lsof -t -i :${ports.join(',')}` )
 
     lsof.stdout.on( 'data', data => { if( data ) pids = Array.from( new Set([ ...pids, ...data.trim().split(/\s+/) ]) ) } )
     lsof.stderr.on( 'data', data => typeof debug == 'function' && debug('Error: ', data ) )

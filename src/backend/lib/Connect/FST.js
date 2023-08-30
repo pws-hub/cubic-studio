@@ -16,42 +16,45 @@ function initChannel( socket ){
     }
 
     switch( type ) {
-      case 'explorer': if( !options.cwd ) // Current OS user's home directory. Eg. /Users/myname
-                          options.cwd = os.homedir()
+      case 'explorer': {
+        if( !options.cwd ) // Current OS user's home directory. Eg. /Users/myname
+          options.cwd = os.homedir()
 
-                      socket.data.FS = new FileSystem( options )
-          break
+        socket.data.FS = new FileSystem( options )
+      } break
+
       case 'project':
-      default: if( !options.cwd ) {
-                  typeof callback == 'function'
-                  && callback({ error: true, message: 'Undefined FS options <cwd>' })
-                  return
-                }
+      default: {
+        if( !options.cwd ) {
+          typeof callback == 'function'
+          && callback({ error: true, message: 'Undefined FS options <cwd>' })
+          return
+        }
 
-                socket.data.FS = new FileSystem( options )
+        socket.data.FS = new FileSystem( options )
 
-                // Report watch event to client
-                const
-                ignore = [
-                  '**/.git/**',
-                  '**/dist/**',
-                  '**/build/**',
-                  '**/cache/**',
-                  '**/.sandbox/**',
-                  '**/node_modules/**'
-                ],
-                listener = ( event, path, stats ) => socket.emit( 'FS::EVENT', event, path, stats )
+        // Report watch event to client
+        const
+        ignore = [
+          '**/.git/**',
+          '**/dist/**',
+          '**/build/**',
+          '**/cache/**',
+          '**/.sandbox/**',
+          '**/node_modules/**'
+        ],
+        listener = ( event, path, stats ) => socket.emit( 'FS::EVENT', event, path, stats )
 
-                // Drop existing watcher
-                if( ACTIVE_CWD_WATCHERS[ options.cwd ] )
-                  ACTIVE_CWD_WATCHERS[ options.cwd ].close()
+        // Drop existing watcher
+        if( ACTIVE_CWD_WATCHERS[ options.cwd ] )
+          ACTIVE_CWD_WATCHERS[ options.cwd ].close()
 
-                // Watch this cwd
-                ACTIVE_CWD_WATCHERS[ options.cwd ] = socket.data.FS.watch( { ignore }, listener )
+        // Watch this cwd
+        ACTIVE_CWD_WATCHERS[ options.cwd ] = socket.data.FS.watch( { ignore }, listener )
+      }
     }
 
-    typeof callback == 'function'
-    && callback({ error: false })
+    typeof callback == 'function' && callback({ error: false })
   }
 
   async function execute( method, ...args ){
@@ -86,8 +89,7 @@ function initChannel( socket ){
     delete socket.data
     socket.disconnect( true )
 
-    typeof callback == 'function'
-    && callback({ error: false, message: 'Closed' })
+    typeof callback == 'function' && callback({ error: false, message: 'Closed' })
   }
 
   socket

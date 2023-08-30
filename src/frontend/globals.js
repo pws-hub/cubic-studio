@@ -1,20 +1,13 @@
 
 import jQuery from 'jquery'
-import moment from 'moment'
-import numeral from 'numeral'
 import SS from 'markojs-shared-state'
 import { navigate } from 'marko-router5'
 import Store from 'all-localstorage'
 
 String.prototype.toCapitalCase = function(){
-  // Fonction de capitalisation du premier caractère d'un mot
-  this.toLowerCase()
-
-  const
-  First = this.charAt(0),
-  regex = new RegExp(`^${ First}` )
-
-  return First.toUpperCase() + this.split( regex )[1]
+  return this.toLowerCase().replace(/(?:^|\s)\w/g, match => {
+    return match.toUpperCase()
+  })
 }
 
 /* --------------------------------------------------------------------------*/

@@ -12,3 +12,4 @@ cache
 temp
 sync
 .env
+out/

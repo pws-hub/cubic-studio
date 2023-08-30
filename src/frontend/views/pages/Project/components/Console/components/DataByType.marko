@@ -4,6 +4,7 @@
     <@case is="object">
       <Object value=input.value expand=input.expand/>
     </@case>
-    <@default><span.text-nowrap>${input.value}</span></@default>
+    <@default><span.text-nowrap>"${input.value}"</span></@default>
   </Switch>
 </if>
+<else><span.text-nowrap>""</span></else>

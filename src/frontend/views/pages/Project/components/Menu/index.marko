@@ -2,12 +2,12 @@
 import DefaultLogo from 'assets/images/icons/cubic.png'
 
 static const Menu = [
-  { name: 'Code', label: 'Editor' },
-  { name: 'API' },
-  { name: 'Socket' },
-  { name: 'Unit', label: 'Unit', disabled: true },
-  { name: 'Roadmap', label: 'Roadmap', disabled: true },
-  { name: 'Documentation', label: 'Docs' }
+  { name: 'Code', label: 'Editor', icon: 'bx bx-code-alt' },
+  { name: 'API', icon: 'bx bx-git-compare' },
+  { name: 'Socket', icon: 'bx bx-transfer-alt' },
+  { name: 'Unit', label: 'Unit', disabled: true, icon: 'bx bx-check-shield' },
+  { name: 'Roadmap', label: 'Roadmap', disabled: true, icon: 'bx bx-select-multiple' },
+  { name: 'Documentation', label: 'Docs', icon: 'bx bx-detail' }
 ]
 
 class {
@@ -37,14 +37,16 @@ class {
       <div.font-medium-3.py-1.text-ellipsis>${input.project.name}</div>
     </div>
 
-    <div.position-relative.px-1.overflow-auto>
+    <div.position-relative.d-flex.justify-content-center.px-1.overflow-auto>
       <ul.list-unstyled>
-        <for|{ name, label, disabled }, index| of=Menu>
+        <for|{ name, label, icon, disabled }, index| of=Menu>
           <if( Array.isArray( input.sections ) && input.sections.includes( name ) )>
-            <li.px-1.py-75.my-1.border.border-2.round.text-center.text-ellipsis.nav-item.cursor-pointer
-                class=(state.activeSection == name ? 'only-dark-bg-lighten' : ( disabled ? 'text-muted cursor-not-allowed' : false ) )
+            <li.my-1.nav-item.cursor-pointer
+                class=( disabled ? 'text-muted cursor-not-allowed' : false )
+                title=Locale(label || name)
                 on-click('onToggleMenu', !disabled ? name : false )>
-              <Locale text=(label || name)/>
+              <i.font-large-1.font-large-1.p-1.rounded-circle.cursor-pointer.scale-up 
+                class=`${icon} ${state.activeSection == name ? 'only-dark-bg-lighten' : ''}`></i>
             </li>
           </if>
         </for>

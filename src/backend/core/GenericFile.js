@@ -18,21 +18,12 @@ export const dotCubic = async ({ specs }) => {
       sandbox: `@git/lib:${language}:${Configs.INSTANCE_PROVIDER}.sandbox~1.0.0`,
       test: `@npm/lib:${Configs.INSTANCE_PROVIDER}:${language}.unit-test~1.0.0`
     },
-    emulator: {
-      model: 'EIS8',
-      version: '1.0.0',
-      env: {
-        NODE_ENV: 'development',
-        HOST: 'localhost',
-        PORT: 33000
-      }
-    },
+    emulator: Configs.DEVICES.emulator || null,
     ...cubic
   }
 }
 
 export const dotGitignore = async directory => {
-
   let gitignore = ''
 
   try { gitignore = await fs.readFile( `${directory }/.gitignore`, { encoding: 'UTF-8' } ) }
@@ -50,7 +41,6 @@ export const dotGitignore = async directory => {
 }
 
 export const dotMetadata = async ({ name, nsi, description, specs }) => {
-
   let config
   try { config = await fs.readJson( `${specs.code.directory }/.metadata` ) }
   catch( error ) { throw error }

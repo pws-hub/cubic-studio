@@ -23,7 +23,6 @@
       "password": "XVycGhhbDIwMTJAZY29t1h"
     }
   ],
-
   "CPR_ACCESS": [
     {
       "source": "cpr.webmicros.com",
@@ -32,5 +31,17 @@
     }
   ],
 
-  "RUNTIME_ENVS": {}
+  "RUNTIME_ENVS": {},
+  "DEVICES": {
+    "emulator": {
+      "os": "Multipple",
+      "model": "EIS8",
+      "version": "1.0",
+      "env": {
+        "NODE_ENV": "development",
+        "HOST": "localhost",
+        "PORT": 33000
+      }
+    }
+  }
 }

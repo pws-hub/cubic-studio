@@ -11,11 +11,9 @@ if( !process.env.ADDRESS ) {
 }
 
 String.prototype.toCapitalCase = function(){
-  // Fonction de capitalisation du premier caractère d'un mot
-  this.toLowerCase()
-
-  const First = this.charAt(0)
-  return First.toUpperCase() + this.split( new RegExp( `^${ First}` ) )[1]
+  return this.toLowerCase().replace(/(?:^|\s)\w/g, match => {
+    return match.toUpperCase()
+  })
 }
 
 global.Configs = Configs

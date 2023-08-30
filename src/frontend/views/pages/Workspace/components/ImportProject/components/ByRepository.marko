@@ -3,7 +3,7 @@ import FormHandler from 'markojs-form'
 
 class {
   onCreate(){
-    this.state = { 
+    this.state = {
       imported: false,
       importing: false,
       submitting: false
@@ -20,16 +20,12 @@ class {
         }
       }
     })
-    this.fhandler.on( 'input', ( name, value ) => {
-      if( name !== 'specs.code.repository' ) return
-      
-      // Check repository
-      this.checkRepository( value )
-    } )
-    
+
+    // Check whether repository exists
+    this.fhandler.on( 'input', ( name, value ) => name !== 'specs.code.repository' && this.checkRepository( value ) )
     // Check available auto-filled repository value
-    if( this.state.form.specs.code.repository )
-      this.checkRepository( this.state.form.specs.code.repository )
+    this.state.form.specs.code.repository
+    && this.checkRepository( this.state.form.specs.code.repository )
   }
   onCancel(){
     this.fhandler.reset()
@@ -43,6 +39,9 @@ class {
     this.state.importing = true
     try {
       console.log('Fetch Repo: ', url )
+
+      console.log( await ( await window.fetch('https://gitlab.com/multipple/applications/bnd/-/blob/master/.cubic?ref_type=heads') ).json() )
+
       /*
       const configJson = await window.Git.readFile(`${url}/.metadata`, { encoding: 'json' })
       if( !configJson )
@@ -112,7 +111,6 @@ class {
     this.state.submitting = true
     
     this.contextEmit( 'submit', Form, (function( error, status ){
-
       this.state.submitting = false
       if( error )
         return this.fhandler.alert( error, status )

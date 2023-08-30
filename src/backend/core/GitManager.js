@@ -33,7 +33,8 @@ export default class GitManager {
     this.git = Git({
       baseDir: cwd || this.cwd, // Process.cwd()
       binary: 'git',
-      maxConcurrentProcesses: 6
+      maxConcurrentProcesses: 6,
+      // trimmed: false
     })
   }
 
@@ -41,7 +42,6 @@ export default class GitManager {
   setCWD( cwd ){ this.git.cwd( cwd || this.cwd || process.cwd() ) }
 
   async initProject( remote, force, progress ){
-
     if( !this.git )
       throw new Error('Git is not initialized')
 
@@ -81,13 +81,12 @@ export default class GitManager {
   async cloneProject( repository, path, clear ){
     // Clone Git repository to local
     await this.git.clone( repository || this.repository, path )
-
     // Completely uninitialize (remove) .git after project cloned
-    if( clear ) this.clear( path )
+    clear && this.clear( path )
   }
 
   clear( path ){
     // Remove git completely from a directory
-    return new Promise( resolve => Rimraf( Path.resolve( this.cwd, `${path || '' }/.git` ), resolve ) )
+    return new Promise( resolve => Rimraf( Path.resolve( this.cwd, `${path || ''}/.git` ), resolve ) )
   }
 }

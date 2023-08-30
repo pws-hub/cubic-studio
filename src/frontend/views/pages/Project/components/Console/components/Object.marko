@@ -17,7 +17,7 @@ class {
       </if>
 
       <if( state.expanded )>
-        <div.pl-2>
+        <div.pl-3>
           <for|item, index| of=input.value>
             <span.text-nowrap>
               <span.text-info>${index}</span>: <DataByType value=item/>
@@ -40,7 +40,7 @@ class {
       </if>
 
       <if( state.expanded )>
-        <div.pl-2>
+        <div.pl-3>
           <for|key, value| in=input.value>
             <span.text-nowrap>
               <span.text-info>${key}</span>: <DataByType value=value/>

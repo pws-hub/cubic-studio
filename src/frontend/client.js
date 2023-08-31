@@ -7,7 +7,7 @@ import Workspace from './views/pages/Workspace'
 import Locales from './json/languages.json'
 
 import Sync from './lib/SyncClient'
-import Overwride from './lib/Overwride'
+import Override from './lib/Override'
 import RequestClient from './lib/CARClient'
 import FileSystemClient from './lib/FSTClient'
 import IProcessClient from './lib/IPTClient'
@@ -197,7 +197,7 @@ async function Client(){
 
 	/* ----------------------------------------------------------------*/
 	// Set of overwridden process functions
-	window.___ = Overwride({ env })
+	window.___ = Override({ env })
 
 	/* ----------------------------------------------------------------*/
 	// Default global states

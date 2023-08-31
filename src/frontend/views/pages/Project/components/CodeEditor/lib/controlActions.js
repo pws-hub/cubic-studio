@@ -1,7 +1,5 @@
 
-
 export default ( monaco, editor, component ) => {
-
   /*
    * Explanation:
    * Press F1 => the action will appear and run if it is enabled

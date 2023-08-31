@@ -1,4 +1,6 @@
-
+/**
+ * Cubic API Request channel handler
+ */
 import request from 'request-promise'
 
 function initChannel( socket ){

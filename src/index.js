@@ -21,5 +21,5 @@ export default server
     return
   }
 
-  console.log(`> Started on port ${port}`)
+  console.log(`\nCubic Studio \n> Started on port ${port}`)
 })

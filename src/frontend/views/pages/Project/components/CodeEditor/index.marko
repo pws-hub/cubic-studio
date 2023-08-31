@@ -165,25 +165,23 @@ class {
       this.editor_OnDidBlurEditorText = this.editor.onDidBlurEditorWidget( () => this.onSave() )
       this.editor_OnDidChangeCursorPosition = this.editor.onDidChangeCursorPosition( ({ position }) => this.emit('cursor-position', position ) )
       this.editor_OnDidChangeModel = this.editor.onDidChangeModel( async ({ newModelUrl, oldModelUrl }) => {
-        
-        if( oldModelUrl ){
-          // Dispose inactive models
-          if( !this.isLoadedModel( oldModelUrl.path ) ){
-            const model = await this.getModel( oldModelUrl.path )
+        if( !oldModelUrl ) return
 
-            model.dispose()
-            return
-          }
-          
-          // Auto-save changes on the left model
-          this.options.autoSave && this.onSave( await this.getModel( oldModelUrl.path ) )
+        // Dispose inactive models
+        if( !this.isLoadedModel( oldModelUrl.path ) ){
+          const model = await this.getModel( oldModelUrl.path )
+
+          model.dispose()
+          return
         }
+        
+        // Auto-save changes on the left model
+        this.options.autoSave && this.onSave( await this.getModel( oldModelUrl.path ) )
       } )
     }
     catch( error ){ console.log('[Editor-Event] Error: ', error ) }
   }
   async open( file ){
-
     // Display media files: Image, Audio, Video
     if( file && /\.(jpe?g|png|gif|webp|mp3|ogg|webm|mp4)$/i.test( file.path ) ){
       await this.setMedia( file )
@@ -225,7 +223,6 @@ class {
     this.state.isMediaFile = true
   }
   async getModel( path ){
-    
     const uri = monaco.Uri.file( path )
     let model = monaco.editor.getModel( uri )
     
@@ -240,7 +237,6 @@ class {
     return model
   }
   async setModel( file ){
-
     this.state.isMediaFile = false
     const model = await this.getModel( file.path )
     

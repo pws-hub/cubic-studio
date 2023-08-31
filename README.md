@@ -2,6 +2,8 @@
 
 Environment and Tools to create micro-web applications for PWS, Multipple and other web platforms.
 
+![Demo picture](https://github.com/pws-hub/cubic-studio/blob/master/public/screenshot.png?raw=true)
+
 ## Installation & Usage
 Open your favorate terminal. Go to the directory where you want to add the project and run respectively the commands below.
 
@@ -83,7 +85,7 @@ Roadmap
 - [ ] Single Sign-on Auth
   - [x] Github (Default)
   - [x] Multipple (Custom)
-  - [ ] OnProfile
+  - [ ] One Profile
 - [ ] Workspace
   - [x] Create and manage workspaces
   - [x] Customization
@@ -106,7 +108,7 @@ Roadmap
   - [ ] Maintain project `.metadata` via UI
   - [ ] Add/Import/Install project dependencies
     - [x] NPM packages
-    - [ ] CPR packages: UI component, Plugins, Libraries
+    - [ ] CPR/CPM packages: UI component, Plugins, Libraries
     - [x] Internal store packages: UI component, fonts, icons
 - [ ] Import project
   - [ ] From Link
@@ -128,7 +130,7 @@ Roadmap
   - [ ] Assign/Unassign team members to projects
   - [ ] Assign roles & permissions
 - [ ] Publish project
-  - [ ] Compliance, Stability & Security tests
+  - [ ] Compliance, Stability & Security checks
   - [ ] CPM to CPR deployment process
   - [ ] Verification certificate generator
   - [ ] Update/Release settings
@@ -149,7 +151,7 @@ Roadmap
 - [ ] Main UI Pages
   - [x] Home page: Authentication, Active Sessions & workspaces
   - [ ] Workspace page
-    - [ ] Workspace details
+    - [x] Workspace details
     - [ ] Manage workspace actions
     - [ ] Manage team
     - [ ] Manage Projects

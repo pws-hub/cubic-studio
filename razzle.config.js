@@ -13,7 +13,7 @@ module.exports = {
   modifyWebpackOptions( opts ){
     const options = opts.options.webpackOptions
     // Add .marko to exlude
-    options.fileLoaderExclude = [ /\.marko$/, ...options.fileLoaderExclude ]
+    options.fileLoaderExclude = [ /\.marko$/, /\.ya?ml$/, ...options.fileLoaderExclude ]
 
     return options
   },
@@ -23,7 +23,7 @@ module.exports = {
     if( webpackConfig.entry.client )
       webpackConfig.entry.client[1] = path.join( __dirname, '/src/frontend/client' )
 
-    webpackConfig.resolve.extensions = [ ...webpackConfig.resolve.extensions, '.css', '.scss', '.marko' ]
+    webpackConfig.resolve.extensions = [ ...webpackConfig.resolve.extensions, '.css', '.scss', '.marko', '.yml', '.yaml' ]
     webpackConfig.resolve.alias = {
       ...webpackConfig.resolve.alias,
       'test': path.resolve(__dirname, './test'),
@@ -65,6 +65,10 @@ module.exports = {
         // Compiles Sass to CSS
         'sass-loader'
       ]
+    })
+    webpackConfig.module.rules.push({
+      test: /\.ya?ml$/,
+      use: 'yaml-loader'
     })
     webpackConfig.module.rules.push({
       test: /\.worker\.(c|m)?js$/i,

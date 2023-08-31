@@ -1,7 +1,7 @@
 {
-  "name": "hypertest",
-  "descriptions": "API, Unit, Penetration Tests of a software",
-  "version": "1.0.0",
+  "name": "cubic-studio",
+  "descriptions": "Cubic Studio: Code Editor, API, Unit, Penetration Tests environment",
+  "version": "0.0.2",
   "scripts": {
     "start": "razzle start",
     "build": "razzle build --noninteractive",
@@ -93,13 +93,14 @@
     "monaco-languageclient": "^0.13.0",
     "razzle-dev-utils": "4.1.0",
     "webpack": "^5.50.0",
-    "webpack-dev-server": "^3.11.2"
+    "webpack-dev-server": "^3.11.2",
+    "yaml-loader": "^0.8.0"
   },
   "main": "src/electron/main.js",
   "author": "Fabrice Marlboro",
   "repository": {
     "type": "git",
-    "url": "git+https://gitlab.com/pws-hub/hypertest.git"
+    "url": "git+https://gitlab.com/pws-hub/cubic-studio.git"
   },
   "license": "GPL"
 }

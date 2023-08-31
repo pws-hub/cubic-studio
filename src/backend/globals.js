@@ -1,7 +1,7 @@
 
 import dotenv from 'dotenv'
 import kebabCase from 'kebab-case'
-import Configs from '../../cubic.json'
+import Configs from '../../cubic.yml'
 
 dotenv.config()
 

@@ -1,11 +1,19 @@
-APPNAME: CubicStudio
+APPNAME: Cubic Studio
 APPVERSION: 1.0
 
 INSTANCE_PROVIDER: multipple
-  
+
+# Integrated authentication handlers
+AUTH_PROVIDERS:
+- github
+- multipple
+- one-profile
+
 AUTH_HANDLERS:
   multipple: multipple.auth.js
+  github: github.auth.js
 
+# Custom API request handlers
 REQUEST_HANDLERS:
   multipple: multipple.request.js
 
@@ -23,3 +31,15 @@ CPR_ACCESS:
 - source: cpr.webmicros.com
   username:
   token:
+
+RUNTIME_ENVS: {}
+DEVICES:
+  # Multipple extension emulator
+  emulator:
+    os: Multipple
+    model: EIS8
+    version: 1.0
+    env:
+      NODE_ENV: development
+      HOST: localhost
+      PORT: 33000

@@ -3,45 +3,6 @@ import Utils from './extends/utils'
 import Operators from './extends/operators'
 import Initializer from './extends/initializer'
 
-static const APITabs = [
-  {
-    type: 'GET',
-    name: 'Test Get Request',
-    link: '...'
-  },
-  {
-    active: true,
-    type: 'POST',
-    name: 'Test Post Request',
-    link: '...'
-  },
-  {
-    type: 'PUT',
-    name: 'Test Put Request',
-    link: '...'
-  },
-  {
-    type: 'DELETE',
-    name: 'Test Delete Request',
-    link: '...'
-  },
-  {
-    type: 'PATCH',
-    name: 'Test Patch Request',
-    link: '...'
-  },
-  {
-    type: 'HEAD',
-    name: 'Test Head Request',
-    link: '...'
-  },
-  {
-    type: 'OPTIONS',
-    name: 'Test Options Request',
-    link: '...'
-  }
-]
-
 class {
   onCreate({ params }){
     this.state = {
@@ -94,17 +55,17 @@ class {
   onOpen( element ){
     // Open file, request, ...
     if( !element )
-      return this.clearSection('activeElement')
+      return this.sm.clear('activeElement')
     
     const activeElement = { ...element, active: true }
-    this.setSection('activeElement', activeElement)
+    this.sm.set('activeElement', activeElement)
 
     let
     isActive = false,
     focusIndex,
     counter = 0
     
-    const tabs = (this.getSection('tabs') || []).map( tab => {
+    const tabs = (this.sm.get('tabs') || []).map( tab => {
       // Tab already exist
       if( tab.path === element.path ){
         // Make tab active
@@ -131,7 +92,7 @@ class {
                 tabs.push( activeElement ) // At the end of the chain
                 : tabs.splice( focusIndex + 1, 0, activeElement ) // Insert right after the last active tab
 
-    this.setSection('tabs', tabs )
+    this.sm.set('tabs', tabs )
   }
   onAction( target, ...args ){
     switch( target ){
@@ -153,7 +114,7 @@ class {
   onSearchToggle( args ){ this.state.showSearch = args }
   onSettingsToggle( type ){ this.state.showSettings = type }
   onPublishToggle( status ){ this.state.showPublisher = status }
-  onConsoleToggle( status ){ this.setSection('activeConsole', status ) }
+  onConsoleToggle( status ){ this.sm.set('activeConsole', status ) }
   onShowResetProjectToggle( type ){ this.state.showResetProject = type }
   onShowDeleteProjectToggle( type ){ this.state.showDeleteProject = type }
   onExplorerToggle( status, fn ){ this.state.showExplorer = status ? { fn } : false }
@@ -175,11 +136,11 @@ class {
   }
   onChangeOccurance( element, changes ){
     // Awarness of changes occured on this active element
-    const activeElement = this.getSection('activeElement')
+    const activeElement = this.sm.get('activeElement')
     if( !activeElement || activeElement.path !== element.path ) return
     
     // Has changes or revert to initial content
-    this.setSection('activeElement', element )
+    this.sm.set('activeElement', element )
     // Show changes on tabs
     this.applyTabsChange( element )
     
@@ -259,8 +220,8 @@ class {
                     <!-- SideBar -->
                     <SideBar show=state.layouts.includes('sidebar')
                               type=state.activeSection
-                              dataset=component.getSection()
-                              active=component.getSection('activeElement')
+                              dataset=component.sm.get()
+                              active=component.sm.get('activeElement')
                               status={
                                 device: state.deviceStatus
                               }
@@ -270,7 +231,7 @@ class {
                     <!-- Main Block -->
                     <div.section-block.col.px-0.overflow-hidden>
                       <!-- Tabs Bar -->
-                      $ const tabs = component.getSection('tabs')
+                      $ const tabs = component.sm.get('tabs')
                       <if( tabs !== undefined )>
                         <TabBar type=state.activeSection
                               tabs=(tabs || [])
@@ -280,13 +241,13 @@ class {
                       
                       <!-- Body Container -->
                       <div style="height:calc(100% - 3rem)">
-                        $ const activeConsole = component.getSection('activeConsole')
+                        $ const activeConsole = component.sm.get('activeConsole')
                         
                         <div.overflow-hidden class=(activeConsole ? 'h-75' : 'h-100')>
                           <Switch by=section>
                             <!-- Code editor -->
                             <@case is="Code">
-                              <CodeEditor file=component.getSection('activeElement')
+                              <CodeEditor file=component.sm.get('activeElement')
                                           paths=(tabs || []).map( ({ path }) => { return path } )
                                           language=null
                                           fs=component.fs

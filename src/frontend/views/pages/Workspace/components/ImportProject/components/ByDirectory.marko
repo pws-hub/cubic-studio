@@ -105,10 +105,32 @@ class {
     ]
     Form.icon = false
 
-    Form.specs.API = []
-    Form.specs.sockets = []
-    Form.specs.units = []
-    Form.specs.roadmap = []
+    // Initial roadmap content
+    if( Form.specs.roadmap )
+      Form.specs.roadmap = {
+        charter: {
+          name: Form.name,
+          description: Form.description
+        },
+        workflows: [],
+        phases: [],
+        tasks: [],
+        resources: [],
+        risks: [],
+        budget: [],
+        marketing: [],
+        pricing: [],
+        opportunities: []
+      }
+    
+    // No-code project
+    if( !['application', 'plugin'].includes( Form.type ) ) 
+      Form.specs.code = undefined
+    
+    if( Form.specs.API ) Form.specs.API = []
+    if( Form.specs.sockets ) Form.specs.sockets = []
+    if( Form.specs.units ) Form.specs.units = []
+    if( Form.specs.documentations ) Form.specs.documentations = []
 
     this.state.submitting = true
     
@@ -290,12 +312,32 @@ class {
       <label><Locale text="Testing"/></label>
       <br><br>
       <div.form-row>
+        <!-- Roadmap -->
+        <div.col-4.mb-50>
+          <div class="checkbox checkbox-primary">
+            <input type="checkbox"
+                    no-update
+                    id="specs.roadmap"
+                    name="specs.roadmap"
+                    checked=state.form.specs.roadmap
+                    on-change('__onChecked')/>
+            <label for="specs.roadmap" class="font-medium-1">
+              <Locale>Roadmap</Locale>
+              <br>
+              <p.font-small-3.text-muted>
+                <Locale>
+                  Plan, manage & track every aspect of the project
+                </Locale>
+              </p>
+            </label>
+          </div>
+        </div>
+
         <!-- API test -->
         <div.col-4.mb-1>
           <div class="checkbox checkbox-primary">
             <input.disabled type="checkbox"
                     no-update
-                    disabled
                     id="specs.API"
                     name="specs.API"
                     checked=state.form.specs.API
@@ -355,6 +397,30 @@ class {
             </label>
           </div>
         </div>
+
+        <!-- Utility -->
+        <if( ['application', 'plugin', 'library', 'test', 'utility'].includes( state.form.type ) )>
+          <!-- Documentation Editor test -->
+          <div.col-4.mb-50>
+            <div class="checkbox checkbox-primary">
+              <input.disabled type="checkbox"
+                      no-update
+                      id="specs.documentations"
+                      name="specs.documentations"
+                      checked=state.form.specs.documentations
+                      on-change('__onChecked')/>
+              <label for="specs.documentations" class="font-medium-1">
+                <Locale>Documentation</Locale>
+                <br>
+                <p.font-small-3.text-muted>
+                  <Locale>
+                    Generate, manage & deploy documentations for your work
+                  </Locale>
+                </p>
+              </label>
+            </div>
+          </div>
+        </if>
       </div>
     </if>
       
@@ -367,9 +433,9 @@ class {
         <Button.mx-50
                 primary=true
                 type="submit"
+                preload=(state.importing || state.submitting)
                 on-click( state.form.type && state.form.name ? 'onSubmit' : 'onImport' )>
           <Locale text=( state.form.type && state.form.name ? 'Save' : 'Import' )/>
-          <Preloader.pl-4.font-medium-4.float-right active=(state.importing || state.submitting)/>
         </Button>
       </if>
     </div>

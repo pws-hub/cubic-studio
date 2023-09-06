@@ -1,0 +1,173 @@
+class {
+  onCreate({ context }){
+    this.state = {
+      tabs: [],
+      active: null,
+      showMenu: true,
+      showSettings: false,
+      extendedBlocks: window.Store.get('extended-blocks') || []
+    }
+    GState.bind( this, ['ws'])
+
+    this.noChange = false
+    this.Actives = {}
+
+    this.pstore = context.pstore
+  }
+  onInput({ type, dataset }){
+    if( !dataset ) return
+
+    switch( type ){
+      case 'Roadmap': {
+        if( isEmpty( dataset ) ) return
+        this.Actives[ type ] = {
+          // collections: dataset.collections,
+          // dependencies: dataset.dependencies
+        }
+      } break
+
+      case 'Code': {
+        if( isEmpty( dataset ) ) return
+        this.Actives[ type ] = { 
+          directories: [ dataset.directories ],
+          dependencies: dataset.dependencies
+        }
+      } break
+          
+      case 'API': {
+        if( isEmpty( dataset ) ) return
+        this.Actives[ type ] = { 
+          collections: dataset.collections,
+          environments: dataset.environments
+        }
+      } break
+          
+      case 'Documentation': {
+        if( isEmpty( dataset ) ) return
+        this.Actives[ type ] = {
+          collections: dataset.collections,
+          dependencies: dataset.dependencies
+        }
+      } break
+    }
+    
+    this.state.active = type
+  }
+  onOpen( element ){
+    // Open file, request, ...
+    if( !element )
+      return this.clearSection('activeElement')
+    
+    const activeElement = { ...element, active: true }
+    this.setSection('activeElement', activeElement)
+
+    let
+    isActive = false,
+    focusIndex,
+    counter = 0
+    
+    const tabs = (this.getSection('tabs') || []).map( tab => {
+      // Tab already exist
+      if( tab.path === element.path ){
+        // Make tab active
+        if( !tab.active ) tab.active = true
+        // Changes state of this tab's content
+        tab.hasChanges = element.hasChanges
+          
+        isActive = true
+      }
+      
+      // Off previous active tab
+      else if( tab.active ){
+        delete tab.active
+        focusIndex = counter
+      }
+      
+      counter++
+      return tab
+    })
+    
+    // Add new active tab
+    if( !isActive )
+      focusIndex === undefined ?
+                tabs.push( activeElement ) // At the end of the chain
+                : tabs.splice( focusIndex + 1, 0, activeElement ) // Insert right after the last active tab
+
+    this.setSection('tabs', tabs )
+  }
+
+  onShowSettings(){
+    this.state.showSettings = !this.state.showSettings
+    this.emit( 'show-settings', this.state.showSettings )
+  }
+  onExtendExtraBlock( block, status ){
+    // Extend/Close extra blocks: Accordion effect
+    status === false ?
+              this.state.extendedBlocks = this.state.extendedBlocks.filter( each => { return each !== block } )
+              : !this.state.extendedBlocks.includes( block ) ? this.state.extendedBlocks.push( block ) : null
+   
+   this.setStateDirty('extendedBlocks')
+   window.Store.set( 'extended-blocks', this.state.extendedBlocks )
+  }
+}
+
+$ const { show, layouts, activeSection, sections } = input.context
+
+<!-- Superposed Active Sections -->
+<div.position-absolute.w-100.h-100.theme-bg.top-0.animated.faster.fadeIn class=(!show ? 'd-none' : false)>
+  <Row.no-gutters>
+    <!-- SideBar -->
+    <if( input.sidebar 
+          && typeof input.sidebar.renderBody == 'function' 
+          && Array.isArray( layouts )
+          && layouts.includes('sidebar') )>
+      <div.in-block.section-block.px-0.border-right style="width:24rem">
+        <div.position-relative.h-100.overflow-auto>
+          <${input.sidebar.renderBody}/>
+
+      <!-- <SideBar show=state.layouts.includes('sidebar')
+                type=state.activeSection
+                dataset=component.getSection()
+                active=component.getSection('activeElement')
+                status={
+                  device: state.deviceStatus
+                }
+                on-action('onAction')
+                on-show-settings('onSettingsToggle')/> -->
+        </div>
+      </div>
+    </if>
+
+    <!-- Main Block -->
+    <div.section-block.col.px-0.overflow-hidden>
+      <!-- Tabs Bar -->
+      <if( input.tabs )>
+        $ const tabs = sections.get('tabs')
+        <if( tabs !== undefined )>
+          <TabBar type=state.activeSection
+                  tabs=(tabs || [])
+                  on-open('onOpen')
+                  on-update('applyTabsChange')/>
+        </if>
+      </if>
+      
+      <!-- Body Container -->
+      <div style="height:calc(100% - 3rem)">
+        $ const hasActiveConsole = input.console && Array.isArray( layouts ) && layouts.includes('console')
+        
+        <if( input.content && typeof input.content.renderBody == 'function' )>
+          <div.overflow-hidden class=(hasActiveConsole ? 'h-75' : 'h-100')>
+            <${input.content.renderBody}/>
+          </div>
+        </if>
+
+        <if( hasActiveConsole )>
+          <div.h-25.border-top>
+            <Console project=state.project
+                      on-dismiss('onConsoleToggle', false )/>
+          </div>
+        </if>
+      </div>
+    </div>
+  </Row>
+</div>

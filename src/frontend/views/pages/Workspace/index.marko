@@ -54,14 +54,15 @@ class {
       const { error, message, projectId } = await RPost(`/workspaces/${this.input.params.id}/projects/create`, payload )
       if( error ) throw new Error( message )
 
-      // Close SetupProject form
-      typeof callback == 'function' && callback()
-      setTimeout( () => {
+      // setTimeout( () => {
+        // Close SetupProject form
+        typeof callback == 'function' && callback()
         this.onCreateProjectToggle( false )
+
         // Open the project
         window.Store.flash('action-flag', 'setup')
         navigate(`/workspace/${this.input.params.id}/${projectId}`)
-      }, 8000 )
+      // }, 8000 )
     }
     catch( error ){
       console.log('Failed creating project: ', error )
@@ -74,10 +75,9 @@ class {
       const { error, message, projectId } = await RPost(`/workspaces/${this.input.params.id}/projects/create`, payload )
       if( error ) throw new Error( message )
 
-      // Reset ImportProject form
-      typeof callback == 'function' && callback()
-      setTimeout( () => {
-        // Close modal
+      // setTimeout( () => {
+        // Close ImportProject form
+        typeof callback == 'function' && callback()
         this.onImportProjectToggle( false )
 
         /* Open the project:
@@ -91,10 +91,26 @@ class {
         */
         window.Store.flash('action-flag', 'import')
         navigate(`/workspace/${this.input.params.id}/${projectId}`)
-      }, 8000 )
+      // }, 8000 )
     }
     catch( error ){
       console.log('Failed creating project: ', error )
+      callback('Failed! Check your connection and try again', 'warning')
+    }
+  }
+  async onDeleteProject( id, callback ){
+    try {
+      // Delete project from database
+      const { error, message } = await RDelete(`/workspaces/${this.input.params.id}/projects/${id}`)
+      if( error ) throw new Error( message )
+
+      typeof callback == 'function' && callback()
+
+      // Refresh projects list
+      this.fetchProjects()
+    }
+    catch( error ){
+      console.log('Failed deleting project: ', error )
       callback('Failed! Check your connection and try again', 'warning')
     }
   }
@@ -183,7 +199,9 @@ class {
                       <for|each, index| of=state.projects>
                         <!-- Generate project link -->
                         $ each.link = `/workspace/${input.params.id}/${each.projectId}`
-                        <Project key=index ...each />
+                        <Project key=index
+                                  ...each
+                                  on-delete('onDeleteProject', each.projectId )/>
                       </for>
                     </ul>
                         

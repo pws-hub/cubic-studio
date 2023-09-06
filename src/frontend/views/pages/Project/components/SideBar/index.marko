@@ -16,6 +16,14 @@ class {
     if( !dataset ) return
 
     switch( type ){
+      case 'Roadmap': {
+        if( isEmpty( dataset ) ) return
+        this.Actives[ type ] = {
+          // collections: dataset.collections,
+          // dependencies: dataset.dependencies
+        }
+      } break
+
       case 'Code': {
         if( isEmpty( dataset ) ) return
         this.Actives[ type ] = { 
@@ -65,6 +73,13 @@ class {
         <div.position-absolute.theme-bg.h-100.top-0.left-0.right-0 key=type
             class=( state.active == type ? 'zindex-2' : 'zindex-1')>
           <Switch by=type>
+            <!-- Roadmap -->
+            <@case is="Roadmap">
+              <Roadmap cols=newObject( dataset )
+                        extended=(!state.extendedBlocks.includes('roadmap'))
+                        on-action( ( ...args ) => component.emit('action', 'roadmap', ...args ) )/>
+            </@case>
+
             <!-- Code Editor -->
             <@case is="Code">
               <Directories ...dataset

@@ -1,0 +1,63 @@
+
+static const Options = [
+  {
+    key: 'charter',
+    label: 'Project Charter'
+  },
+  {
+    key: 'workflows',
+    label: 'Utility & Workflows'
+  },
+  {
+    key: 'phases',
+    label: 'Execution Phases'
+  },
+  {
+    key: 'tasks',
+    label: 'Tasks & Timelines'
+  },
+  {
+    key: 'resources',
+    label: 'Project Resources'
+  },
+  {
+    key: 'risks',
+    label: 'Risks Management'
+  },
+  {
+    key: 'budget',
+    label: 'Budget & Investments'
+  },
+  {
+    key: 'marketing',
+    label: 'Marketing Strategy'
+  },
+  {
+    key: 'pricing',
+    label: 'Pricing & Revenue'
+  },
+  {
+    key: 'opportunities',
+    label: 'Opportunities'
+  },
+  {
+    key: 'insights',
+    label: 'Performance Insights'
+  }
+]
+
+<SectionLayout context=input.context>
+  <@sidebar>
+    <div.position-relative.h-100.border-top.overflow-auto>
+      <ul.list-unstyled>
+        <for|{ key, label }, index| of=Options>
+          <li.row.m-0.d-flex.align-items-center.px-1.py-75.cursor-pointer key=index>
+            <div.col><Locale.font-medium-2 text=label/></div>
+            <div.col-2.p-0.text-right><Bx.font-large-1 type="chevron-right"/></div>
+          </li>
+        </for>
+      </ul>
+    </div>
+  </@sidebar>
+  <@content><div>Roadmap</div></@content>
+</SectionLayout>

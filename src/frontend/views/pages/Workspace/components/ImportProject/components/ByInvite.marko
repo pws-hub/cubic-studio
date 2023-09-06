@@ -309,9 +309,9 @@ class {
       <Button.mx-50
               primary=true
               type="submit"
+              preload=state.submitting
               on-click('onSubmit')>
         <Locale text="Import"/>
-        <Preloader.pl-2.font-medium-4.float-right active=state.submitting/>
       </Button>
     </if>
   </div>

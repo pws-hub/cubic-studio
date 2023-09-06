@@ -1,7 +1,12 @@
 
-<button.btn.round.border-2.theme-color.cursor-pointer.scale-up
+<button.position-relative.btn.round.border-2.theme-color.cursor-pointer.scale-up.overflow-hidden
         class=`btn-${input.type || 'lg'} ${input.class} ${input.primary ? 'theme-bg-primary white-text' : 'border'}`
-        on-click( () => component.emit('click') )>
+        on-click( () => !input.preload && component.emit('click') )>
   <if( input.icon )>${input.renderBody( out )}</if>
   <else><Locale>${input.renderBody( out )}</Locale></else>
+  <if( input.preload )>
+    <div.position-absolute.top-0.left-0.w-100.h-100.theme-bg-transparent.d-flex.align-items-center.justify-content-center>
+      <Preloader.font-medium-5 style="margin-top:-4px;line-height:initial!important" active/>
+    </div>
+  </if>
 </button>

@@ -44,6 +44,7 @@ export default Self => {
     Self.setSection('tabs', tabs )
   }
 
+  Self.hasRoadmapSection = () => { return State.project && State.project.specs.roadmap && !isEmpty( State.project.specs.roadmap ) }
   Self.hasCodeSection = () => { return State.project && State.project.specs.code && !isEmpty( State.project.specs.code ) }
   Self.hasAPISection = () => { return State.project && Array.isArray( State.project.specs.API ) }
   Self.hasSocketSection = () => { return State.project && Array.isArray( State.project.specs.sockets ) }

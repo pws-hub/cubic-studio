@@ -1,173 +1,10 @@
 
 import PStore from 'all-localstorage'
+import SectionManager from 'frontend/lib/SectionManager'
 
 export default Self => {
 
-  async function initCodeWS(){
-    // Declare filesystem I/O handler at the project's current working directory
-    if( !State.project.specs.code ) return
-    const cwd = State.project.specs.code.directory
-
-    Self.fs = await window.FileSystem.init( 'project', { cwd, debug: true } )
-
-    // Get project environment configuration
-    State.env = await Self.fs.readFile( '.cubic', { encoding: 'json' } )
-    // Declare Project's background Process Manager
-    Self.pm = await window.IProcess.create({ debug: true })
-
-    // Watch external/background operations on this directory
-    let wait = 0
-    Self.fs.watch( async ( event, path, stats ) => {
-      debugLog(`[DIRECTORY Event] ${event}: ${path}`, stats )
-
-      switch( event ) {
-        // New file/dir added: Refresh directory tree
-        case 'add':
-        case 'addDir': wait && clearTimeout( wait )
-                        await Self.getDirectory()
-            break
-        /**
-         * Wait for `add` event to conclude file/dir moved:
-         *  In that case `add event` will refresh the directory.
-         *  otherwise, conclude `delete`
-         */
-        case 'unlink': wait = setTimeout( async () => await Self.getDirectory(), 2000 ); break
-
-      }
-    } )
-  }
-  async function initCodeSection(){
-    // Initialize project's coding section
-    State.sections.push('Code')
-    // Default section
-    !State.activeSection && Self.setState('activeSection', 'Code')
-    // Coding workspace
-    await initCodeWS()
-
-    const AUTORUN = true
-
-    // Load project directory
-    await Self.getDirectory()
-
-    // Project has no directory: Setup or Import (Depending of flag value)
-    if( isEmpty( State.Code.directories ) ) {
-      if( !Self.flag ) {
-        // TODO: Prompt modal for user to select project directory or setup new
-        Self.onShowResetProjectToggle( true )
-        return
-      }
-    }
-    // Import if project have no package.json file at the directory root
-    else if( !( await Self.fs.readFile( 'package.json', { encoding: 'json' } ) ) )
-      Self.flag = 'import'
-
-    // Flag when something fishing about the setup
-    if( ['setup', 'import'].includes( Self.flag ) ) {
-      // Importing project from specified repo (import) or setup new (default)
-      const action = Self.flag || 'setup'
-
-      // Setup a completely new project
-      Self.ongoing({ headline: 'Setting up the project' })
-      await delay(3)
-      await Self.pm[ action ]( State.project, ( error, stats ) => {
-
-
-        if( error ) {
-          // TODO: Manage process exception errors
-          console.log('--Progress Error: ', error )
-          Self.ongoing({ error: typeof error == 'object' ? error.message : error })
-          return
-        }
-
-        // TODO: Display progression stats
-        Self.ongoing({ headline: `[${stats.percent}%] ${stats.message}` })
-        Self.progression( stats )
-      } )
-
-      debugLog('-- Completed indeed --')
-
-      // Automatically run project in 3 second
-      await delay(3)
-      Self.ongoing( false )
-      AUTORUN && Self.DeviceOperator('start', true )
-    }
-    // Reload cached device state of this project
-    else {
-      const cachedEMImage = Self.pstore.get('device')
-      if( AUTORUN && cachedEMImage )
-        window.env == 'production' ?
-                      Self.DeviceOperator('restart') // Reload backend process
-                      : Self.DeviceOperator('start') // Connect frontend to process or run process if not available
-    }
-
-    // Mount project's last states of the active section
-    Self.initSection('tabs', [] )
-    Self.initSection('activeConsole', [] )
-    Self.initSection('activeElement', null )
-
-    // Load project dependencies
-    await Self.getDependencies('Code')
-  }
-
-  async function initAPIWS(){
-
-  }
-  async function initAPISection(){
-    // Initialize project's API Test section
-    State.sections.push('API')
-    // Default section
-    !State.activeSection && Self.setState('activeSection', 'API')
-    // API Test workspace
-    await initAPIWS()
-
-    // Fetch API data
-
-    State.API.collections = [{ name: 'Wigo' }, { name: 'Multipple' }]
-    State.API.environments = [{ name: 'Wigo Dev' }, { name: 'Wigo Pro' }]
-
-    // Mount project's last states of the active section
-    Self.initSection('tabs', [] )
-    Self.initSection('activeConsole', [] )
-    Self.initSection('activeElement', null )
-  }
-
-  async function initSocketWS(){
-
-  }
-  async function initSocketSection(){
-    // Initialize project's Sockets Test section
-    State.sections.push('Socket')
-    // Default section
-    !State.activeSection && Self.setState('activeSection', 'Socket')
-    // Socket Test workspace
-    await initSocketWS()
-
-    // Mount project's last states of the active section
-    Self.initSection('tabs', [] )
-    Self.initSection('activeConsole', [] )
-    Self.initSection('activeElement', null )
-  }
-
-  async function initDocWS(){
-
-  }
-  async function initDocSection(){
-    // Initialize project's Documentation Editor section
-    State.sections.push('Documentation')
-    // Default section
-    !State.activeSection && Self.setState('activeSection', 'Documentation')
-    // Documentation Editor workspace
-    await initDocWS()
-
-    // Mount project's last states of the active section
-    Self.initSection('activeElement', null )
-
-    // Load project dependencies
-    await Self.getDependencies('Documentation')
-  }
-
-  Self.fs = false
-  Self.pm = false
+  Self.sm = false
   Self.pstore = false
 
   const State = Self.state
@@ -178,8 +15,6 @@ export default Self => {
       if( error ) throw new Error( message )
 
       State.project = project
-      // Locale store for only this project
-      Self.pstore = new PStore({ prefix: `cs-${project.name}`, encrypt: true })
       await Self.SetupProject()
     }
     catch( error ) {
@@ -250,14 +85,12 @@ export default Self => {
     try {
       if( flag ) Self.flag = flag
 
-      // Init Code related project's section
-      Self.hasCodeSection() && await initCodeSection()
-      // Init API related project's section
-      Self.hasAPISection() && await initAPISection()
-      // Init Socket related project's section
-      Self.hasSocketSection() && await initSocketSection()
-      // Init Documentation related project's section
-      Self.hasDocSection() && await initDocSection()
+      // Locale store for only this project
+      Self.pstore = new PStore({ prefix: `cs-${State.project.name}`, encrypt: true })
+
+      // Initialize project sections
+      Self.sm = new SectionManager( Self )
+      await Self.sm.init()
 
       // Close active ResetProject modal
       Self.onShowResetProjectToggle( false )
@@ -311,6 +144,7 @@ export default Self => {
     // Reset operators
     Self.fs = false // File System (fs)
     Self.pm = false // Process Manager (pm)
+    Self.sm = false // Section Manager (sm)
     Self.em = false // Device Manager (em)
     Self.dpm = false // Dependency Package Manager (dpm)
     await delay(2)

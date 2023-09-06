@@ -204,9 +204,9 @@ class {
         <Button.mx-50
                 primary=true
                 type="submit"
+                preload=(state.importing || state.submitting)
                 on-click( state.form.type && state.form.name ? 'onSubmit' : 'onImport' )>
           <Locale text=( state.form.type && state.form.name ? 'Save' : 'Import' )/>
-          <Preloader.pl-4.font-medium-4.float-right active=(state.importing || state.submitting)/>
         </Button>
       </if>
     </div>

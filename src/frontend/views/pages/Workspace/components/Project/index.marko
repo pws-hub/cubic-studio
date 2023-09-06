@@ -1,18 +1,31 @@
 
-static const Menu = [
-  {
-    id: 'VIEW_ACTIVITIES',
-    label: 'Activities',
-    fn: onHandleMenu
-  },
-  {
-    id: 'DELETE_PROJECT',
-    label: 'Delete Project',
-    fn: onHandleMenu,
-    divider: true
+class {
+  onCreate(){
+    this.state = { deleting: false }
+
+    this.Menu = [
+      {
+        id: 'VIEW_ACTIVITIES',
+        label: 'Activities',
+        fn: this.onHandleMenu.bind(this)
+      },
+      {
+        id: 'DELETE_PROJECT',
+        label: 'Delete Project',
+        fn: this.onHandleMenu.bind(this),
+        divider: true
+      }
+    ]
   }
-]
-static function onHandleMenu( id ){ console.log( id ) }
+  onHandleMenu( id ){
+    switch( id ){
+      case 'DELETE_PROJECT': 
+          this.state.deleting = true
+          this.emit('delete', (function(){ this.state.deleting = false }).bind(this) )
+        break
+    }
+  }
+}
 
 <li.nav-item.cursor-pointer.w-100.round-sm>
   <Row.m-0.d-flex.align-items-center>
@@ -23,10 +36,15 @@ static function onHandleMenu( id ){ console.log( id ) }
       <Members list=input.members/>
 
       <span.position-relative.px-25.cursor-pointer>
-        <DropdownMenu.font-large-1.p-50
-                      vertical
-                      right
-                      menu=Menu/>
+        <if( state.deleting )>
+          <Preloader.font-medium-4.m-1 active/>
+        </if>
+        <else>
+          <DropdownMenu.font-large-1.p-50
+                        vertical
+                        right
+                        menu=component.Menu/>
+        </else>
       </span>
     </@col>
   </Row>

@@ -18,7 +18,7 @@ yarn install
 `npm install` for those who prefere it.
 
 
-At the project root, look for the file with the name `.env.sample`. Remove the `.sample` 
+At the project root, look for the file with the name `.env.dev`. Remove the `.dev` 
 from the file name and it becomes your `.env` file and contains the necessary environment variables to run the project.
 
 Then run the command below to start the app

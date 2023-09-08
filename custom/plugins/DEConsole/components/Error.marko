@@ -1,0 +1,31 @@
+
+$ const { type, name, error, status } = input
+
+<if( type === 'error' )>
+  <div.px-1.py-25>
+    <ul.list-inline.d-inline-flex.align-items-start>
+      <!-- Source -->
+      <li>[${name}]</li>
+      <li.px-1>
+        <!-- Error name -->
+        <span>${error.name}: </span>
+        <!-- Error message -->
+        <span.px-50 class=( status && status !== 'normal' ? `text-${status}` : false )>${error.message}</span>
+        
+        <!-- Error stack trace -->
+        <if( Array.isArray( error.stack ) && error.stack.length )>
+          <ul.list-unstyled.m-0>
+            <for|{ func, line, column, path }, index| of=error.stack>
+              <li.d-block key=index>
+                <span.text-muted>${func}</span>
+                <u.text-info.cursor-pointer
+                    style="padding-left:4rem"
+                    title=`${input.cwd}/${path}`>${path} [${line}:${column}]</u>
+              </li>
+            </for>
+          </ul>
+        </if>
+      </li>
+    </ul>
+  </div>
+</if>

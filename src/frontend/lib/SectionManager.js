@@ -1,39 +1,41 @@
+import PStore from 'all-localstorage'
 
-export default function SectionManager( Self ){
+export default function SectionManager( __ ){
 
-  Self.fs = false
+  __.fs = false
+  __.pstore = false
 
-  const State = Self.state
+  const State = __.state
 
   async function initCodeWS(){
     // Declare filesystem I/O handler at the project's current working directory
     if( !State.project.specs.code ) return
     const cwd = State.project.specs.code.directory
 
-    Self.fs = await window.FileSystem.init( 'project', { cwd, debug: true } )
+    __.fs = await window.FileSystem.init( 'project', { cwd, debug: true } )
 
     // Get project environment configuration
-    State.env = await Self.fs.readFile( '.cubic', { encoding: 'json' } )
+    State.env = await __.fs.readFile( '.cubic', { encoding: 'json' } )
     // Declare Project's background Process Manager
-    Self.pm = await window.IProcess.create({ debug: true })
+    __.pm = await window.IProcess.create({ debug: true })
 
     // Watch external/background operations on this directory
     let wait = 0
-    Self.fs.watch( async ( event, path, stats ) => {
+    __.fs.watch( async ( event, path, stats ) => {
       debugLog(`[DIRECTORY Event] ${event}: ${path}`, stats )
 
       switch( event ) {
         // New file/dir added: Refresh directory tree
         case 'add':
         case 'addDir': wait && clearTimeout( wait )
-                        await Self.getDirectory()
+                        await __.getDirectory()
             break
         /**
          * Wait for `add` event to conclude file/dir moved:
          *  In that case `add event` will refresh the directory.
          *  otherwise, conclude `delete`
          */
-        case 'unlink': wait = setTimeout( async () => await Self.getDirectory(), 2000 ); break
+        case 'unlink': wait = setTimeout( async () => await __.getDirectory(), 2000 ); break
 
       }
     } )
@@ -42,73 +44,66 @@ export default function SectionManager( Self ){
     // Initialize project's coding section
     State.sections.push('Code')
     // Default section
-    !State.activeSection && Self.setState('activeSection', 'Code')
+    !State.activeSection && __.setState('activeSection', 'Code')
     // Coding workspace
     await initCodeWS()
 
     const AUTORUN = true
 
     // Load project directory
-    await Self.getDirectory()
+    await __.getDirectory()
 
     // Project has no directory: Setup or Import (Depending of flag value)
     if( isEmpty( State.Code.directories ) ) {
-      if( !Self.flag ) {
+      if( !__.flag ) {
         // TODO: Prompt modal for user to select project directory or setup new
-        Self.onShowResetProjectToggle( true )
+        __.onShowResetProjectToggle( true )
         return
       }
     }
     // Import if project have no package.json file at the directory root
-    else if( !( await Self.fs.readFile( 'package.json', { encoding: 'json' } ) ) )
-      Self.flag = 'import'
+    else if( !( await __.fs.readFile( 'package.json', { encoding: 'json' } ) ) )
+      __.flag = 'import'
 
     // Flag when something fishing about the setup
-    if( ['setup', 'import'].includes( Self.flag ) ) {
+    if( ['setup', 'import'].includes( __.flag ) ) {
       // Importing project from specified repo (import) or setup new (default)
-      const action = Self.flag || 'setup'
+      const action = __.flag || 'setup'
 
       // Setup a completely new project
-      Self.ongoing({ headline: 'Setting up the project' })
+      __.ongoing({ headline: 'Setting up the project' })
       await delay(3)
-      await Self.pm[ action ]( State.project, ( error, stats ) => {
-
-
+      await __.pm[ action ]( State.project, ( error, stats ) => {
         if( error ) {
           // TODO: Manage process exception errors
           console.log('--Progress Error: ', error )
-          Self.ongoing({ error: typeof error == 'object' ? error.message : error })
+          __.ongoing({ error: typeof error == 'object' ? error.message : error })
           return
         }
 
         // TODO: Display progression stats
-        Self.ongoing({ headline: `[${stats.percent}%] ${stats.message}` })
-        Self.progression( stats )
+        __.ongoing({ headline: `[${stats.percent}%] ${stats.message}` })
+        __.progression( stats )
       } )
 
       debugLog('-- Completed indeed --')
 
       // Automatically run project in 3 second
       await delay(3)
-      Self.ongoing( false )
-      AUTORUN && Self.DeviceOperator('start', true )
+      __.ongoing( false )
+      AUTORUN && __.DeviceOperator('start', true )
     }
     // Reload cached device state of this project
     else {
-      const cachedEMImage = Self.pstore.get('device')
+      const cachedEMImage = __.pstore.get('device')
       if( AUTORUN && cachedEMImage )
         window.env == 'production' ?
-                      Self.DeviceOperator('restart') // Reload backend process
-                      : Self.DeviceOperator('start') // Connect frontend to process or run process if not available
+                      __.DeviceOperator('restart') // Reload backend process
+                      : __.DeviceOperator('start') // Connect frontend to process or run process if not available
     }
 
-    // Mount project's last states of the active section
-    // define('tabs', [] )
-    // define('activeConsole', [] )
-    // define('activeElement', null )
-
     // Load project dependencies
-    await Self.getDependencies('Code')
+    await __.getDependencies('Code')
   }
 
   async function initAPIWS(){
@@ -118,7 +113,7 @@ export default function SectionManager( Self ){
     // Initialize project's API Test section
     State.sections.push('API')
     // Default section
-    !State.activeSection && Self.setState('activeSection', 'API')
+    !State.activeSection && __.setState('activeSection', 'API')
     // API Test workspace
     await initAPIWS()
 
@@ -126,11 +121,6 @@ export default function SectionManager( Self ){
 
     State.API.collections = [{ name: 'Wigo' }, { name: 'Multipple' }]
     State.API.environments = [{ name: 'Wigo Dev' }, { name: 'Wigo Pro' }]
-
-    // Mount project's last states of the active section
-    // define('tabs', [] )
-    // define('activeConsole', [] )
-    // define('activeElement', null )
   }
 
   async function initSocketWS(){
@@ -140,14 +130,9 @@ export default function SectionManager( Self ){
     // Initialize project's Sockets Test section
     State.sections.push('Socket')
     // Default section
-    !State.activeSection && Self.setState('activeSection', 'Socket')
+    !State.activeSection && __.setState('activeSection', 'Socket')
     // Socket Test workspace
     await initSocketWS()
-
-    // Mount project's last states of the active section
-    // define('tabs', [] )
-    // define('activeConsole', [] )
-    // define('activeElement', null )
   }
 
   async function initDocWS(){
@@ -157,15 +142,12 @@ export default function SectionManager( Self ){
     // Initialize project's Documentation Editor section
     State.sections.push('Documentation')
     // Default section
-    !State.activeSection && Self.setState('activeSection', 'Documentation')
+    !State.activeSection && __.setState('activeSection', 'Documentation')
     // Documentation Editor workspace
     await initDocWS()
 
-    // Mount project's last states of the active section
-    // define('activeElement', null )
-
     // Load project dependencies
-    await Self.getDependencies('Documentation')
+    await __.getDependencies('Documentation')
   }
 
   async function initRoadmapWS(){
@@ -175,7 +157,7 @@ export default function SectionManager( Self ){
     // Initialize project's Roadmap section
     State.sections.push('Roadmap')
     // Default section
-    !State.activeSection && Self.setState('activeSection', 'Roadmap')
+    !State.activeSection && __.setState('activeSection', 'Roadmap')
     // Roadmap workspace
     await initRoadmapWS()
   }
@@ -187,11 +169,10 @@ export default function SectionManager( Self ){
   this.hasUnit = () => { return State.project && Array.isArray( State.project.specs.units ) }
   this.hasDoc = () => { return State.project && Array.isArray( State.project.specs.documentations ) }
 
-  // define = ( key, defaultValue = null ) => {
-  //   this.set( key, Self.pstore.get( key ) || defaultValue )
-  // }
-
   this.init = async () => {
+    // Locale store for only this project
+    __.pstore = new PStore({ prefix: `cs-${State.project.name}`, encrypt: true })
+
     // Init roadmap related project's section
     this.hasRoadmap() && await initRoadmap()
     // Init Code related project's section
@@ -203,27 +184,49 @@ export default function SectionManager( Self ){
     // Init Documentation related project's section
     this.hasDoc() && await initDoc()
   }
-
+  this.define = ( key, defaultValue = null ) => {
+    this.set( key, __.pstore.get(`${State.activeSection}:${key}`) || defaultValue )
+  }
   this.set = ( key, value ) => {
     // if( !State[ State.activeSection ] ) return
 
     State[ State.activeSection ][ key ] = value
-    Self.setStateDirty( State.activeSection )
-    Self.pstore.set( key, value )
+    __.setStateDirty( State.activeSection )
+    __.pstore.set(`${State.activeSection}:${key}`, value )
   }
-  this.get = key => {
-    return key !== undefined && State[ State.activeSection ] ?
-        State[ State.activeSection ][ key ] // Specific field of the section
-        : State[ State.activeSection ] // All section set
+
+  this.get = ( key, section = null ) => {
+    return key !== undefined && State[ section || State.activeSection ] ?
+        State[ section || State.activeSection ][ key ] // Specific field of the section
+        : State[ section || State.activeSection ] // All section set
   }
   this.clear = key => {
     // Specific field of the section
     if( key ) {
       State[ State.activeSection ][ key ] = null
-      Self.pstore.clear( key )
+      __.pstore.clear(`${State.activeSection}:${key}`)
     }
     else State[ State.activeSection ] = {}
 
-    Self.setStateDirty( State.activeSection )
+    __.setStateDirty( State.activeSection )
+  }
+
+  this.applyTabChange = arg => {
+    // Apply and reflect changes on tabs
+    if( typeof arg !== 'object' ) return
+
+    let tabs = []
+    Array.isArray( arg ) ?
+            tabs = newObject( arg ) // Update the whole tabs list
+            // Change on single tab
+            : tabs = (this.get('tabs') || []).map( tab => {
+              // Tab already exist
+              if( tab.path === arg.path )
+                return arg
+
+              return tab
+            } )
+
+    this.set('tabs', tabs )
   }
 }

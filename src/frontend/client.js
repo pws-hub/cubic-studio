@@ -64,7 +64,6 @@ function getInitialScope(){
 }
 
 function initScreenSet( e ){
-
   const
   $window = $( e && e.target ? this : document ),
   width = $window.width(),

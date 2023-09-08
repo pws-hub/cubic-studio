@@ -3,7 +3,7 @@
 <context on-update( packages => component.emit('action', 'update', packages ) )
           on-remove( packages => component.emit('action', 'remove', packages ) )>
   <div.position-relative.border-top.overflow-auto
-      style=`height:${input.extended ? '40%' : '3rem'}`>
+      style=`height:${input.expanded ? '40%' : '3rem'}`>
     <div.position-sticky.zindex-2.top-0.w-100.theme-bg.d-flex.align-items-center.border-bottom.px-1 style="height:3rem">
       <div.w-100.d-flex.align-items-center>
         <div.w-70>
@@ -25,14 +25,14 @@
 
           <!-- Open/Close deps row button -->
           <Bx.font-medium-5.cursor-pointer.px-50
-              type=`chevron-${!input.extended ? 'up' : 'down'}`
-              title=( !input.extended ? 'Show' : 'Close' )
-              on-click( () => component.emit( 'extends', !input.extended ) )/>
+              type=`chevron-${!input.expanded ? 'up' : 'down'}`
+              title=( !input.expanded ? 'Show' : 'Close' )
+              on-click( () => component.emit( 'extends', !input.expanded ) )/>
         </div>
       </div>
     </div>
 
-    <if( input.extended )>
+    <if( input.expanded )>
       <if( Array.isArray( input.deps ) && input.deps.length  )>
         <ul.list-unstyled.py-1>
           <for|dependency| of=input.deps>

@@ -1,11 +1,11 @@
 
 class {
-  onInput({ type, _new, name, content, lock }){
+  onInput({ contentType, _new, name, content, lock }){
     this.initialName = name
-    this.storeAttr = 'collection--'+ name
+    this.storeAttr = 'category--'+ name
     
     this.setState({
-      type,
+      type: 'category',
       name,
       open: window.Store.get( this.storeAttr ) || false,
       rename: _new || false,
@@ -14,7 +14,7 @@ class {
 
     this.setMenu( lock )
   }
-  setMenu( lock ){
+  setMenu( contentType, lock ){
     this.menu = [
       {
         id: 'ADD_CATEGORY',
@@ -23,8 +23,8 @@ class {
       },
       {
         id: 'ADD_CONTENT',
-        label: 'Add '+ this.state.type,
-        fn: () => this.onAddNew( this.state.type )
+        label: 'Add '+ contentType,
+        fn: () => this.onAddNew( contentType )
       }
     ]
 
@@ -32,12 +32,12 @@ class {
       this.menu = [
         ...(this.menu),
         {
-          id: 'RENAME_COLLECTION',
+          id: 'RENAME_CATEGORY',
           label: 'Rename',
           fn: (function(){ this.onRenameToggle( true ) }).bind(this)
         },
         {
-          id: 'DELETE_COLLECTION',
+          id: 'DELETE_CATEGORY',
           label: 'Delete',
           divider: true,
           fn: (function(){ this.contextEmit( 'delete', this.input.itemkey ) }).bind(this) // Apply change via FS
@@ -100,7 +100,7 @@ class {
     if( this.state.open ){
       window.Store.clear( this.storeAttr )
       
-      this.storeAttr = 'collection--'+ this.state.name
+      this.storeAttr = 'category--'+ this.state.name
       window.Store.set( this.storeAttr, true )
     }
 
@@ -120,18 +120,18 @@ class {
   }
 }
 
-<context|{ active }, emit| from="Collections">
+<context|{ active }, emit| from="CollectionTree">
   <!-- Attach context emitter to class component -->
   $ component.contextEmit = emit
   
-  <li.hover-tree data-item-key=input.itemkey>
-    <div.position-relative.zindex-1.hover-toggle.py-75.d-flex.align-items-center.nav-item.cursor-pointer 
-        class=(state.open ? 'theme-bg-fade' : false )>
-      <Bx.font-medium-5
-          type=`list-minus`
-          style="padding:0 .4rem 0 .95rem"
+  <li.hover-tree
+      data-item-key=input.itemkey
+      style="padding-left:1rem">
+    <div.position-relative.py-75.zindex-1.hover-toggle.d-flex.align-items-center.cursor-pointer.theme-bg>
+      <Bx.font-medium-5.pl-50.pr-2 
+          type=`chevron-${state.open ? 'down' : 'right'}`
           on-click('onShowContent')/>
-          
+
       <if( state.rename )>
         <input.w-100.px-50.mr-75.theme-bg.border.shadow-none 
               type="text" 
@@ -144,8 +144,6 @@ class {
       <else>
         <!-- Name -->
         <div.font-medium-1.text-ellipsis.w-75 on-click('onShowContent')>${state.name}</div>
-        <!-- Favorite -->
-        <Bx.hover-show.font-medium-2.px-50.float-right type="star"/>
         <!-- Collection options menu -->
         <DropdownMenu.hover-show.font-medium-5.px-75.float-right
                       vertical
@@ -155,24 +153,13 @@ class {
     </div>
 
     <if( state.open )>
-      <ul.move-element.list-unstyled.mb-3.ml-3.animated.slideInDown.faster style="padding-left:2rem"
+      <ul.move-element.list-unstyled.mb-3.my-0.animated.slideInDown.faster style="padding-left:2rem"
           data-parent-key=input.itemkey>
         <Sortable containerClass="move-element"
                   axis="Y"
                   on-change('onMove')>
-          <for|element, index| of=state.content>
-            <@item>
-              <Switch by=element.type>
-                <@case is="category">
-                  <Category key=index
-                            contentType=state.type
-                            ...element/>
-                </@case>
-                <@case is="request"><RequestOutline key=index ...element/></@case>
-                <@case is="documentation"><DocumentationOutline key=index ...element/></@case>
-              </Switch>
-            </@item>
-          </for>
+          <RequestOutline ...{ type: 'GET', name: 'Request One Name', saves: [ 'hello' ] }/>
+          <RequestOutline ...{ type: 'PUT', name: 'Request Three Name' }/>
         </Sortable>
       </ul>
     </if>

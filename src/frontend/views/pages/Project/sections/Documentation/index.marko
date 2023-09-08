@@ -1,0 +1,25 @@
+
+
+<SectionLayout context=input.context>
+  <@sidebar|{ collections, dependencies }|>
+    <CollectionTree cols=collections
+                    expanded
+                    on-extends('onExtendExtraBlock', 'dependencies')
+                    on-open( element => component.emit( 'action', 'open', element ) )/>
+
+    <DependencyTree deps=dependencies
+                    expanded
+                    on-extends('onExtendExtraBlock', 'dependencies')
+                    on-add( () => component.emit( 'action', 'features', 'dependency' ) )
+                    on-action( ( ...args ) => component.emit( 'action', 'packages', ...args ) )/>
+  </@sidebar>
+
+  <@content>
+    <div.position-relative.h-100>
+      <iframe key="container"
+              src=`data:text/html;charset=utf-8,${encodeURIComponent('<html><body><h1>Salut fabrice!</h1></body></html>')}`
+              frameborder=0
+              class="w-100 h-100"></iframe>
+    </div>
+  </@content>
+</SectionLayout>

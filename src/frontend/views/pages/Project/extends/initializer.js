@@ -1,49 +1,49 @@
 
-import PStore from 'all-localstorage'
 import SectionManager from 'frontend/lib/SectionManager'
+import WorkspaceManager from 'frontend/lib/WorkspaceManager'
 
-export default Self => {
+export default __ => {
 
-  Self.sm = false
-  Self.pstore = false
+  __.ws = new WorkspaceManager( __ )
+  __.sm = new SectionManager( __ )
 
-  const State = Self.state
+  const State = __.state
 
-  Self.getProject = async ( workspaceId, projectId ) => {
+  __.getProject = async ( workspaceId, projectId ) => {
     try {
       const { error, message, project } = await RGet(`/workspaces/${workspaceId}/projects/${projectId}`)
       if( error ) throw new Error( message )
 
       State.project = project
-      await Self.SetupProject()
+      await __.SetupProject()
     }
     catch( error ) {
       console.log('Failed retreiving project: ', error )
       State.project = null
 
-      Self.ongoing({ headline: 'Project Not Found', noLoading: true })
+      __.ongoing({ headline: 'Project Not Found', noLoading: true })
     }
   }
-  Self.getDirectory = async path => {
+  __.getDirectory = async path => {
     // Get project directory content
-    if( !Self.fs ) return
+    if( !__.fs ) return
 
     const dirOptions = {
       ignore: '\\.git|(.+)\\.lock|\\.sandbox|node_modules',
       subdir: true
     }
 
-    State.Code.directories = await Self.fs.directory( path || null, dirOptions )
+    State.Code.directories = await __.fs.directory( path || null, dirOptions )
     State.Code = newObject( State.Code )
   }
-  Self.getDependencies = async section => {
+  __.getDependencies = async section => {
     // Get project dependencies in package.json
-    if( !Self.fs ) return
+    if( !__.fs ) return
 
     switch( section || State.activeSection ) {
       // JS/TS project dependencies
       case 'Code': {
-        const packageJson = await Self.fs.readFile( 'package.json', { encoding: 'json' } )
+        const packageJson = await __.fs.readFile( 'package.json', { encoding: 'json' } )
         if( !packageJson )
           throw new Error('[Dependency] No package.json file found at the project root')
 
@@ -54,7 +54,7 @@ export default Self => {
           // Get more information about the package in node_modules
           let dep = { name, version: version.replace('^', ''), dev }
           try {
-            const { description, repository } = await Self.fs.readFile(`./node_modules/${name}/package.json`, { encoding: 'json' } )
+            const { description, repository } = await __.fs.readFile(`./node_modules/${name}/package.json`, { encoding: 'json' } )
             dep = { ...dep, description, repository }
           }
           catch( error ) {
@@ -81,44 +81,40 @@ export default Self => {
       }
     }
   }
-  Self.SetupProject = async flag => {
+  __.SetupProject = async flag => {
     try {
-      if( flag ) Self.flag = flag
-
-      // Locale store for only this project
-      Self.pstore = new PStore({ prefix: `cs-${State.project.name}`, encrypt: true })
+      if( flag ) __.flag = flag
 
       // Initialize project sections
-      Self.sm = new SectionManager( Self )
-      await Self.sm.init()
+      await __.sm.init()
 
       // Close active ResetProject modal
-      Self.onShowResetProjectToggle( false )
+      __.onShowResetProjectToggle( false )
     }
     catch( error ) {
       console.log('Failed setting up project: ', error )
-      Self.ongoing({
+      __.ongoing({
         noLoading: true,
         headline: 'Project setup failed',
         error: error.message
       })
     }
   }
-  Self.DeleteProject = async () => {
+  __.DeleteProject = async () => {
     // Close running device
-    Self.ongoing({ headline: 'Dropping all running device instances' })
-    await Self.DeviceOperator('stop')
+    __.ongoing({ headline: 'Dropping all running device instances' })
+    await __.DeviceOperator('stop')
     await delay(2)
 
     // Clear store
-    Self.ongoing({ headline: 'Flushing project cache' })
-    Self.pstore.flush(`cs-${State.project.name}`)
+    __.ongoing({ headline: 'Flushing project cache' })
+    __.pstore.flush(`cs-${State.project.name}`)
     await delay(3)
 
     // Clear directory
-    Self.ongoing({ headline: 'Clearing project directory' })
-    await Self.fs.remove('')
-    Self.setState({
+    __.ongoing({ headline: 'Clearing project directory' })
+    await __.fs.remove('')
+    __.setState({
       tabs: [],
       Code: {},
       API: {}
@@ -126,7 +122,7 @@ export default Self => {
     await delay(5)
 
     // Delete project specs from cubic server
-    Self.ongoing({ headline: 'Deleting project specifications from cubic servers' })
+    __.ongoing({ headline: 'Deleting project specifications from cubic servers' })
     try {
       const
       url = `/workspaces/${State.workspace.workspaceId}/projects/${State.project.projectId}`,
@@ -138,19 +134,19 @@ export default Self => {
     await delay(3)
 
     // Clear open tabs
-    Self.ongoing({ headline: 'Clearing project workspace' })
+    __.ongoing({ headline: 'Clearing project workspace' })
     State.project = false
 
     // Reset operators
-    Self.fs = false // File System (fs)
-    Self.pm = false // Process Manager (pm)
-    Self.sm = false // Section Manager (sm)
-    Self.em = false // Device Manager (em)
-    Self.dpm = false // Dependency Package Manager (dpm)
+    __.fs = false // File System (fs)
+    __.pm = false // Process Manager (pm)
+    __.sm = false // Section Manager (sm)
+    __.em = false // Device Manager (em)
+    __.dpm = false // Dependency Package Manager (dpm)
     await delay(2)
 
     // Move back to workspace
-    Self.ongoing( false )
+    __.ongoing( false )
     navigate(`/workspace/${State.workspace.workspaceId}`)
   }
 }

@@ -1,0 +1,45 @@
+
+class {
+  onCreate(){ this.state = { showData: false } }
+  onShowData(){ this.state.showData = !this.state.showData }
+}
+
+<if( input.type === 'debug' )>
+  <Row.m-0.no-gutters.nav-item.py-25>
+    <@col.col-9>
+      <div>
+        <!-- Source -->
+        <span.px-1>[${input.name}]</span>
+        <span.w-70.overflow-auto>
+          <!-- Debug message -->
+          <span.px-50 class=( input.status && input.status !== 'normal' ? `text-${input.status}` : false )>${input.message}</span>
+          <!-- Debug Data -->
+          <if( input.data )>
+            <!-- <string> or <number> -->
+            <if( typeof input.data != 'object' )><span>${input.data}</span></if>
+            <!-- Show or hide Object/Array data -->
+            <else>
+              <span.px-75.py-25.mx-50.theme-bg-lighten.round.text-italic.cursor-pointer.font-small-2
+                    on-click('onShowData')>${typeof input.data}</span>
+            </else>
+          </if>
+        </span>
+      </div>
+    </@col>
+    <!-- Debug trace -->
+    <@col.col-3.text-right>
+      <if( input.trace )>
+        <u.d-block.cursor-pointer.text-muted.w-100.text-ellipsis.left.px-1
+          title=`${input.cwd}/${input.trace}`>${input.trace}</u>
+      </if>
+    </@col>
+    <!-- Debug Data: <object> or <array> -->
+    <@col.col-12>
+      <if( input.data && typeof input.data == 'object' && state.showData )>
+        <div.w-100.mt-50.theme-bg style="overflow-x:auto">
+          <div.px-1><DataByType value=input.data expand/></div>
+        </div>
+      </if>
+    </@col>
+  </Row>
+</if>

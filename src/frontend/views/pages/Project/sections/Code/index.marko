@@ -5,6 +5,7 @@ import defineTheme from './lib/defineTheme'
 import setupWorkers from './lib/setupWorkers'
 import controlActions from './lib/controlActions'
 import * as GMLoader from './lib/grammarLoader'
+import DEConsole from 'plugins/DEConsole'
 
 static const defaultOptions = {
   fontSize: 14,
@@ -13,7 +14,10 @@ static const defaultOptions = {
 
 class {
   onCreate({ file, language, options }){
-    this.state = { isMediaFile: false }
+    this.state = { 
+      paths: [],
+      isMediaFile: false
+    }
 
     // File input value is explicitly `null` by default
     this.file = file || null
@@ -38,10 +42,17 @@ class {
       'semanticHighlighting.enabled': true
     }
   }
-  onInput({ file, fs }){
+  onInput({ context }){
+
+    this.fs = context.fs
+    this.sm = context.sm
+    this.ws = context.ws
+
+    const file = this.sm.get('activeElement')
+    this.state.paths = (this.sm.get('tabs') || [] ).map( ({ path }) => { return path } )
+
     // Re-ajust editor block: Eg. Console close or open
     this.adjustEditorLayout()
-    this.fs = fs
     
     // Dispose editor when `file` value is explicitly `null`
     if( file === null && this.editor ){
@@ -117,9 +128,8 @@ class {
     monaco.languages.typescript.javascriptDefaults.setCompilerOptions( compilerDefaults )
   }
   isLoadedModel( path ){
-    return this.input
-            && this.input.paths
-            && this.input.paths.includes( path )
+    return Array.isArray( this.state.paths )
+            && this.state.paths.includes( path )
             && !!( monaco.editor.getModel( monaco.Uri.file( path ) ) )
   }
   adjustEditorLayout(){ this.editor && setTimeout( () => this.editor.layout(), 50 ) }
@@ -163,7 +173,7 @@ class {
           NOTE: Works for the whole widget and switching between tabs
       */
       this.editor_OnDidBlurEditorText = this.editor.onDidBlurEditorWidget( () => this.onSave() )
-      this.editor_OnDidChangeCursorPosition = this.editor.onDidChangeCursorPosition( ({ position }) => this.emit('cursor-position', position ) )
+      this.editor_OnDidChangeCursorPosition = this.editor.onDidChangeCursorPosition( ({ position }) => this.ws.monitor.cursorPosition( position ) )
       this.editor_OnDidChangeModel = this.editor.onDidChangeModel( async ({ newModelUrl, oldModelUrl }) => {
         if( !oldModelUrl ) return
 
@@ -266,8 +276,7 @@ class {
     const code = this.activeModel.getValue()
 
     this.activeModel.file.hasChanges = ( code !== this.activeModel.initialContent )
-    this.emit( 'change', this.activeModel.file, code )
-    
+
     /*
     if( code ){
       model.pushEditOperations(
@@ -281,6 +290,20 @@ class {
       );
     }
     */
+
+    // Awarness of changes occured on this active model
+    const activeElement = this.sm.get('activeElement')
+    if( !activeElement || activeElement.path !== this.activeModel.file.path ) return
+    
+    // Has changes or revert to initial content
+    this.sm.set('activeElement', this.activeModel.file )
+    // Show changes on tabs
+    this.sm.applyTabChange( this.activeModel.file )
+    
+    /* TODO: Implement auto-save to prevent lost of changes
+              when page get accidentally refreshed
+    */
+
   }
   async onSave( model ){
     // Save previous changes occured on this model
@@ -288,38 +311,76 @@ class {
 
     if( !model.file.hasChanges ) return
     debugLog('[Editor-Event] Save:', model.file.name )
+
+    if( typeof model.file != 'object'
+        || !model.file.path
+        || !model.file.hasChanges ) return
     
+    // Updated code
     const code = model.getValue()
-    this.emit( 'save', 
-                model.file, 
-                code,
-                () => {
-                  model.file.hasChanges = false
-                  model.initialContent = code
-                } )
+
+    // Write changes on the disk
+    this.fs && await this.fs.newFile( model.file.path, code )
+    // Show change on tab
+    this.sm.applyTabChange({ ...model.file, hasChanges: false })
+    
+    // Confirm model saved to the editor
+    model.file.hasChanges = false
+    model.initialContent = code
   }
 }
 
-<div.position-relative.h-100>
-  <!-- Text content editor -->
-  <div.code-editor key="code-editor" no-update></div>
+<SectionLayout context=input.context
+                tabs={
+                  open: element => component.emit( 'action', 'open', element )
+                }
+                console>
+  <@sidebar|{ directories, dependencies }|>
+    <DirectoryTree directories=[ directories ]
+                    active=component.file
+                    status=input.context.device.status
+                    expanded
+                    on-show-settings( input.context.ws.toggle.settings )
+                    on-open( element => component.emit( 'action', 'open', element ) )
+                    on-device-action( ( ...args ) => component.emit( 'action', 'device', ...args ) )
+                    on-directory-action( ( ...args ) => component.emit( 'action', 'directories', ...args ) )/>
 
-  <!-- Media content display -->
-  <if( !Array.isArray( input.paths ) || !input.paths.length )>
-    <div.position-absolute.top-0.w-100.h-100.theme-bg.d-flex.align-items-center.justify-content-center.zindex-1>
-      <div.h-100.d-flex.align-items-center>
-        <div.w-100.text-center>
-          <!-- <img src="/images/logo/cubic-default.png" style="width:10%;opacity:0.1;"/> -->
-          <Bx.black-text type="cube-alt" style="font-size:12rem;opacity:0.2;"/>
+    <DependencyTree deps=dependencies
+                    expanded
+                    on-extends('onExtendExtraBlock', 'dependencies')
+                    on-add( () => component.emit( 'action', 'features', 'dependency' ) )
+                    on-action( ( ...args ) => component.emit( 'action', 'packages', ...args ) )/>
+  </@sidebar>
+
+  <@content>
+    <div.position-relative.h-100>
+      <!-- Text content editor -->
+      <div.code-editor key="code-editor" no-update></div>
+
+      <!-- Media content display -->
+      <if( !Array.isArray( state.paths ) || !state.paths.length )>
+        <div.position-absolute.top-0.w-100.h-100.theme-bg.d-flex.align-items-center.justify-content-center.zindex-1>
+          <div.h-100.d-flex.align-items-center>
+            <div.w-100.text-center>
+              <!-- <img src="/images/logo/cubic-default.png" style="width:10%;opacity:0.1;"/> -->
+              <Bx.black-text type="cube-alt" style="font-size:12rem;opacity:0.2;"/>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-  </if>
+      </if>
 
-  <!-- Media content display -->
-  <else-if( state.isMediaFile )>
-    <div.position-absolute.top-0.w-100.h-100.theme-bg.d-flex.align-items-center.justify-content-center style="z-index:30">
-      <Media ...component.media/>
+      <!-- Media content display -->
+      <else-if( state.isMediaFile )>
+        <div.position-absolute.top-0.w-100.h-100.theme-bg.d-flex.align-items-center.justify-content-center style="z-index:30">
+          <Media ...component.media/>
+        </div>
+      </else-if>
     </div>
-  </else-if>
-</div>
+  </@content>
+
+  <@console>
+    <!-- Import Default Editor Console -->
+    <${DEConsole} cwd=input.context.project.specs.code.directory
+                  on-dismiss( () => input.context.ws.toggle.console( false ) )/>
+  </@console>
+</SectionLayout>

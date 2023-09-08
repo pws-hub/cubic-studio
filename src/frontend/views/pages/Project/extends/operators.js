@@ -1,11 +1,11 @@
 
-export default Self => {
+export default __ => {
 
-  Self.em = false
-  Self.dpm = false
+  __.em = false
+  __.dpm = false
 
   const
-  State = Self.state,
+  State = __.state,
   EMWatcher = ( error, data ) => {
     if( error ) return console.log('--: ', error )
 
@@ -23,29 +23,29 @@ export default Self => {
     }
   }
 
-  Self.FSOperator = async ( action, element ) => {
+  __.FSOperator = async ( action, element ) => {
     switch( action ) {
-      case 'new-dir': if( !element.path || !Self.fs ) return
-                      await Self.fs.newDir( element.path )
+      case 'new-dir': if( !element.path || !__.fs ) return
+                      await __.fs.newDir( element.path )
           break
-      case 'new-file': if( !element.path || !Self.fs ) return
-                      await Self.fs.newFile( element.path )
+      case 'new-file': if( !element.path || !__.fs ) return
+                      await __.fs.newFile( element.path )
           break
-      case 'rename': if( !element.path || !element.name || !Self.fs ) return
-                            await Self.fs.rename( element.path, element.name )
+      case 'rename': if( !element.path || !element.name || !__.fs ) return
+                            await __.fs.rename( element.path, element.name )
           break
-      case 'remove': if( !element.path || !Self.fs ) return
-                            await Self.fs.remove( element.path )
+      case 'remove': if( !element.path || !__.fs ) return
+                            await __.fs.remove( element.path )
           break
-      case 'move': if( !element.source || !element.destination || !Self.fs ) return
-                          await Self.fs.move( element.source, element.destination )
+      case 'move': if( !element.source || !element.destination || !__.fs ) return
+                          await __.fs.move( element.source, element.destination )
           break
     }
   }
 
-  Self.PackageOperator = async ( action, packages ) => {
+  __.PackageOperator = async ( action, packages ) => {
 
-    if( !Self.pm ) {
+    if( !__.pm ) {
       debugLog('[AddElement Event] error: Undeclared process manager')
       return
     }
@@ -63,24 +63,24 @@ export default Self => {
       }
 
       // TODO: Display progression stats on Footer
-      Self.progression( stats )
+      __.progression( stats )
     }
 
     // Dependency Package Manager
-    Self.dpm = Self.pm.JSPackageManager( packages, cwd )
+    __.dpm = __.pm.JSPackageManager( packages, cwd )
 
-    await Self.dpm[ action ]( progress )
-    await Self.getDependencies()
+    await __.dpm[ action ]( progress )
+    await __.getDependencies()
   }
 
-  Self.CollectionOperator = async ( action, key, element ) => {
+  __.CollectionOperator = async ( action, key, element ) => {
     switch( action ) {
       case 'add': {
         if( !State[ State.activeSection ].collections )
           State[ State.activeSection ].collections = []
 
         State[ State.activeSection ].collections.push({ type: State.activeSection.toLowerCase(), _new: true, name: '' })
-        Self.setStateDirty( State.activeSection )
+        __.setStateDirty( State.activeSection )
       } break
 
       case 'rename': {
@@ -88,7 +88,7 @@ export default Self => {
             || !State[ State.activeSection ].collections.length ) return
 
         State[ State.activeSection ].collections[ key ] = element
-        Self.setStateDirty( State.activeSection )
+        __.setStateDirty( State.activeSection )
       } break
 
       case 'delete': {
@@ -96,23 +96,23 @@ export default Self => {
             || !State[ State.activeSection ].collections.length ) return
 
         State[ State.activeSection ].collections.splice( key, 1 )
-        Self.setStateDirty( State.activeSection )
+        __.setStateDirty( State.activeSection )
       } break
     }
   }
 
-  Self.DeviceOperator = async ( action, options ) => {
+  __.DeviceOperator = async ( action, options ) => {
     switch( action ) {
       case 'start': {
         // Start device
-        if( !Self.pm ) {
+        if( !__.pm ) {
           debugLog('[Device Event] error: Undeclared process manager')
           return
         }
 
         // Create device instance
-        if( !Self.em )
-          Self.em = Self.pm.Emulator( State.project, EMWatcher )
+        if( !__.em )
+          __.em = __.pm.Emulator( State.project, EMWatcher )
 
         // Start
         State.deviceStatus = 'loading'
@@ -125,7 +125,7 @@ export default Self => {
          * restarting it, when project got refreshed and
          * servers are up
          */
-        const metadata = await Self.em.start()
+        const metadata = await __.em.start()
         if( !metadata ) {
           State.deviceStatus = false
           State.deviceError = 'Device failed to start. Check your code and retry'
@@ -137,27 +137,27 @@ export default Self => {
 
       case 'restart': {
         // Restart device
-        if( !Self.pm ) {
+        if( !__.pm ) {
           debugLog('[Device Event] error: Undeclared process manager')
           return
         }
 
         // Create device instance
-        if( !Self.em )
-          Self.em = Self.pm.Emulator( State.project, EMWatcher )
+        if( !__.em )
+          __.em = __.pm.Emulator( State.project, EMWatcher )
 
         State.deviceStatus = 'restarting'
-        State.device = await Self.em.restart()
+        State.device = await __.em.restart()
       } break
 
       case 'stop': {
         // Stop device
-        if( !Self.pm ) {
+        if( !__.pm ) {
           debugLog('[Device Event] error: Undeclared process manager')
           return
         }
 
-        if( !Self.em ) {
+        if( !__.em ) {
           debugLog('[Device Event] error: No active Device found')
           return
         }
@@ -166,7 +166,7 @@ export default Self => {
         State.device = false
         State.deviceStatus = 'stopping'
 
-        await Self.em.stop()
+        await __.em.stop()
 
         State.deviceStatus = false
         GState.ws.layout({ mode: 'ns' })

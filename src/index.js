@@ -15,7 +15,7 @@ const port = process.env.HTTP_PORT || 9000
 
 export default server
 // .use( ( req, res ) => app.handle( req, res ) )
-.listen( port, error => {
+.listen( port, ( error ) => {
   if( error ) {
     console.error( error )
     return

@@ -26,15 +26,6 @@ class {
       deviceError: false,
       deviceStatus: false,
       
-      showSearch: false,
-      showFeatures: false,
-      showExplorer: false,
-      showSettings: false,
-      showPublisher: false,
-      showResetProject: false,
-      showDeleteProject: false,
-      
-      layouts: [],
       ongoingSetup: false,
       ongoingProcess: false,
 
@@ -52,51 +43,10 @@ class {
     // Fetch project metadata
     await this.getProject( params.id, params.project )
   }
-  onOpen( element ){
-    // Open file, request, ...
-    if( !element )
-      return this.sm.clear('activeElement')
-    
-    const activeElement = { ...element, active: true }
-    this.sm.set('activeElement', activeElement)
 
-    let
-    isActive = false,
-    focusIndex,
-    counter = 0
-    
-    const tabs = (this.sm.get('tabs') || []).map( tab => {
-      // Tab already exist
-      if( tab.path === element.path ){
-        // Make tab active
-        if( !tab.active ) tab.active = true
-        // Changes state of this tab's content
-        tab.hasChanges = element.hasChanges
-          
-        isActive = true
-      }
-      
-      // Off previous active tab
-      else if( tab.active ){
-        delete tab.active
-        focusIndex = counter
-      }
-      
-      counter++
-      return tab
-    })
-    
-    // Add new active tab
-    if( !isActive )
-      focusIndex === undefined ?
-                tabs.push( activeElement ) // At the end of the chain
-                : tabs.splice( focusIndex + 1, 0, activeElement ) // Insert right after the last active tab
-
-    this.sm.set('tabs', tabs )
-  }
   onAction( target, ...args ){
     switch( target ){
-      case 'open': this.onOpen( ...args ); break
+      case 'open': this.sm.open( ...args ); break
       
       case 'directories': this.FSOperator( ...args ); break
       case 'packages': this.PackageOperator( ...args ); break
@@ -164,12 +114,15 @@ class {
                     active: state.activeSection == section,
                     project: state.project,
                     layouts: state.layouts,
+                    env: state.env,
+                    device: {
+                      metadata: state.device,
+                      status: state.deviceStatus,
+                      error: state.deviceError
+                    },
                     fs: component.fs,
                     sm: component.sm,
-                    ws: component.ws,
-                    device: {
-                      status: state.deviceStatus
-                    }
+                    ws: component.ws
                   }
 
                 <${require(`./sections/${section}/index.marko`)} key=index context=context on-action('onAction')/>
@@ -188,35 +141,28 @@ class {
 
         <!-- <Plugin name="LiveShare"/> -->
       </div>
-      
-      <DeviceManager env=state.env
-                      workspace=state.workspace
-                      device=state.device
-                      status=state.deviceStatus
-                      error=state.deviceError
-                      on-action('onAction')/>
     </Row>
   </div>
   
   <Toolbar/>
 
   <Footer>
+    <@lobe _class="theme-bg-transparent">
+      <Link href=`/workspace/${state.workspace.workspaceId}`>
+        ${state.workspace.name}
+      </Link>
+    </@lobe>
+
     <Row.d-flex.align-items-center>
-      <@col>
-        <ul.list-inline.m-0>
-          <li.px-1.white-text>
-            <route-link href=`/workspace/${state.workspace.workspaceId}`>
-              ${state.workspace.name}
-            </route-link>
-          </li>
-          <if( state.project )>
-            <li.px-1.white-text>${state.project.type.toCapitalCase()}</li>
-            <li.px-1.black-text>
-              Sync
-            </li>
-          </if>
-        </ul>
-      </@col>
+      <if( state.project )>
+        <@col>
+          <ul.list-inline.m-0>
+              <li.px-1.white-text>${state.project.name}</li>
+              <li.px-1.white-text>${state.project.type.toCapitalCase()}</li>
+              <li.px-1.black-text>Sync</li>
+          </ul>
+        </@col>
+      </if>
       
       <@col.col-8.d-flex.justify-content-end>
         <ul.list-inline.m-0.d-flex.align-items-center>
@@ -233,16 +179,16 @@ class {
           <!-- Display main programming language -->
           <if( component.sm.hasCode() )>
             <li.px-1.white-text>${state.project.specs.code.language.replace('~', ' ').toCapitalCase()}</li>
-          </if>
 
-          <!-- Display editor's cusor current position -->
-          <if( state.editorCursorPosition )>
-            $ const { lineNumber, column } = state.editorCursorPosition
-            <li.px-1.white-text>Ln ${lineNumber}, Col ${column}</li>
-          </if>
+            <!-- Display editor's cusor current position -->
+            <if( state.editorCursorPosition )>
+              $ const { lineNumber, column } = state.editorCursorPosition
+              <li.px-1.white-text>Ln ${lineNumber}, Col ${column}</li>
+            </if>
 
-          <li.px-1.white-text>Spaces: 2</li>
-          <li.px-1.white-text>UTF-8</li>
+            <li.px-1.white-text>Spaces: 2</li>
+            <li.px-1.white-text>UTF-8</li>
+          </if>
         </ul>
       </@col>
     </Row>

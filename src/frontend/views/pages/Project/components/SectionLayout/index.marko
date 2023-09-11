@@ -1,5 +1,12 @@
 
 class {
+  onCreate(){
+    this.state = {
+      extendedBlocks: window.Store.get('extended-blocks') || []
+    }
+
+    GState.bind( this, ['ws'])
+  }
   onInput({ context }){
     if( !context || !context.name ) return
 
@@ -19,9 +26,18 @@ class {
       } break
     }
   }
+  onExtendExtraBlock( block, status ){
+    // Extend/Close extra blocks: Accordion effect
+    status === false ?
+              this.state.extendedBlocks = this.state.extendedBlocks.filter( each => { return each !== block } )
+              : !this.state.extendedBlocks.includes( block ) ? this.state.extendedBlocks.push( block ) : null
+   
+   this.setStateDirty('extendedBlocks')
+   window.Store.set( 'extended-blocks', this.state.extendedBlocks )
+  }
 }
 
-$ const { name, active, layouts, sm } = input.context
+$ const { name, active, layouts, device, env, sm, ws } = input.context
 
 <!-- Superposed Active Sections -->
 <div.position-absolute.w-100.h-100.theme-bg.top-0.animated.faster.fadeIn class=(!active ? 'd-none' : false)>
@@ -31,15 +47,15 @@ $ const { name, active, layouts, sm } = input.context
           && typeof input.sidebar.renderBody == 'function' 
           && Array.isArray( layouts )
           && layouts.includes('sidebar') )>
-      <div.in-block.section-block.px-0.border-right style="width:24rem">
+      <div.in-block.section-block.px-0.border-right style="width:24rem" key="sidebar">
         <div.position-relative.h-100.overflow-auto>
           <${input.sidebar.renderBody} ...sm.get()/>
         </div>
       </div>
     </if>
 
-    <!-- Main Block -->
-    <div.section-block.col.px-0.overflow-hidden>
+    <!-- Main -->
+    <div.section-block.col.px-0.overflow-hidden key="main">
       <!-- Tabs Bar -->
       <if( input.tabs !== undefined )>
         <TabBar tabs=(sm.get('tabs', name ) || [])
@@ -49,21 +65,35 @@ $ const { name, active, layouts, sm } = input.context
       
       <!-- Body Container -->
       <div style="height:calc(100% - 3rem)">
-        $ console.log( name, sm.get('activeConsole', name ) )
-        $ const hasActiveConsole = input.console && sm.get('activeConsole', name )
+        $ const hasActiveConsole = input.lowerbody && sm.get('activeConsole', name )
         
-        <if( input.content && typeof input.content.renderBody == 'function' )>
-          <div.overflow-hidden class=(hasActiveConsole ? 'h-75' : 'h-100')>
-            <${input.content.renderBody}/>
+        <!-- Body -->
+        <if( input.body && typeof input.body.renderBody == 'function' )>
+          <div.overflow-hidden class=(hasActiveConsole ? 'h-75' : 'h-100') key="body">
+            <${input.body.renderBody}/>
           </div>
         </if>
 
+        <!-- Lower body -->
         <if( hasActiveConsole )>
-          <div.h-25.border-top>
-            <${input.console.renderBody}/>
+          <div.h-25.border-top key="lowerbody">
+            <${input.lowerbody.renderBody}/>
           </div>
         </if>
       </div>
     </div>
+
+    <!-- Letbar -->
+    <if( input.letbar )>
+      <WSAdapt.section-block.zindex-3.px-0.border-left.theme-bg-fade
+              key="letbar"
+              ns="d-none"
+              qs="col-3"
+              hs="col-6"
+              fs="position-absolute col-12"
+              style="z-index:30!important">
+        <${input.letbar.renderBody} device=device env=env/>
+      </WSAdapt>
+    </if>
   </Row>
 </div>

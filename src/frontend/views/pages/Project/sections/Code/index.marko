@@ -7,6 +7,10 @@ import controlActions from './lib/controlActions'
 import * as GMLoader from './lib/grammarLoader'
 import DEConsole from 'plugins/DEConsole'
 
+static function getEmulatorModule({ os, model, version }){
+  try { return require(`plugins/${os || window.instance.toCapitalCase()}:${model}~${version}`) }
+  catch( error ){ console.log('Failed fetching Emulator') }
+}
 static const defaultOptions = {
   fontSize: 14,
   autoSave: true
@@ -48,14 +52,15 @@ class {
     this.sm = context.sm
     this.ws = context.ws
 
-    const file = this.sm.get('activeElement')
-    this.state.paths = (this.sm.get('tabs') || [] ).map( ({ path }) => { return path } )
+    // Opened directory paths
+    this.state.paths = (this.sm.get('tabs') || []).map( ({ path }) => { return path } )
 
     // Re-ajust editor block: Eg. Console close or open
     this.adjustEditorLayout()
     
     // Dispose editor when `file` value is explicitly `null`
-    if( file === null && this.editor ){
+    const file = this.sm.get('activeElement')
+    if( ( file === null || !this.state.paths.length ) && this.editor ){
       this.editor.setModel( null )
       return
     }
@@ -67,13 +72,6 @@ class {
   onMount(){
     this.initMonaco()
     this.open( this.file )
-
-    // Adapt editor container to window resize
-    $(window).on( 'resize', () => this.editor.layout() )
-    // Adapt editor container to workspace changes
-    GState.on( 'ws', () => this.adjustEditorLayout() )
-    // Adapt editor theme to workspace theme
-    GState.on( 'theme', value => this.editor.updateOptions({ theme: 'vs-'+ value }) )
 
     // TODO: Properly handle window uncaught errors
     /*
@@ -188,6 +186,13 @@ class {
         // Auto-save changes on the left model
         this.options.autoSave && this.onSave( await this.getModel( oldModelUrl.path ) )
       } )
+
+      // Adapt editor container to window resize
+      $(window).on( 'resize', () => this.editor.layout() )
+      // Adapt editor container to workspace changes
+      GState.on( 'ws', () => this.adjustEditorLayout() )
+      // Adapt editor theme to workspace theme
+      GState.on( 'theme', value => this.editor.updateOptions({ theme: 'vs-'+ value }) )
     }
     catch( error ){ console.log('[Editor-Event] Error: ', error ) }
   }
@@ -237,7 +242,7 @@ class {
     let model = monaco.editor.getModel( uri )
     
     if( !model ){
-      content = await this.fs.readFile( path )
+      const content = await this.fs.readFile( path )
       
       model = monaco.editor.createModel( content || '', null, uri )
       //? respect tabSize option in .prettierrc
@@ -333,8 +338,8 @@ class {
 <SectionLayout context=input.context
                 tabs={
                   open: element => component.emit( 'action', 'open', element )
-                }
-                console>
+                }>
+  <!-- Directory & dependencies -->
   <@sidebar|{ directories, dependencies }|>
     <DirectoryTree directories=[ directories ]
                     active=component.file
@@ -352,7 +357,8 @@ class {
                     on-action( ( ...args ) => component.emit( 'action', 'packages', ...args ) )/>
   </@sidebar>
 
-  <@content>
+  <!-- Code Editor content -->
+  <@body>
     <div.position-relative.h-100>
       <!-- Text content editor -->
       <div.code-editor key="code-editor" no-update></div>
@@ -376,11 +382,30 @@ class {
         </div>
       </else-if>
     </div>
-  </@content>
+  </@body>
 
-  <@console>
-    <!-- Import Default Editor Console -->
+  <!-- Import Default Editor Console -->
+  <@lowerbody>
     <${DEConsole} cwd=input.context.project.specs.code.directory
                   on-dismiss( () => input.context.ws.toggle.console( false ) )/>
-  </@console>
+  </@lowerbody>
+
+  <!-- Sandbox Device/UI Emulator -->
+  <@letbar|context|>
+    <if( context.env && context.env.emulator && context.env.emulator.model )>
+      $ const { os, model, version, env } = context.env.emulator
+      $ let eModule = getEmulatorModule({ os, model, version })
+
+      <if( eModule )>
+        <${eModule} ...context.device
+                    env=env
+                    on-stop( ( ...args ) => component.emit('action', 'device', 'stop', ...args ) )
+                    on-start( ( ...args ) => component.emit('action', 'device', 'start', ...args ) )
+                    on-restart( ( ...args ) => component.emit('action', 'device', 'restart', ...args ) )/>  
+      </if>
+      <else>
+        No Emulator module found
+      </else>
+    </if>
+  </@letbar>
 </SectionLayout>

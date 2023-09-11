@@ -3,7 +3,7 @@ import 'jquery-ui/ui/widgets/sortable'
 
 $ component.once('mount', () => {
 
-    this.options = {
+    const options = {
       axis: input.axis || false,
       connectWith: '.'+ input.containerClass,
       torelance: 'pointer',
@@ -34,7 +34,7 @@ $ component.once('mount', () => {
       }
     }
 
-    $('.'+ input.containerClass ).sortable( this.options )
+    $('.'+ input.containerClass ).sortable( options )
   } )
 
 <for|item, index| of=input.item>

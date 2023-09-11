@@ -1,0 +1,9 @@
+
+static function goto( e, href ){
+  e.preventDefault()
+  window.navigate( href )
+}
+
+<span ...input on-click( e => goto( e, input.href ) )>
+  <${input.renderBody}/>
+</span>

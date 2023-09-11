@@ -1,9 +1,9 @@
 
 import './globals'
 import App from './views/App'
-import Home from './views/pages/Home'
-import Project from './views/pages/Project'
-import Workspace from './views/pages/Workspace'
+import Home from 'pages/Home'
+import Project from 'pages/Project'
+import Workspace from 'pages/Workspace'
 import Locales from './json/languages.json'
 
 import Sync from './lib/SyncClient'
@@ -303,7 +303,7 @@ async function Client(){
 			return false
 		} )
 
-		fetchWorkspaces()
+		await fetchWorkspaces()
 	}
 
 	/* ----------------------------------------------------------------*/
@@ -321,8 +321,7 @@ async function Client(){
 
 	/* ----------------------------------------------------------------*/
 	// Initialize application
-	App.renderSync({ Routes })
-			.replace( document.querySelector('#root') )
+	App.renderSync({ Routes }).prependTo( document.body )
 }
 
 ( async () => {

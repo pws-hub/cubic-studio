@@ -1,19 +1,28 @@
 export default function WorkspaceManager( __ ){
 
+  __.setState({
+    layouts: [],
+
+    showSearch: false,
+    showFeatures: false,
+    showExplorer: false,
+    showSettings: false,
+    showPublisher: false,
+    showResetProject: false,
+    showDeleteProject: false,
+  })
+
   this.toggle = {
     feature: args => __.setState('showFeatures', args ),
     search: args => __.setState('showSearch', args ),
     settings: type => __.setState('showSettings', type ),
     publish: status => __.setState('showPublisher', status ),
-    console: status => console.log('activeConsole', status ),
+    console: status => __.sm.set('activeConsole', status ),
     explorer: ( status, fn ) => __.setState('showExplorer', status ? { fn } : false )
   }
 
   this.layouts = {
-    change: blocks => {
-      // __.setState('layouts',  )
-      __.setStateDirty('layouts', blocks )
-    }
+    change: blocks => __.setStateDirty('layouts', blocks )
   }
 
   this.select = {

@@ -1,7 +1,6 @@
 
 import jQuery from 'jquery'
 import SS from 'markojs-shared-state'
-import { navigate } from 'marko-router5'
 import Store from 'all-localstorage'
 
 String.prototype.toCapitalCase = function(){
@@ -14,7 +13,7 @@ String.prototype.toCapitalCase = function(){
 // Init JS plugins
 window.$ =
 window.jQuery = jQuery
-window.navigate = navigate // To navigate routers by function call
+window.Locale = () => {} // Init locale translation function
 window.Store = new Store({ prefix: 'CSUS-70', encrypt: true })
 
 /* --------------------------------------------------------------------------*/

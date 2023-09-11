@@ -22,7 +22,7 @@ class {
 }
 
 <if( input.show && input.project )>
-  <WSAdapt.in-block.section-block.theme-bg-fade
+  <WSAdapt.in-block.section-block.theme-bg-fade.no-select
           ns="custom-col-1"
           qs="custom-col-1"
           hs="d-none">
@@ -32,10 +32,10 @@ class {
       </a>
     </div>
 
-    <div.text-center.px-1.py-2>
+    <!-- <div.text-center.px-1.py-2>
       <Image.round-sm src=(input.project.logo || DefaultLogo ) style="width:50px;height:50px"/>
       <div.font-medium-3.py-1.text-ellipsis>${input.project.name}</div>
-    </div>
+    </div> -->
 
     <div.position-relative.d-flex.justify-content-center.px-1.overflow-auto>
       <ul.list-unstyled>
@@ -66,11 +66,11 @@ class {
               on-click( () => component.emit('search', {}) )/>
         </li>
         <li.py-50>
-          <route-link href="/">
+          <Link href="/">
             <Bx.font-large-1.p-1.rounded-circle.only-dark-bg-lighten.cursor-pointer.scale-up
               type="home-alt"
               on-click( () => component.emit('export', {}) )/>
-          </route-link>
+          </Link>
         </li>
       </ul>
     </div>

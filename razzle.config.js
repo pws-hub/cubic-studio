@@ -1,6 +1,7 @@
 
-const path = require('path')
-const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin')
+const 
+path = require('path'),
+MonacoWebpackPlugin = require('monaco-editor-webpack-plugin')
 
 module.exports = {
   options: {
@@ -18,7 +19,6 @@ module.exports = {
     return options
   },
   modifyWebpackConfig({ webpackConfig }){
-
     // Client.js moved to `/src/frontend` folder
     if( webpackConfig.entry.client )
       webpackConfig.entry.client[1] = path.join( __dirname, '/src/frontend/client' )
@@ -29,6 +29,7 @@ module.exports = {
       'test': path.resolve(__dirname, './test'),
       'public': path.resolve(__dirname, './public'),
       'frontend': path.resolve(__dirname, './src/frontend'),
+      'pages': path.resolve(__dirname, './src/frontend/views/pages'),
       'assets': path.resolve(__dirname, './src/frontend/views/assets'),
       // Important modules
       'vscode': require.resolve('@codingame/monaco-languageclient/lib/vscode-compatibility'),
@@ -58,12 +59,9 @@ module.exports = {
     webpackConfig.module.rules.push({
       test: /\.s[ac]ss$/i,
       use: [
-        // Creates `style` nodes from JS strings
-        'style-loader',
-        // Translates CSS into CommonJS
-        'css-loader',
-        // Compiles Sass to CSS
-        'sass-loader'
+        'style-loader', // Creates `style` nodes from JS strings
+        'css-loader', // Translates CSS into CommonJS
+        'sass-loader' // Compiles Sass to CSS
       ]
     })
     webpackConfig.module.rules.push({
@@ -84,8 +82,11 @@ module.exports = {
         'json',
         'less',
         'scss',
-        'typescript'
-      ],
+        'typescript',
+        'jsx',
+        'tsx',
+        'marko'
+      ]
     }
     webpackConfig.plugins = [
       ...webpackConfig.plugins,

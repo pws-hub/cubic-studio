@@ -1,0 +1,26 @@
+{
+  "open-tag-only": true,
+  "attributes": {
+    "href": {
+      "type": "string",
+      "description": "Resource reference: Relative URL",
+      "required": true
+    },
+    "id": {
+      "type": "string",
+      "description": "HTML Element id"
+    },
+    "class": {
+      "type": "string",
+      "description": "HTML Element class name"
+    },
+    "style": {
+      "type": "string",
+      "description": "HTML Element style object"
+    },
+    "title": {
+      "type": "string",
+      "description": "HTML Element title"
+    }
+  }
+}

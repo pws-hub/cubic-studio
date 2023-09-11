@@ -17,19 +17,21 @@
 				data-store-type="temp"
 				data-store-value=input.init
         style="overflow:hidden">
+    <!-- <div.vh-100.d-flex.align-items-center.justify-content-center>
+      <div.col-2.text-center>
+        <Bx.font-large-5 type="cube-alt"/>
+        <h4.mb-1>Cubic Studio</h4>
+        <div.text-right.font-small-2.text-muted style="margin-right:5rem">Multipple</div>
+      </div>
+    </div> -->
     <div#root>
       <!-- Loading Root Placeholder -->
-      <!-- <div.vh-100.d-flex.align-items-center.justify-content-center>
-        <div.col-2.text-center>
-          <Bx.font-large-5 type="cube-alt"/>
-          <h4.mb-1>Cubic Studio</h4>
-          <div.text-right.font-small-2.text-muted style="margin-right:5rem">Multipple</div>
-        </div>
-      </div> -->
+      
     </div>
+
     <if( Array.isArray( input.Assets.client.js ) )>
       <for|src| of=input.Assets.client.js>
-        <script src=src crossorigin=( process.env.NODE_ENV === 'production' ) defer></script>
+        <script src=src crossorigin=(process.env.NODE_ENV === 'production') defer></script>
       </for>
     </if>
   </body>

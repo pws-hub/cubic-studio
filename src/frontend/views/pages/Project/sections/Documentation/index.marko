@@ -14,12 +14,12 @@
                     on-action( ( ...args ) => component.emit( 'action', 'packages', ...args ) )/>
   </@sidebar>
 
-  <@content>
+  <@body>
     <div.position-relative.h-100>
       <iframe key="container"
               src=`data:text/html;charset=utf-8,${encodeURIComponent('<html><body><h1>Salut fabrice!</h1></body></html>')}`
               frameborder=0
               class="w-100 h-100"></iframe>
     </div>
-  </@content>
+  </@body>
 </SectionLayout>

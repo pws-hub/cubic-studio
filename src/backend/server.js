@@ -201,6 +201,6 @@ server = http.Server( app ),
 { ioServer } = Core.init( server )
 
 // Attach socket Server to app
-app.io = ioServer
+// app.io = ioServer
 
 export default server

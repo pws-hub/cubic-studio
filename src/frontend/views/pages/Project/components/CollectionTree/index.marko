@@ -3,7 +3,7 @@
           on-open( ( ...args ) => component.emit( 'open', ...args ) )
           on-rename( ( ...args ) => component.emit( 'action', 'rename', ...args ) )
           on-delete( ( ...args ) => component.emit( 'action', 'delete', ...args ) )>
-  <div.directories.position-relative.overflow-auto
+  <div.directories.position-relative.overflow-auto.no-select
       style=`height:${!input.extended ? '60%' : 'calc(100% - 3rem)'}`>
     <div.position-sticky.zindex-2.top-0.w-100.theme-bg.d-flex.align-items-center.border-bottom style="height:3rem">
       <div.w-100>

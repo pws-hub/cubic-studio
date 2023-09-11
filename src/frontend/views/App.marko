@@ -1,12 +1,12 @@
 
 <!-- StyleSheets -->
-import 'boxicons/css/boxicons.min.css'
-import 'assets/css/bootstrap.css'
-import 'assets/css/bootstrap-extended.css'
-import 'assets/css/colors.min.css'
-import 'assets/css/components.min.css'
-import 'assets/css/style.helper.min.css'
-import 'assets/css/animate.css'
+import 'boxicons/css/boxicons.min'
+import 'assets/css/bootstrap'
+import 'assets/css/bootstrap-extended'
+import 'assets/css/colors.min'
+import 'assets/css/components.min'
+import 'assets/css/style.helper.min'
+import 'assets/css/animate'
 
 import './theme/custom.scss'
 import './theme/light.scss'
@@ -33,10 +33,9 @@ class {
   }
 }
 
-<div#root class=`th--${state.theme}`>
+<div#root.h-100.bg-black class=`th--${state.theme}`>
   <div.theme-bg>
-    <router routes=input.Routes
-            options={ defaultRoute: 'home' }
-            no-wrapper/>
+    <Router routes=input.Routes
+            defaultRoute="home"/>
   </div>
 </div>

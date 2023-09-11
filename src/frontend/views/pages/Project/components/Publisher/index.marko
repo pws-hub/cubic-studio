@@ -36,7 +36,7 @@ class {
   onAlert({ title, message }){ console.log('Alert: ', title, message ) }
 }
 
-<Modal.p-3.border width=50 noBackdrop on-dismiss( () => component.emit('dismiss') )>
+<Modal.p-3.border.no-select width=50 noBackdrop on-dismiss( () => component.emit('dismiss') )>
   <for|{ title, description, template }, index| of=STEPS>
     <if( index == state.stepIndex )>
       <Row>

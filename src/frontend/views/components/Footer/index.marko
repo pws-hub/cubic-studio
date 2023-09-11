@@ -1,0 +1,26 @@
+
+<macro|{ text, icon, _class, style, renderBody }| name="Lobe">
+  <div.col-1.d-flex.align-items-center.px-0 class=_class style=style style=`height:2rem;${style}`>
+    <div.w-100.text-center>
+      <if( typeof renderBody == 'function' )><${renderBody}/></if>
+      <else>${text}</else>
+    </div>
+  </div>
+</macro>
+
+<div.in-block.position-fixed.w-100.bottom-0.theme-bg-primary.d-flex.align-items-center.no-select style="height:2rem;z-index:1001">
+  <div.row.no-gutters.w-100.d-flex.align-items-center>
+    <!-- Targeted platform -->
+    <Lobe _class="bg-black" text=proName( window.instance || 'Cubic' )/>
+
+    <!-- Insert custom lobes -->
+    <if( input.lobe )>
+      <for|each, index| of=input.lobe>
+        <Lobe key=index ...each/>
+      </for>
+    </if>
+
+    <!-- Footer indicators and tools -->
+    <div.col><${input.renderBody}/></div>
+  </div>
+</div>

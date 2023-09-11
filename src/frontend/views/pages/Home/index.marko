@@ -11,8 +11,8 @@ class {
   onRemoveWS( workspaceId ){}
 }
 
-<div.in-block.vh-100.d-flex.align-items-center.justify-content-center>
-  <div.position-absolute.left-0.top-0.right-0.bottom-0 
+<div.in-block.vh-100.d-flex.align-items-center.justify-content-center.no-select>
+  <div.position-absolute.left-0.top-0.right-0.bottom-0
       style=`opacity:.6;background:url(${BgImage}) center no-repeat;background-size:contain`></div>
 
   <div.col-xl-2.col-lg-3.col-md-4.col-sm-5>
@@ -39,6 +39,7 @@ class {
             <for|{ workspaceId, name, description }, index| of=state.workspaces>
               <li.position-relative.nav-item.cursor-pointer.px-2.py-50.d-flex.align-items-center.hover-toggle 
                   title=description
+                  key=index
                   on-click('goTo', workspaceId )>
                 <div.w-100.py-50>
                   <h6.font-medium-2.mt-0>${name}</h6>

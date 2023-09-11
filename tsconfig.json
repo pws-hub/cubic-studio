@@ -1,0 +1,27 @@
+{
+  "ts-node": {
+    "files": true
+  },
+  "files": [
+    "src/index.js",
+    "src/types/index.d.ts"
+  ],
+  "compilerOptions": {
+    "target": "es5",
+    "module": "commonjs",
+    "resolveJsonModule": true,
+    "outDir": "build",
+    "rootDir": "src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowJs": true,
+    "typeRoots": ["./src/types"]
+  },
+  "include": ["/src/**/*", "src/desc.d.ts"],
+  "exclude": ["src/views/***/*"],
+  "watchOptions": {
+    "excludeFiles": ["*.marko"]
+  }
+}

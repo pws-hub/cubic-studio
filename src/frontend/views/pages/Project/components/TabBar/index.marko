@@ -26,7 +26,6 @@ class {
     ]
   }
   onInput({ tabs }){ this.setState('tabs', tabs ) }
-
   onToggle( element ){ this.emit( 'open', element ) }
   onClose( index ){
     // Close tab
@@ -109,7 +108,8 @@ class {
   </li>
 </macro>
 
-<div.in-block.position-relative.top-0.w-100.theme-bg.border-bottom.d-flex.align-items-center style="height:3rem;z-index:300;overflow-x:auto;overflow-y:hidden">
+<div.in-block.position-relative.top-0.w-100.theme-bg.border-bottom.d-flex.align-items-center.no-select
+    style="height:3rem;z-index:300;overflow-x:auto;overflow-y:hidden">
   <ul.sort-tabs.h-100.list-inline.m-0.d-flex.align-items-center>
     <Sortable containerClass="sort-tabs"
               axis="X"

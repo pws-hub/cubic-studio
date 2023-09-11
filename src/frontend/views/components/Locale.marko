@@ -3,4 +3,4 @@ class { onCreate(){ GState.bind( this, ['locale'] ) } }
 
 <span data-lang=( state.locale.language +( state.locale.variant ? '-'+ state.locale.variant : '' ) )
       class=input.class
-      style="color:inherit;">${Locale( input.text || input.renderBody( out ) )}</span>
+      style="color:inherit;">${window.Locale( input.text || input.renderBody( out ) )}</span>

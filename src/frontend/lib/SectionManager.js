@@ -210,7 +210,51 @@ export default function SectionManager( __ ){
 
     __.setStateDirty( State.activeSection )
   }
+  this.open = element => {
+    // Open file, request, ...
+    if( !element )
+      return this.clear('activeElement')
+    
+    const activeElement = { ...element, active: true }
+    this.set('activeElement', activeElement)
 
+    // --- Next instructions reserved for only tabs related sections: Code, API, ...
+    if( !this.get('tabs') ) return
+
+    let
+    isActive = false,
+    focusIndex,
+    counter = 0
+    
+    const tabs = this.get('tabs').map( tab => {
+      // Tab already exist
+      if( tab.path === element.path ){
+        // Make tab active
+        if( !tab.active ) tab.active = true
+        // Changes state of this tab's content
+        tab.hasChanges = element.hasChanges
+          
+        isActive = true
+      }
+      
+      // Off previous active tab
+      else if( tab.active ){
+        delete tab.active
+        focusIndex = counter
+      }
+      
+      counter++
+      return tab
+    })
+    
+    // Add new active tab
+    if( !isActive )
+      focusIndex === undefined ?
+                tabs.push( activeElement ) // At the end of the chain
+                : tabs.splice( focusIndex + 1, 0, activeElement ) // Insert right after the last active tab
+
+    this.set('tabs', tabs )
+  }
   this.applyTabChange = arg => {
     // Apply and reflect changes on tabs
     if( typeof arg !== 'object' ) return

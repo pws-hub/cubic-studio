@@ -29,7 +29,7 @@ export default __ => {
     if( !__.fs ) return
 
     const dirOptions = {
-      ignore: '\\.git|(.+)\\.lock|\\.sandbox|node_modules',
+      ignore: '^\\.(git|sandbox)|(.+)\\.lock|(.+)-error\\.log|node_modules$',
       subdir: true
     }
 

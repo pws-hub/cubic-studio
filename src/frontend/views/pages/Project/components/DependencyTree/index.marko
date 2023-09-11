@@ -2,7 +2,7 @@
 <!-- Dependencies Block -->
 <context on-update( packages => component.emit('action', 'update', packages ) )
           on-remove( packages => component.emit('action', 'remove', packages ) )>
-  <div.position-relative.border-top.overflow-auto
+  <div.position-relative.border-top.overflow-auto.no-select
       style=`height:${input.expanded ? '40%' : '3rem'}`>
     <div.position-sticky.zindex-2.top-0.w-100.theme-bg.d-flex.align-items-center.border-bottom.px-1 style="height:3rem">
       <div.w-100.d-flex.align-items-center>

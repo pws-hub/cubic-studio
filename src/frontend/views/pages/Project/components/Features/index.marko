@@ -2,15 +2,14 @@
 import FEATURES from './list.json'
 
 <Modal.p-3.border width=40 noBackdrop on-dismiss( () => component.emit('dismiss') )>
-  <Row>
+  <Row.no-select>
     <for|type, { label, description, icon }| in=FEATURES>
       <@col.col-4.py-50.cursor-pointer.scale-down key=type>
         <div.d-flex.py-50.align-items-center on-click( () => component.emit( 'select', type ) )>
-          <Bx.font-large-1
-              type=icon.type
+          <Bx type=icon.type
               bxs=icon.bxs 
               bxl=icon.bxl
-              class=`text-${icon.color}`/>
+              class=`font-large-1 text-${icon.color}`/>
           <span.font-medium-2.px-1>${label || type.toCapitalCase()}</span>
         </div>
         <p.w-100.text-muted.text-ellipsis-2.font-small-4>

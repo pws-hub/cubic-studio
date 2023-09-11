@@ -7,7 +7,7 @@
           on-remove( element => component.emit( 'directory-action', 'remove', element ) )
           on-new-dir( element => component.emit( 'directory-action', 'new-dir', element ) )
           on-new-file( element => component.emit( 'directory-action', 'new-file', element ) )>
-  <div.directories.position-relative.overflow-auto
+  <div.directories.position-relative.overflow-auto.no-select
       style=`height:${!input.extended ? '60%' : 'calc(100% - 3rem)'}`>
     <div.position-sticky.zindex-2.top-0.w-100.theme-bg.d-flex.align-items-center.border-bottom style="height:3rem">
       <div.w-100>

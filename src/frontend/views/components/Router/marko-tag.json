@@ -1,0 +1,22 @@
+{
+  "open-tag-only": true,
+  "attributes": {
+    "routes": {
+      "type": "array",
+      "description": "Routes list",
+      "required": true
+    },
+    "defaultPath": {
+      "type": "string",
+      "description": "Default route path: Eg. `/`. If not provided, the first route of the list is set as default"
+    },
+    "defaultRoute": {
+      "type": "string",
+      "description": "Default route name use to label routes: Eg. `home`. If not provided, the first route of the list is set as default"
+    },
+    "page": {
+      "type": "string",
+      "description": "Absolute path of the router component/template"
+    }
+  }
+}

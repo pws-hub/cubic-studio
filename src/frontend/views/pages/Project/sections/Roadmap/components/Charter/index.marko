@@ -1,0 +1,87 @@
+
+static const Fields = [
+  'type',
+  'name',
+  'domain name / website',
+  'targeted audience',
+  'strategy audience',
+  'sale strategy',
+  'product supply methods',
+  'information source',
+  'trailer / exposition type',
+  'keep customers methods',
+  'utilities management',
+  'marketing methods',
+  'source of feedback / questions'
+]
+
+class {
+  onCreate({ data }){ 
+    this.state = { moreFields: [] }
+    this.Data = data || {}
+  }
+  onChange( key, value ){
+    if( !key ) return
+    
+    value ? 
+      this.Data[ key ] = value
+      : delete this.Data[ key ]
+
+    this.emit('save', this.Data )
+  }
+  onAddField(){
+    this.state.moreFields.push( null )
+    this.setStateDirty('moreFields')
+  }
+  onRemoveField( index ){
+    const field = this.state.moreFields[ index ]
+    if( field === undefined ) return
+
+    // Delete field
+    if( field !== null ){
+      delete this.Data[ field ]
+      this.emit('save', this.Data )
+    }
+
+    this.state.moreFields.splice( index, 1 )
+    this.setStateDirty('moreFields')
+  }
+  onInputLabel( index, label ){
+    this.state.moreFields[ index ] = label
+    this.setStateDirty('moreFields')
+  }
+}
+
+<div.h-100.px-4.py-2.overflow-auto>
+  <h4>
+    <Bx.font-large-1.text-primary.pr-1 type="paperclip"/>
+    <Locale>Project Charter</Locale>
+  </h4>
+  <br>
+
+  <!-- Standard charter fields -->
+  <for|key, index| of=Fields>
+    <InputTable key=index
+                label=key.toCapitalCase()
+                placeholder=" "
+                on-change('onChange', key )/>
+  </for>
+
+  <!-- Additional charter fields -->
+  <for|key, index| of=state.moreFields>
+    <InputTable key=`more-${index}`
+                blank
+                label=(key ? key.toCapitalCase() : '')
+                placeholder=" "
+                removable
+                on-label('onInputLabel', index )
+                on-remove('onRemoveField', index )
+                on-change('onChange', key )/>
+  </for>
+
+  <!-- Add more field toggle -->
+  <div.row.py-50.cursor-pointer.d-flex.align-items-center.theme-bg-fade on-click('onAddField')>
+    <div.col.text-muted.px-3.font-medium-2><Locale>Add more fields</Locale></div>
+    <div.col-2.text-right><Bx.font-medium-5.p-50.theme-bg-primary.round-sm type="plus"/></div>
+  </div>
+</div>

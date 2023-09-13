@@ -46,12 +46,25 @@ static const Options = [
   }
 ]
 
+class {
+  onCreate(){
+    this.state = {
+      activeTab: Options[0].key
+    }
+  }
+  onToggleTab( tab ){ this.state.activeTab = tab }
+  onSave( branch, data ){ console.log( branch, data ) }
+}
+
 <SectionLayout context=input.context>
   <@sidebar>
     <div.position-relative.h-100.border-top.overflow-auto.no-select>
       <ul.list-unstyled>
         <for|{ key, label }, index| of=Options>
-          <li.row.m-0.d-flex.align-items-center.px-1.py-75.cursor-pointer key=index>
+          <li.row.m-0.nav-item.d-flex.align-items-center.px-1.py-75.cursor-pointer
+              class=(state.activeTab === key ? 'active' : false)
+              key=index
+              on-click('onToggleTab', key )>
             <div.col><Locale.font-medium-2 text=label/></div>
             <div.col-2.p-0.text-right><Bx.font-large-1 type="chevron-right"/></div>
           </li>
@@ -59,5 +72,22 @@ static const Options = [
       </ul>
     </div>
   </@sidebar>
-  <@body><div>Roadmap</div></@body>
+
+  <@body>
+    <Switch by=state.activeTab>
+      <@case is="charter">
+        <Charter on-save('onSave', 'charter')/>
+      </@case>
+      <@case is="workflows"><Workflows/></@case>
+      <@case is="phases"><Phases/></@case>
+      <@case is="tasks"><Tasks/></@case>
+      <@case is="resources"><Resources/></@case>
+      <@case is="risks"><Risks/></@case>
+      <@case is="budget"><Budget/></@case>
+      <@case is="marketing"><Marketing/></@case>
+      <@case is="pricing"><Pricing/></@case>
+      <@case is="opportunities"><Opportunities/></@case>
+      <@case is="insights"><Insights/></@case>
+    </Switch>
+  </@body>
 </SectionLayout>

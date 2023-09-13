@@ -1,0 +1,30 @@
+
+<Row.py-1.border-bottom>
+  <!-- Input label -->
+  <@col class=`col-${input.col || 3} font-medium-3 px-2`>
+    <if( input.blank )>
+      <ContentEditable.font-medium-3
+                      placeholder="Label name"
+                      value=input.label
+                      on-change( value => component.emit('label', value ) )/>
+    </if>
+    <else>${input.label}</else>
+  </@col>
+  
+  <!-- Input content -->
+  <@col.col.border-left.px-2>
+    <ContentEditable.font-medium-3
+                    html
+                    placeholder=(input.placeholder || 'Type here ...')
+                    on-change( value => component.emit('change', value ) )/>
+  </@col>
+  
+  <!-- Remove blank row -->
+  <if( input.removable )>
+    <@col.col-2.text-right>
+      <Bx.font-medium-5.p-50.theme-bg-lighten.round-sm.cursor-pointer
+          type="x"
+          on-click( () => component.emit('remove') )/>
+    </@col>
+  </if>
+</Row>

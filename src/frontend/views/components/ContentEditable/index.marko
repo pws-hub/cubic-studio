@@ -1,0 +1,21 @@
+
+$ let previousValue = input.value
+$ const blurChangeDetect = e => {
+    const currentValue = input.html ? e.target.innerHTML : e.target.textContent
+    
+    if( !previousValue && !currentValue ) return
+    if( currentValue !== previousValue ){
+      previousValue = currentValue
+      component.emit('change', currentValue )
+    }
+  }
+
+<div contenteditable
+      placeholder=input.placeholder
+      class=input.class
+      style="min-height: 1rem;"
+      on-input( e => component.emit('input', input.html ? e.target.innerHTML : e.target.textContent ) )
+      on-focus( () => component.emit('focus') )
+      on-blur( blurChangeDetect )>
+  $!{input.value}
+</div>

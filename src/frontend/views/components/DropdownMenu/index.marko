@@ -7,30 +7,40 @@ class {
   }
 }
 
-<!-- Option Menu toggler -->
-<Bx class=input.class
+<!-- Option Menu toggle -->
+<if( input.toggle )>
+  <span class=input.toggle.class on-click('onShowMenu', true )>
+    <${input.toggle.renderBody}/>
+  </span>
+</if>
+<else>
+  <Bx class=input.class
     type=`dots-${input.vertical ? 'vertical' : 'horizontal'}-rounded`
     on-click('onShowMenu', true )/>
+</else>
 
 <!-- Dropdown menu -->
 <if( state.show )>
   <ul.list-unstyled.position-absolute.top-0.border.round-xs.overflow-hidden.theme-bg.m-25.animated.fadeIn.faster
       class=(input.right ? 'right-0' : 'left-0')
       style="min-width:180px;z-index:1000">
-    <for|{ id, label, fn, shortcut, divider }, index| of=input.menu>
+    <for|{ id, label, fn, shortcut, divider, command }, index| of=input.menu>
       <li.position-relative.nav-item.cursor-pointer.px-1.py-50.d-flex.align-items-center
           key=index
           class=(divider ? 'border-top' : false)
-          on-click( () => { typeof fn == 'function' && fn( id ) } )>
+          on-click( () => { typeof fn == 'function' ? fn( id ) : component.emit('select', id ) } )>
 
         <!-- Menu option label -->
         <Locale.font-small-4 
                 class=(input.important ? 'text-danger' : false)
                 text=label/>
+
         <!-- Shortcut Command -->
-        <span.position-absolute.right-0.px-1.text-muted>
-          <Bx.font-small-1.text-muted type="command"/> + <span.font-small-3.text-muted>B</span>
-        </span>
+        <if( command )>
+          <span.position-absolute.right-0.px-1.text-muted>
+            <Bx.font-small-1.text-muted type="command"/> + <span.font-small-3.text-muted>B</span>
+          </span>
+        </if>
       </li>
     </for>
   </ul>

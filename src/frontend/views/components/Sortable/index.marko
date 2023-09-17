@@ -2,13 +2,13 @@
 import 'jquery-ui/ui/widgets/sortable'
 
 $ component.once('mount', () => {
-
     const options = {
       axis: input.axis || false,
-      connectWith: '.'+ input.containerClass,
+      // connectWith: '.'+ input.containerClass,
       torelance: 'pointer',
       classes: { 'ui-sortable-helper': 'move-drag' },
       placeholder: 'move-placeholder',
+      handle: '.'+ input.handleClass,
       scroll: false,
       revert: true,
       zIndex: 100,
@@ -16,8 +16,8 @@ $ component.once('mount', () => {
         const
         $item = ui.item,
         $parent = $item.closest('.'+ input.containerClass ),
-        parentIndex = $parent.data('parent-key'),
-        fromIndex = $item.data('item-key')
+        parentIndex = Number( $parent.data('parent-key') ),
+        fromIndex = Number( $item.data('item-key') )
   
         let 
         toIndex,
@@ -30,7 +30,8 @@ $ component.once('mount', () => {
           counter++
         } )
         
-        fromIndex != toIndex && component.emit( 'change', fromIndex, toIndex, parentIndex, $item )
+        fromIndex !== toIndex 
+        && component.emit( 'change', fromIndex, toIndex, parentIndex, $item )
       }
     }
 

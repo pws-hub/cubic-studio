@@ -1,5 +1,5 @@
 
-<button.position-relative.btn.round.border-2.theme-color.cursor-pointer.scale-up.overflow-hidden
+<button.position-relative.btn.round.border-2.theme-color.cursor-pointer.scale-up.overflow-hidden.text-nowrap
         class=`btn-${input.type || 'lg'} ${input.class} ${input.primary ? 'theme-bg-primary white-text' : 'border'}`
         on-click( () => !input.preload && component.emit('click') )>
   <if( input.icon )>${input.renderBody( out )}</if>

@@ -1,0 +1,116 @@
+
+class {
+  onCreate(){
+    this.state = {
+      cases: [],
+      tags: []
+    }
+  }
+  onInput({ data }){ data && data.cases && data.tags && this.setState( data ) }
+
+  onAddTag(){
+    this.state.tags.push('')
+    this.setStateDirty('tags')
+  }
+  onEditTag( index, value ){
+    this.state.tags[ index ] = value
+    this.setStateDirty('tags')
+    
+    this.emit('save', this.cleanData() )
+  }
+  onRemoveTag( index ){
+    this.state.tags.splice( index, 1 )
+    this.setStateDirty('tags')
+
+    this.emit('save', this.cleanData() )
+  }
+
+  cleanData(){
+    // Return use cases data
+    const data = this.state.toJSON()
+
+    // Clear invalid cases
+    data.cases = data.cases.filter( each => {
+      return typeof each == 'object'
+              && Object.keys( each ).length
+              && (each.scenario || each.tags || each.actions)
+    } )
+
+    // Clear empty tags
+    data.tags = data.tags.filter( each => { return !!each } )
+
+    return data
+  }
+
+  onAddCase(){
+    this.state.cases.push({})
+    this.setStateDirty('cases')
+  }
+  onEditCase( index, key, value ){
+    this.state.cases[ index ][ key ] = value
+    this.setStateDirty('cases')
+    
+    this.emit('save', this.cleanData() )
+  }
+  onDeleteCase( index ){
+    this.state.cases.splice( index, 1 )
+    this.setStateDirty('cases')
+
+    this.emit('save', this.cleanData() )
+  }
+  onDuplicateCase( index ){
+    this.state.cases.splice( index, 0, this.state.cases[ index ] )
+    this.setStateDirty('cases')
+  }
+}
+
+<div.h-100.px-4.overflow-auto>
+  <h4.py-2>
+    <Bx.font-large-1.text-primary.pr-1 type="paperclip"/>
+    <Locale>Use Cases</Locale>
+  </h4>
+
+  <Row style="height:calc(100% - 7.6rem)">
+    <@col.col.h-100.pr-3.overflow-auto>
+      <for|_case, index| of=state.cases>
+        <Case key=index
+              ..._case
+              alltags=state.tags
+              on-edit('onEditCase', index )
+              on-delete('onDeleteCase', index )
+              on-duplicate('onDuplicateCase', index )/>
+      </for>
+
+      <!-- Add more case toggle -->
+      <div.row.mx-0.my-1.py-75.round-sm.cursor-pointer.d-flex.align-items-center.theme-bg-fade on-click('onAddCase')>
+        <div.col.text-muted.px-3.font-medium-2><Locale>Add new case</Locale></div>
+        <div.col-2.text-right><Bx.font-medium-5.p-50.theme-bg-primary.round-sm type="plus"/></div>
+      </div>
+    </@col>
+
+    <@col.col-3>
+      <h6><Locale>Tags</Locale></h6>
+      <br>
+
+      <if( Array.isArray( state.tags ) && state.tags.length )>
+        <ul.list-unstyled>
+          <for|tag, index| of=state.tags>
+            <Tag.my-50
+                key=`tag-${index}` 
+                text=tag
+                editable
+                removable
+                on-change('onEditTag', index )
+                on-remove('onRemoveTag', index )/>
+          </for>
+        </ul>
+      </if>
+
+      <!-- Add more tags toggle -->
+      <div.row.py-50.cursor-pointer.d-flex.align-items-center on-click('onAddTag')>
+        <div.col-1><Bx.font-medium-5.p-50.theme-bg-primary.round-sm type="plus"/></div>
+        <div.col.text-muted.px-3.font-medium-2><Locale>Add tag</Locale></div>
+      </div>
+    </@col>
+  </Row>
+</div>

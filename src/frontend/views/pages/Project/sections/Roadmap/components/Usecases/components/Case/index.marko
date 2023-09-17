@@ -1,0 +1,174 @@
+
+
+class {
+  onCreate(){
+    this.state = {
+      actions: [],
+      tags: [],
+      showTags: true,
+      showActions: true
+    }
+  }
+  onInput({ tags, actions }){
+    Array.isArray( tags ) && this.setState('tags', tags )
+    Array.isArray( actions ) && this.setState('actions', actions )
+  }
+  onShowActions( status ){ this.state.showActions = status }
+  cleanData( field ){
+    if( !field ) return null
+
+    // Return actions data
+    const data = this.state.toJSON()
+
+    // Clear invalid action
+    data.actions = data.actions.filter( each => { 
+      return typeof each == 'object'
+              && Object.keys( each ).length 
+              && (each.description || each.mockup)
+    } )
+
+    // Clear empty tags
+    data.tags = data.tags.filter( each => { return !!each } )
+
+    return data[ field ]
+  }
+
+  onAssignTag( tag ){
+    if( this.state.tags.includes( tag ) ) return
+    
+    this.state.tags.push( tag )
+    this.setStateDirty('tags')
+
+    this.emit('edit', 'tags', this.cleanData('tags') )
+  }
+  onUnassignTag( index ){
+    this.state.tags.splice( index, 1 )
+    this.setStateDirty('tags')
+
+    this.emit('edit', 'tags', this.cleanData('tags') )
+  }
+
+  onAddAction(){
+    this.state.actions.push({})
+    this.setStateDirty('actions')
+  }
+  onEditAction( index, key, value ){
+    this.state.actions[ index ][ key ] = value
+    this.setStateDirty('actions')
+    
+    this.emit('edit', 'actions', this.cleanData('actions') )
+  }
+  onDeleteAction( index ){
+    this.state.actions.splice( index, 1 )
+    this.setStateDirty('actions')
+
+    this.emit('edit', 'actions', this.cleanData('actions') )
+  }
+  onDuplicateAction( index ){
+    this.state.actions.splice( index, 0, this.state.actions[ index ] )
+    this.setStateDirty('actions')
+  }
+  onMoveAction( from, to ){
+    const action = this.state.actions[ from ]
+    if( !action ) return
+
+    this.state.actions.splice( from, 1 )
+    this.state.actions.splice( to, 0, action )
+    this.setStateDirty('actions')
+    
+    this.emit('edit', 'actions', this.cleanData('actions') )
+  }
+}
+
+<div.position-relative.round-sm.px-2.py-1.border.my-1>
+  <Row.d-flex.align-items-start>
+    <!-- Use case tags / stories -->
+    <@col>
+      <ul.list-inline>
+        <!-- List of assigned tags -->
+        <if( Array.isArray( state.tags ) && state.tags.length )>
+          <for|tag, index| of=state.tags>
+            <Tag.m-25
+                key=index
+                text=tag
+                removable
+                on-remove('onUnassignTag', index )/>
+          </for>
+        </if>
+        
+        <!-- Assign tag to use case toggle -->
+        <if( Array.isArray( input.alltags ) && input.alltags.length )>
+          <li.position-relative.theme-bg-lighten.border.border-2.py-25.round-sm.m-25.cursor-pointer>
+            $ const tagOptions = input.alltags.map( each => { return { id: each, label: each } } )
+
+            <DropdownMenu menu=tagOptions on-select('onAssignTag')>
+              <@toggle.d-flex.align-items-center.justify-content-between>
+                <div.px-1><Locale text="Assign Tag"/></div>
+                <Bx.font-medium-5.p-25.mx-25.theme-bg-fade.round-sm type="plus"/>
+              </@toggle>
+            </DropdownMenu>
+          </li>
+        </if>
+      </ul>
+    </@col>
+
+    <!-- Use case card control toggles -->
+    <@col.col-4.h-auto.d-flex.align-items-center.justify-content-end>
+      <span.p-75.cursor-pointer
+            title=`${state.showActions ? 'Hide' : 'Show'} actions`
+            on-click('onShowActions', !state.showActions )>
+        <Bx.font-large-1 type=`chevron-${state.showActions ? 'up' : 'down'}`/>
+      </span>
+      <span.p-75.cursor-pointer
+            title="Duplicate"
+            on-click( () => component.emit('duplicate') )>
+        <Bx.font-medium-5 type="duplicate"/>
+      </span>
+      <span.p-75.cursor-pointer
+            title="Delete"
+            on-click( () => component.emit('delete') )>
+        <Bx.font-medium-5 type="trash"/>
+      </span>
+    </@col>
+  </Row>
+  
+  <!-- Use case scenario input -->
+  <div.my-1>
+    <label><Locale.text-muted text="Scenario"/></label>
+    <ContentEditable.font-medium-2.my-50
+                    value=input.scenario
+                    placeholder="Type scenario here ..."
+                    autofocus
+                    on-change( value => component.emit('edit', 'scenario', value ) )/>
+  </div>
+
+  <!-- Use case actions -->
+  <if( state.showActions )>
+    <div.mt-2>
+      <label><Locale.text-muted text="Actions"/></label>
+      <ul.list-unstyled.sort-cases.py-50.m-0>
+        <Sortable containerClass="sort-cases"
+                  handleClass="move-handle"
+                  axis="Y"
+                  on-change('onMoveAction')>
+          <for|action, index| of=state.actions>
+            <@item|{ itemKey }|>
+              <Action itemkey=itemKey
+                      editable
+                      ...action
+                      on-edit('onEditAction', index )
+                      on-delete('onDeleteAction', index )
+                      on-duplicate('onDuplicateAction', index )/>
+            </@item>
+          </for>
+        </Sortable>
+
+        <!-- Add more use case action toggle -->
+        <li.row.mx-0.py-75.my-50.rounded-lg.cursor-pointer.d-flex.align-items-center.theme-bg-fade on-click('onAddAction')>
+          <div.col.text-muted.px-3.font-medium-2><Locale>Add action</Locale></div>
+          <div.col-2.text-right><Bx.font-medium-5.p-50.theme-bg-primary.round-sm type="plus"/></div>
+        </li>
+      </ul>
+    </div>
+  </if>
+</div>

@@ -1,1 +1,100 @@
-<div>Phases</div>
+class {
+  onCreate(){
+    this.state = {
+      phases: [
+        {
+          label: 'Research',
+          startAt: '12/04/2023',
+          endAt: '11/05/2023'
+        }
+      ]
+    }
+  }
+  onInput({ data }){ data && this.setState('phases', data ) }
+
+  cleanData(){
+    // Clear invalid phases
+    const phases = this.state.phases.filter( each => {
+      return typeof each == 'object'
+              && Object.keys( each ).length
+              && (each.label || each.startDate || each.endDate)
+    } )
+    
+    return phases
+  }
+
+  onAddPhase(){
+    this.state.phases.push({})
+    this.setStateDirty('phases')
+  }
+  onEditPhase( index, key, value ){
+    this.state.phases[ index ][ key ] = value
+    this.setStateDirty('phases')
+    
+    this.emit('save', this.cleanData() )
+  }
+  onDeletePhase( index ){
+    this.state.phases.splice( index, 1 )
+    this.setStateDirty('phases')
+
+    this.emit('save', this.cleanData() )
+  }
+  onMovePhase( from, to ){
+    const phase = this.state.phases[ from ]
+    if( !phase ) return
+
+    this.state.phases.splice( from, 1 )
+    this.state.phases.splice( to, 0, phase )
+    this.setStateDirty('phases')
+    
+    this.emit('save', this.cleanData() )
+  }
+  onDuplicatePhase( index ){
+    this.state.phases.splice( index, 0, this.state.phases[ index ] )
+    this.setStateDirty('phases')
+  }
+}
+
+<div.h-100.px-4.overflow-auto>
+  <h4.py-2>
+    <Bx.font-large-1.text-primary.pr-1 type="paperclip"/>
+    <Locale>Execution Phases</Locale>
+  </h4>
+
+   <div.mt-2>
+    <if( Array.isArray( state.phases ) && state.phases.length )>
+      <Row.m-0.d-flex.align-items-center.pl-4>
+        <@col.col-2><Locale.text-muted text="Phase No."/></@col>
+        <@col><Locale.text-muted text="Label"/></@col>
+        <@col.col-2><Locale.text-muted text="Start date"/></@col>
+        <@col.col-2><Locale.text-muted text="End date"/></@col>
+        <@col.col-2.text-right></@col>
+      </Row>
+      
+      <ul.list-unstyled.sort-phases.py-50.m-0>
+        <Sortable containerClass="sort-phases"
+                  handleClass="move-handle"
+                  axis="Y"
+                  on-change('onMovePhase')>
+          <for|phase, index| of=state.phases>
+            <@item|{ itemKey }|>
+              <Phase index=(index + 1)
+                      itemkey=itemKey
+                      editable
+                      ...phase
+                      on-edit('onEditPhase', index )
+                      on-delete('onDeletePhase', index )
+                      on-duplicate('onDuplicatePhase', index )/>
+            </@item>
+          </for>
+        </Sortable>
+
+        <!-- Add more phase toggle -->
+        <li.row.mx-0.py-75.my-50.rounded-lg.cursor-pointer.d-flex.align-items-center.theme-bg-fade on-click('onAddPhase')>
+          <div.col.text-muted.px-3.font-medium-2><Locale>Add phase</Locale></div>
+          <div.col-2.text-right><Bx.font-medium-5.p-50.theme-bg-primary.round-sm type="plus"/></div>
+        </li>
+      </ul>
+    </if>
+  </div>
+</div>

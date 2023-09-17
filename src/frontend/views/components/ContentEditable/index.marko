@@ -13,7 +13,8 @@ $ const blurChangeDetect = e => {
 <div contenteditable
       placeholder=input.placeholder
       class=input.class
-      style="min-height: 1rem;"
+      style="min-height: 1rem"
+      autofocus=input.autofocus
       on-input( e => component.emit('input', input.html ? e.target.innerHTML : e.target.textContent ) )
       on-focus( () => component.emit('focus') )
       on-blur( blurChangeDetect )>

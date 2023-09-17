@@ -5,8 +5,8 @@ static const Options = [
     label: 'Project Charter'
   },
   {
-    key: 'workflows',
-    label: 'Utility & Workflows'
+    key: 'usecases',
+    label: 'Use Cases'
   },
   {
     key: 'phases',
@@ -49,7 +49,7 @@ static const Options = [
 class {
   onCreate(){
     this.state = {
-      activeTab: Options[0].key
+      activeTab: Options[2].key
     }
   }
   onToggleTab( tab ){ this.state.activeTab = tab }
@@ -78,7 +78,9 @@ class {
       <@case is="charter">
         <Charter on-save('onSave', 'charter')/>
       </@case>
-      <@case is="workflows"><Workflows/></@case>
+      <@case is="usecases">
+        <Usecases on-save('onSave', 'usecases')/>
+      </@case>
       <@case is="phases"><Phases/></@case>
       <@case is="tasks"><Tasks/></@case>
       <@case is="resources"><Resources/></@case>

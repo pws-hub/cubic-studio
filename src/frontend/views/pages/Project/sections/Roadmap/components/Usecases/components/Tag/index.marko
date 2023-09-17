@@ -1,0 +1,21 @@
+
+<li.position-relative.border.border-2.py-25.round-sm class=input.class>
+  <div.d-flex.align-items-center.justify-content-between>
+    <div.px-1>
+      <if( input.editable )>
+        <ContentEditable.font-medium-2.my-50
+                        value=input.text
+                        placeholder="Tag name ..."
+                        autofocus
+                        on-change( value => component.emit('change', value ) )/>
+      </if>
+      <else><Locale text=input.text/></else>
+    </div>
+    
+    <if( input.removable )>
+      <Bx.font-medium-5.p-25.mx-25.theme-bg-fade.round-sm.cursor-pointer
+          type="x"
+          on-click( () => component.emit('remove') )/>
+    </if>
+  </div>
+</li>

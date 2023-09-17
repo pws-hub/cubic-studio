@@ -2,6 +2,7 @@
 
 // Modules to control application life and create native browser window
 const { app, BrowserWindow } = require('electron')
+const { exec } = require('child_process')
 const path = require('path')
 
 const createWindow = () => {
@@ -12,6 +13,16 @@ const createWindow = () => {
     // webPreferences: {
     //   preload: path.join(__dirname, 'preload.js')
     // }
+  })
+
+  exec(`yarn start:prod`, ( error, stdout, stderr ) => {
+    if( error ){
+      console.error(`exec error: ${error}`)
+      return
+    }
+
+    console.log(`stdout: ${stdout}`)
+    console.error(`stderr: ${stderr}`)
   })
 
   // and load the index.html of the app.

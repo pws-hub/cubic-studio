@@ -20,8 +20,13 @@ module.exports = {
   },
   modifyWebpackConfig({ webpackConfig }){
     // Client.js moved to `/src/frontend` folder
-    if( webpackConfig.entry.client )
-      webpackConfig.entry.client[1] = path.join( __dirname, '/src/frontend/client' )
+    if( webpackConfig.entry.client ){
+      const clientPath = path.join( __dirname, '/src/frontend/client' )
+
+      webpackConfig.mode == 'production' ?
+                  webpackConfig.entry.client = clientPath
+                  : webpackConfig.entry.client[1] = clientPath
+    }
 
     webpackConfig.resolve.extensions = [ ...webpackConfig.resolve.extensions, '.css', '.scss', '.marko', '.yml', '.yaml' ]
     webpackConfig.resolve.alias = {

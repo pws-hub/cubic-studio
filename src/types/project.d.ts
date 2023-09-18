@@ -41,8 +41,39 @@ export type Metadata = {
 }
 
 export type Project = Metadata & {
+  projectId?: string
   type: 'plugin' | 'application' | 'library'
   name: string
   description: string
   specs: any
+}
+
+export type ProjectState = {
+  workspace: {
+    workspaceId: string
+    name: string
+  }
+  project: Project | null
+  env: null
+  
+  // Sections dataset
+  Code: Project['specs'] | {}
+  API: any
+  Socket: any
+  Unit: any
+  Roadmap: any
+  Documentation: any
+
+  // Active indications
+  sections: string[]
+  activeSection: string | null
+  
+  device: {} | false
+  deviceError: string | false
+  deviceStatus: string | false
+  
+  ongoingSetup: {} | false
+  ongoingProcess: {} | false
+
+  editorCursorPosition: null
 }

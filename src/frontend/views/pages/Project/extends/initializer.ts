@@ -1,17 +1,18 @@
 
-import SectionManager from 'frontend/lib/SectionManager'
-import WorkspaceManager from 'frontend/lib/WorkspaceManager'
+import type { ProjectState } from '../../../../../types/project'
+import SectionManager from '../../../../lib/SectionManager'
+import WorkspaceManager from '../../../../lib/WorkspaceManager'
 
-export default __ => {
+export default ( __: Marko.Component ) => {
 
   __.ws = new WorkspaceManager( __ )
   __.sm = new SectionManager( __ )
 
-  const State = __.state
+  const State = __.state as ProjectState
 
   __.getProject = async ( workspaceId, projectId ) => {
     try {
-      const { error, message, project } = await RGet(`/workspaces/${workspaceId}/projects/${projectId}`)
+      const { error, message, project } = await window.RGet(`/workspaces/${workspaceId}/projects/${projectId}`)
       if( error ) throw new Error( message )
 
       State.project = project
@@ -33,8 +34,8 @@ export default __ => {
       subdir: true
     }
 
-    State.Code.directories = await __.fs.directory( path || null, dirOptions )
-    State.Code = newObject( State.Code )
+    State.Code.directories = await __.fs.directory( path, dirOptions )
+    State.Code = window.newObject( State.Code )
   }
   __.getDependencies = async section => {
     // Get project dependencies in package.json
@@ -49,10 +50,10 @@ export default __ => {
 
         const
         { dependencies, devDependencies } = packageJson,
-        deps = [],
-        collector = async ( name, version, dev ) => {
+        deps: any = [],
+        collector = async ( name: string, version: string, dev?: boolean ) => {
           // Get more information about the package in node_modules
-          let dep = { name, version: version.replace('^', ''), dev }
+          let dep: any = { name, version: version.replace('^', ''), dev }
           try {
             const { description, repository } = await __.fs.readFile(`./node_modules/${name}/package.json`, { encoding: 'json' } )
             dep = { ...dep, description, repository }
@@ -71,7 +72,7 @@ export default __ => {
           await collector( name, devDependencies[ name ], true )
 
         State.Code.dependencies = deps
-        State.Code = newObject( State.Code )
+        State.Code = window.newObject( State.Code )
       } break
 
       // Documentation templates/plugins dependencies
@@ -101,15 +102,17 @@ export default __ => {
     }
   }
   __.DeleteProject = async () => {
+    if( !State.project ) return
+
     // Close running device
     __.ongoing({ headline: 'Dropping all running device instances' })
     await __.DeviceOperator('stop')
-    await delay(2)
+    await window.delay(2)
 
     // Clear store
     __.ongoing({ headline: 'Flushing project cache' })
     __.pstore.flush(`cs-${State.project.name}`)
-    await delay(3)
+    await window.delay(3)
 
     // Clear directory
     __.ongoing({ headline: 'Clearing project directory' })
@@ -119,34 +122,34 @@ export default __ => {
       Code: {},
       API: {}
     })
-    await delay(5)
+    await window.delay(5)
 
     // Delete project specs from cubic server
     __.ongoing({ headline: 'Deleting project specifications from cubic servers' })
     try {
       const
       url = `/workspaces/${State.workspace.workspaceId}/projects/${State.project.projectId}`,
-      { error, message } = await await RDelete( url )
+      { error, message } = await await window.RDelete( url )
 
       if( error ) throw new Error( message )
     }
     catch( error ) {}
-    await delay(3)
+    await window.delay(3)
 
     // Clear open tabs
     __.ongoing({ headline: 'Clearing project workspace' })
-    State.project = false
+    State.project = null
 
     // Reset operators
-    __.fs = false // File System (fs)
-    __.pm = false // Process Manager (pm)
-    __.sm = false // Section Manager (sm)
-    __.em = false // Device Manager (em)
-    __.dpm = false // Dependency Package Manager (dpm)
-    await delay(2)
+    // __.fs = undefined // File System (fs)
+    // __.pm = undefined // Process Manager (pm)
+    // __.sm = undefined // Section Manager (sm)
+    // __.em = undefined // Device Manager (em)
+    // __.dpm = undefined // Dependency Package Manager (dpm)
+    await window.delay(2)
 
     // Move back to workspace
     __.ongoing( false )
-    navigate(`/workspace/${State.workspace.workspaceId}`)
+    window.navigate(`/workspace/${State.workspace.workspaceId}`)
   }
 }

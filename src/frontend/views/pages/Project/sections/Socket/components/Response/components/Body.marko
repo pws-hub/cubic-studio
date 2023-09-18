@@ -1,0 +1,32 @@
+
+static const Tabs = [ 'pretty', 'raw', 'text', 'browser' ]
+
+class {
+  onCreate(){
+    this.state = {
+      active: 'body'
+    }
+  }
+  onSelectTab( tab ){ this.state.active = tab }
+}
+
+<div.response-body-content>
+  <Row.no-gutters.py-50.d-flex.align-items-center>
+    <@col.px-50>
+      <ul.list-inline.my-0>
+        <for|tab, index| of=Tabs>
+          <li.px-75.py-25.cursor-pointer
+              class=(state.active == tab ? 'border border-1 round' : '' )
+              on-click('onSelectTab', tab )>
+            ${tab.toCapitalCase()}
+          </li>
+        </for>
+      </ul>
+    </@col>
+    <!-- <@col>
+      <div.text-right>
+        <Button type="md">Save Response</Button>
+      </div>
+    </@col> -->
+  </Row>
+</div>

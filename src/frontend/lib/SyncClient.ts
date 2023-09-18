@@ -1,23 +1,25 @@
 
 import { io } from 'socket.io-client'
 
+type SyncEvent = 'IS_ONLINE'
+
 let
 SyncClient,
 isConnected = false
 
-function emit( _event, ...args ){
+function emit( _event: SyncEvent, ...args: any[] ){
   if( !isConnected ) return
-  SyncClient.emit( `SYNC::${_event}`, ...args )
+  SyncClient.emit(`SYNC::${_event}`, ...args )
 }
 
 window.addEventListener( 'online', () => emit( 'IS_ONLINE', true ) )
 window.addEventListener( 'offline', () => emit( 'IS_ONLINE', false ) )
 
-export default () => {
+export default (): Promise<void> => {
   return new Promise( ( resolve, reject ) => {
     SyncClient = io()
     .on( 'connect', () => {
-      debugLog('[Sync-Client] Connection established')
+      window.debugLog('[Sync-Client] Connection established')
 
       isConnected = true
       emit( 'IS_ONLINE', window.navigator.onLine )
@@ -25,11 +27,11 @@ export default () => {
       resolve()
     } )
     .on( 'disconnect', () => {
-      debugLog('[Sync-Client] Disconnected')
+      window.debugLog('[Sync-Client] Disconnected')
       isConnected = false
     } )
     .on( 'error', error => {
-      debugLog('[Sync-Client] Connected', error )
+      window.debugLog('[Sync-Client] Connected', error )
       reject( error )
     } )
   } )

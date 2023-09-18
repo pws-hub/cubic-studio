@@ -20,7 +20,7 @@ declare global {
   var ruuid: ( sequence?: string ) => string
   var toNSI: ( name: string ) => string
   var toOrigin: ( domain: string, local?: boolean ) => string
-  var debugLog: ( ...arg: any ) => void
+  var debugLog: ( ...arg: any[] ) => void
   var Obj2Params: ( obj: { [index: string]: string }, excludes?: string[] ) => string
   var Params2Obj: ( str: string, excludes?: string[] ) => { [index: string]: string }
 

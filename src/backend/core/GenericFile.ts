@@ -1,7 +1,8 @@
 
+import type { Project } from '../../types/project'
 import fs from '@cubic-bubble/fs'
 
-export const dotCubic = async ({ specs }) => {
+export const dotCubic = async ({ specs }: Project ) => {
 
   const language = specs.code.language.split('~')[0]
   let cubic = {}
@@ -23,10 +24,10 @@ export const dotCubic = async ({ specs }) => {
   }
 }
 
-export const dotGitignore = async directory => {
-  let gitignore = ''
+export const dotGitignore = async ( directory: string ) => {
+  let gitignore: any = ''
 
-  try { gitignore = await fs.readFile( `${directory }/.gitignore`, { encoding: 'UTF-8' } ) }
+  try { gitignore = await fs.readFile(`${directory }/.gitignore`) }
   catch( error ) {}
 
   [
@@ -40,7 +41,7 @@ export const dotGitignore = async directory => {
   return gitignore
 }
 
-export const dotMetadata = async ({ name, nsi, description, specs }) => {
+export const dotMetadata = async ({ name, nsi, description, specs }: Project ) => {
   let config
   try { config = await fs.readJson( `${specs.code.directory }/.metadata` ) }
   catch( error ) { throw error }

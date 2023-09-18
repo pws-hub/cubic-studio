@@ -1,4 +1,5 @@
 import type { Metadata, Project } from '../../types/project'
+import type { JSPackage, JSSource, JSPackageAction, CPackageAction, CPackage } from '../../types/package'
 import Fs from '@cubic-bubble/fs'
 import Path from '@cubic-bubble/path'
 import LPSServer from './LPSServer'
@@ -7,22 +8,6 @@ import Emulator from './Emulator'
 import GitManager from './GitManager'
 import FileSystem from './FileSystem'
 import * as GenericFile from './GenericFile'
-
-type JSSource = 'npm' | 'cpm'
-type JSPackageAction = 'install' | 'remove' | 'update'
-type JSPackage = {
-  item: {
-    name: string
-    version?: string
-  }
-}
-type CBPackageAction = 'install' | 'publish' | 'update' | 'remove'
-type CPPackage = {
-  item: {
-    name: string
-    version?: string
-  }
-}
 
 export type IProcessWatcher = ( processName: string, error: Error | string | boolean, stats?: any ) => void
 export type IProcessOptions = {
@@ -83,7 +68,7 @@ async function processJSPackage( action: JSPackageAction, packages: JSPackage[],
     _process.watcher( processName, error )
   }
 }
-async function processCubicPackage( action: CBPackageAction, packages: CPPackage[], directory: string, _process: IProcess ){
+async function processCubicPackage( action: CPackageAction, packages: CPackage[], directory: string, _process: IProcess ){
   const
   processName = `${action}-packages`,
   processor = 'cpm'
@@ -658,15 +643,15 @@ export default class IProcess {
   }
 
   // Install cubic packages from CPR
-  async installCubicPackages( packages: CPPackage[], directory: string ){
+  async installCubicPackages( packages: CPackage[], directory: string ){
     await processCubicPackage( 'install', packages, directory, this )
   }
   // Remove cubic packages
-  async removeCubicPackages( packages: CPPackage[], directory: string ){
+  async removeCubicPackages( packages: CPackage[], directory: string ){
     await processCubicPackage( 'remove', packages, directory, this )
   }
   // Update cubic packages
-  async updateCubicPackages( packages: CPPackage[], directory: string ){
+  async updateCubicPackages( packages: CPackage[], directory: string ){
     await processCubicPackage( 'update', packages, directory, this )
   }
 

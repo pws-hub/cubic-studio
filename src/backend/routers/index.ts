@@ -25,10 +25,9 @@ export default require('express').Router()
   next()
 },
 async ( req, res ) => {
-
   const url = decodeURIComponent( req.query.url )
-  function onError( error ){
 
+  function onError( error ){
     if( !error.statusCode )
       switch( error.code ) {
         case 'ENOTFOUND': error.statusCode = 404; break

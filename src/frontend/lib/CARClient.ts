@@ -1,21 +1,32 @@
 
 import fetch from 'node-fetch'
-import { io } from 'socket.io-client'
+import { io, Socket } from 'socket.io-client'
+import { ProcessResponse } from '../../types'
+import { Member } from '../../types/user'
+
+
+declare global {
+  interface Window {
+    RGet: ( url: string ) => Promise<ProcessResponse>
+    RPut: ( url: string, body: any ) => Promise<ProcessResponse>
+    RPost: ( url: string, body: any ) => Promise<ProcessResponse>
+    RPatch: ( url: string, body: any ) => Promise<ProcessResponse>
+    RDelete: ( url: string, body?: any ) => Promise<ProcessResponse>
+  }
+}
 
 let
-CARClient,
+CARClient: Socket,
 isResolved = false,
 isConnected = false
 
-function sendRequest( payload ){
+function sendRequest( payload: any ): Promise<ProcessResponse>{
   return new Promise( ( resolve, reject ) => {
-
     if( CARClient ) {
       if( !isConnected )
         return reject('[CAR-Client] No connection to server')
 
       CARClient.emit('API::REQUEST', payload, resolve )
-
     }
     else {
       const options = {
@@ -32,17 +43,16 @@ function sendRequest( payload ){
   } )
 }
 
-export default ( namespace, user ) => {
+export default ( namespace: string, member: Member ): Promise<boolean> => {
   return new Promise( ( resolve, reject ) => {
-
+    
     window.RGet = async url => { return await sendRequest({ url }) }
-    window.RPost = async ( url, body ) => { return await sendRequest({ url, method: 'POST', body }) }
     window.RPut = async ( url, body ) => { return await sendRequest({ url, method: 'PUT', body }) }
+    window.RPost = async ( url, body ) => { return await sendRequest({ url, method: 'POST', body }) }
     window.RPatch = async ( url, body ) => { return await sendRequest({ url, method: 'PATCH', body }) }
     window.RDelete = async ( url, body ) => { return await sendRequest({ url, method: 'DELETE', body: body || {} }) }
 
     if( window.mode !== 'local' ) {
-
       return resolve( isConnected = true )
     }
 
@@ -51,12 +61,12 @@ export default ( namespace, user ) => {
       extraHeaders: { 'X-User-Agent': 'Cubic.socket~001/1.0' },
       reconnectionDelayMax: 20000,
       withCredentials: true,
-      auth: { token: user.id }
+      auth: { token: member.id }
     }
 
     CARClient = io(`/${ namespace || ''}`, options )
     .on( 'connect', () => {
-      debugLog('[CAR-Client] Connection established')
+      window.debugLog('[CAR-Client] Connection established')
 
       isConnected = true
       if( isResolved ) return
@@ -65,11 +75,11 @@ export default ( namespace, user ) => {
       resolve( isConnected )
     } )
     .on( 'disconnect', () => {
-      debugLog('[CAR-Client] Disconnected')
+      window.debugLog('[CAR-Client] Disconnected')
       isConnected = false
     } )
     .on( 'error', error => {
-      debugLog('[CAR-Client] Connected', error )
+      window.debugLog('[CAR-Client] Connected', error )
       reject( error )
     } )
   } )

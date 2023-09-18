@@ -1,7 +1,8 @@
+import { ProjectState } from '../../../../../types/project'
 
-export default __ => {
+export default ( __: Marko.Component ) => {
 
-  const State = __.state
+  const State = __.state as ProjectState
 
   __.ongoing = labels => {
     if( labels === false ) {
@@ -21,7 +22,7 @@ export default __ => {
 
       State.ongoingProcess = {
         status: percent == 100 ? 'COMPLETED' : 'ONGOING',
-        message: `[${percent}%] ${processor ? `${processor }: ` : ''}${message}`
+        message: `[${percent}%] ${processor ? `${processor}: ` : ''}${message}`
       }
     }
   }

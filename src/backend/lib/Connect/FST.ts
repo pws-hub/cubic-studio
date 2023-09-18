@@ -4,15 +4,15 @@ import type { ProcessCallback } from '../../../types'
 import os from 'os'
 import FileSystem, { FSOptions, FSWatcher } from '../../core/FileSystem'
 
-type FSType = 'explorer' | 'project'
-type FSMethods = 'directory' | 'newDir' | 'newFile' | 'readFile' | 'rename' | 'remove' | 'move' | 'copy'
+export type FSMode = 'explorer' | 'project'
+export type FSMethods = 'directory' | 'newDir' | 'newFile' | 'readFile' | 'rename' | 'remove' | 'move' | 'copy'
 
 const ACTIVE_CWD_WATCHERS: { [index: string ]: FSWatcher } = {}
 
 function initChannel( socket: Socket ){
   console.log('FST New Connection: ', socket.id )
 
-  function init( type: FSType, options: FSOptions = {}, callback?: ProcessCallback ){
+  function init( mode: FSMode, options: FSOptions = {}, callback?: ProcessCallback ){
 
     if( options && typeof options !== 'object' ) {
       typeof callback == 'function'
@@ -20,7 +20,7 @@ function initChannel( socket: Socket ){
       return
     }
 
-    switch( type ) {
+    switch( mode ) {
       case 'explorer': {
         if( !options.cwd ) // Current OS user's home directory. Eg. /Users/myname
           options.cwd = os.homedir()

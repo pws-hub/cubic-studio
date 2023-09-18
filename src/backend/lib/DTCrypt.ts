@@ -12,17 +12,16 @@ import CryptoJS from 'crypto-js'
 import Randtoken from 'rand-token'
 
 const CryptoJSAesJson = {
+  stringify: ( cipherParams: any ) => {
 
-  stringify: cipherParams => {
-
-    const obj = { ct: cipherParams.ciphertext.toString( CryptoJS.enc.Base64 ) }
+    const obj: { [index: string]: any } = { ct: cipherParams.ciphertext.toString( CryptoJS.enc.Base64 ) }
 
     if( cipherParams.iv ) obj.iv = cipherParams.iv.toString()
     if( cipherParams.salt ) obj.s = cipherParams.salt.toString()
 
     return JSON.stringify( obj )
   },
-  parse: jsonStr => {
+  parse: ( jsonStr: string ) => {
     const
     obj = JSON.parse( jsonStr ),
     cipherParams = CryptoJS.lib.CipherParams.create({ ciphertext: CryptoJS.enc.Base64.parse( obj.ct ) })
@@ -34,7 +33,7 @@ const CryptoJSAesJson = {
   }
 }
 
-function reverse( str ){
+function reverse( str: string ){
   return str.split('').reverse().join('')
 }
 
@@ -47,8 +46,7 @@ function reverse( str ){
  * @param {mixed} arg
  * @return {string}
  */
-export const encrypt = arg => {
-
+export const encrypt = ( arg: any ): string => {
   const
   argtype = typeof arg,
   key = Randtoken.generate(58)
@@ -99,7 +97,7 @@ export const encrypt = arg => {
  * @param {string} input
  * @return {mixed}
  */
-export const decrypt = input => {
+export const decrypt = ( input: string ): unknown => {
   // Default Reverse Encrypting Tool: Modified Base64 decoder
   const
   b64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/',

@@ -1,11 +1,9 @@
+import type { ProjectState } from '../../../../../types/project'
 
-export default __ => {
-
-  __.em = false
-  __.dpm = false
+export default ( __: Marko.Component ) => {
 
   const
-  State = __.state,
+  State = __.state as ProjectState,
   EMWatcher = ( error, data ) => {
     if( error ) return console.log('--: ', error )
 
@@ -46,14 +44,14 @@ export default __ => {
   __.PackageOperator = async ( action, packages ) => {
 
     if( !__.pm ) {
-      debugLog('[AddElement Event] error: Undeclared process manager')
+      window.debugLog('[AddElement Event] error: Undeclared process manager')
       return
     }
 
-    action = action.replace('-packages', '')
+    const _action = action.replace('-packages', '')
 
     const
-    cwd = State.project.specs.code.directory,
+    cwd = State.project?.specs.code.directory,
     progress = ( error, stats ) => {
 
       if( error ) {
@@ -69,18 +67,20 @@ export default __ => {
     // Dependency Package Manager
     __.dpm = __.pm.JSPackageManager( packages, cwd )
 
-    await __.dpm[ action ]( progress )
+    await __.dpm[ _action ]( progress )
     await __.getDependencies()
   }
 
   __.CollectionOperator = async ( action, key, element ) => {
+    if( !State.activeSection ) return
+
     switch( action ) {
       case 'add': {
         if( !State[ State.activeSection ].collections )
           State[ State.activeSection ].collections = []
 
         State[ State.activeSection ].collections.push({ type: State.activeSection.toLowerCase(), _new: true, name: '' })
-        __.setStateDirty( State.activeSection )
+        __.setStateDirty( State.activeSection as never )
       } break
 
       case 'rename': {
@@ -88,7 +88,7 @@ export default __ => {
             || !State[ State.activeSection ].collections.length ) return
 
         State[ State.activeSection ].collections[ key ] = element
-        __.setStateDirty( State.activeSection )
+        __.setStateDirty( State.activeSection as never )
       } break
 
       case 'delete': {
@@ -96,17 +96,19 @@ export default __ => {
             || !State[ State.activeSection ].collections.length ) return
 
         State[ State.activeSection ].collections.splice( key, 1 )
-        __.setStateDirty( State.activeSection )
+        __.setStateDirty( State.activeSection as never )
       } break
     }
   }
 
-  __.DeviceOperator = async ( action, options ) => {
+  __.DeviceOperator = async ( action, options = {} ) => {
+    if( !State.project ) return
+    
     switch( action ) {
       case 'start': {
         // Start device
         if( !__.pm ) {
-          debugLog('[Device Event] error: Undeclared process manager')
+          window.debugLog('[Device Event] error: Undeclared process manager')
           return
         }
 
@@ -116,7 +118,7 @@ export default __ => {
 
         // Start
         State.deviceStatus = 'loading'
-        GState.ws.layout({ mode: 'auto' })
+        window.GState.ws.layout({ mode: 'auto' })
 
         /**
          * TODO: Re-implement device metadata cache
@@ -138,7 +140,7 @@ export default __ => {
       case 'restart': {
         // Restart device
         if( !__.pm ) {
-          debugLog('[Device Event] error: Undeclared process manager')
+          window.debugLog('[Device Event] error: Undeclared process manager')
           return
         }
 
@@ -153,12 +155,12 @@ export default __ => {
       case 'stop': {
         // Stop device
         if( !__.pm ) {
-          debugLog('[Device Event] error: Undeclared process manager')
+          window.debugLog('[Device Event] error: Undeclared process manager')
           return
         }
 
         if( !__.em ) {
-          debugLog('[Device Event] error: No active Device found')
+          window.debugLog('[Device Event] error: No active Device found')
           return
         }
 
@@ -169,7 +171,7 @@ export default __ => {
         await __.em.stop()
 
         State.deviceStatus = false
-        GState.ws.layout({ mode: 'ns' })
+        window.GState.ws.layout({ mode: 'ns' })
       }
     }
   }

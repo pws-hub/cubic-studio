@@ -58,8 +58,8 @@ class {
       case 'delete-project': this.DeleteProject(); break
     }
   }
-  onShowResetProjectToggle( type ){ this.state.showResetProject = type }
-  onShowDeleteProjectToggle( type ){ this.state.showDeleteProject = type }
+  onShowResetProjectToggle( status ){ this.state.showResetProject = status }
+  onShowDeleteProjectToggle( status ){ this.state.showDeleteProject = status }
   async onAddElement( type, element, progress ){
     
     if( !this.pm ){

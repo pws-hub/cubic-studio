@@ -1,9 +1,25 @@
-
 import Rimraf from 'rimraf'
-import Git from 'simple-git'
+import type { ProgressWatcher } from '../../types'
+import Git, { CheckRepoActions, SimpleGit } from 'simple-git'
 import Path from '@cubic-bubble/path'
 
+export type GitManagerOptions = {
+  cwd?: string
+  auth?: { 
+    username: string,
+    password?: string,
+    token?: string
+  },
+  repository?: string
+  debug?: boolean
+}
+
 export default class GitManager {
+  private cwd: string
+  private repository: string
+  private remote: string | null = null
+  private git: SimpleGit
+
   /**
    * @params {Object} options
    *    - cwd
@@ -11,12 +27,10 @@ export default class GitManager {
    *    - repository
    *    - debugMode
    */
-  constructor( options = {} ){
+  constructor({ cwd, auth, repository }: GitManagerOptions ){
 
-    const { cwd, auth, repository } = options
-
-    this.cwd = cwd // Project's current working directory
-    this.repository = repository
+    this.cwd = cwd || '/' // Project's current working directory
+    this.repository = repository || ''
 
     // Define repository URL
     if( repository ) {
@@ -39,14 +53,14 @@ export default class GitManager {
   }
 
   // Update current working directory
-  setCWD( cwd ){ this.git.cwd( cwd || this.cwd || process.cwd() ) }
+  setCWD( cwd: string ){ this.git.cwd( cwd || this.cwd || process.cwd() ) }
 
-  async initProject( remote, force, progress ){
+  async initProject( remote: string | null, force?: boolean, progress?: ProgressWatcher ){
     if( !this.git )
       throw new Error('Git is not initialized')
 
     const
-    isRepository = await this.git.checkIsRepo('root'),
+    isRepository = await this.git.checkIsRepo('root' as CheckRepoActions ),
     sync = async () => {
 
       // TODO: Check & pull if remote exists
@@ -54,7 +68,7 @@ export default class GitManager {
 
       return await this.git.add('./*')
                             .commit('Initial commit!')
-                            .addRemote( 'origin', remote || this.remote )
+                            .addRemote( 'origin', remote || this.remote as string )
 
                             /*
                              * Fetch only when remote already exists
@@ -78,14 +92,14 @@ export default class GitManager {
     await sync()
   }
 
-  async cloneProject( repository, path, clear ){
+  async cloneProject( repository: string, path: string, clear?: boolean ){
     // Clone Git repository to local
     await this.git.clone( repository || this.repository, path )
     // Completely uninitialize (remove) .git after project cloned
     clear && this.clear( path )
   }
 
-  clear( path ){
+  clear( path: string ){
     // Remove git completely from a directory
     return new Promise( resolve => Rimraf( Path.resolve( this.cwd, `${path || ''}/.git` ), resolve ) )
   }

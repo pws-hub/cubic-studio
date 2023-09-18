@@ -1,23 +1,27 @@
-
+import type { InitialScope } from '../types'
 import './globals'
-import App from './views/App'
-import Home from 'pages/Home'
-import Project from 'pages/Project'
-import Workspace from 'pages/Workspace'
-import Locales from './json/languages.json'
 
 import Sync from './lib/SyncClient'
 import Override from './lib/Override'
 import RequestClient from './lib/CARClient'
 import FileSystemClient from './lib/FSTClient'
 import IProcessClient from './lib/IPTClient'
+import Locales from './json/languages.json'
+// @ts-ignore
+import App from './views/App'
+// @ts-ignore
+import Home from 'pages/Home'
+// @ts-ignore
+import Project from 'pages/Project'
+// @ts-ignore
+import Workspace from 'pages/Workspace'
 
-import LPSTest from 'test/lps.client.test'
-import ProcessManagerTest from 'test/fpm.test'
+// import LPSTest from 'test/lps.client.test'
+// import ProcessManagerTest from 'test/fpm.test'
 
-function getInitialScope(){
+function getInitialScope(): Promise<InitialScope> {
 
-	function resolveScope( initStr ){
+	function resolveScope( initStr: string ){
 		const
 		b64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/',
 		[ str, salt ] = initStr.split('$')
@@ -59,13 +63,13 @@ function getInitialScope(){
 			// Explicitly fetch the scope
 			fetch('/init')
 					.then( res => { return !res.ok ? reject( res.status ) : res.json() } )
-					.then( res => resolve( resolveScope( res ) ) )
+					.then( ({ data }) => resolve( resolveScope( data ) ) )
 	} )
 }
 
-function initScreenSet( e ){
+function initScreenSet( e?: Event ){
   const
-  $window = $( e && e.target ? this : document ),
+  $window = window.$( e && e.target ? this : document ),
   width = $window.width(),
   height = $window.height()
 
@@ -76,18 +80,19 @@ function initScreenSet( e ){
   if( width >= 992 ) media = 'lg'
   if( width >= 1200 ) media = 'xl'
 
-  GState.set( 'screen', { media, width, height } )
+  window.GState.set( 'screen', { media, width, height } )
 }
 
-async function handleLocale(){
+async function handleLocale(): Promise<void>{
 	// Init locale language handlers
-	function initLocale( locale ){
+	function initLocale( locale: string ): Promise<void>{
 		return new Promise( ( resolve, reject ) => {
 				const [ language, variant ] = locale.split('-')
 				// Fetch another dictionary
 				try {
 					const dictionary = require(`./json/locales/${ language }.json`)
-					GState.set( 'locale', { language, variant, dictionary } )
+					window.GState.set( 'locale', { language, variant, dictionary } )
+
 					resolve()
 				}
 				catch( error ) { reject( error ) }
@@ -106,7 +111,7 @@ async function handleLocale(){
 	 * JS script. Helps when the need of transation
 	 * is out of a component
 	 */
-	GState.set( 'locales', Locales )
+	window.GState.set( 'locales', Locales )
 	window.Locale = text => {
 		/*
 		 * Static translation
@@ -116,7 +121,7 @@ async function handleLocale(){
 		 * ...
 		 * }
 		 */
-		const { language, variant, dictionary } = GState.get('locale')
+		const { language, variant, dictionary } = window.GState.get('locale')
 
 		let translation = dictionary[ text ] || text
 
@@ -152,25 +157,25 @@ async function handleLocale(){
 	}
 
 	// Language Switcher
-	GState
+	window.GState
 	.define('locale')
 	.action( 'switch', async locale => {
 		await initLocale( locale )
-		await updateUser({ 'language': locale }, 'settings' )
+		// await updateUser({ 'language': locale }, 'settings' )
 	} )
 }
 
-async function fetchWorkspaces(){
+async function fetchWorkspaces(): Promise<boolean>{
 	try {
-		const { error, message, workspaces } = await RGet('/workspaces')
+		const { error, message, workspaces } = await window.RGet('/workspaces')
 		if( error ) throw new Error( message )
 
-		GState.set('workspaces', workspaces )
-		return
+		window.GState.set('workspaces', workspaces )
+		return true
 	}
 	catch( error ) {
 		console.log('Failed fetching workspaces: ', error )
-		GState.set('workspaces', [] )
+		window.GState.set('workspaces', [] )
 		return false
 	}
 }
@@ -200,9 +205,9 @@ async function Client(){
 
 	/* ----------------------------------------------------------------*/
 	// Default global states
-	GState.set('theme', 'dark')
-	GState.set('isConnected', isConnected )
-	GState.set('user', user )
+	window.GState.set('theme', 'dark')
+	window.GState.set('isConnected', isConnected )
+	window.GState.set('user', user )
 
 	/* ----------------------------------------------------------------*/
 	/*
@@ -219,15 +224,17 @@ async function Client(){
 	 *				 - hs (Half section)
 	 *				 - ns (No-section)
 	 */
-	const wsStoreAttr = 'ws-studio'
+	const 
+	wsStoreAttr = 'ws-studio',
+	accountType = 'AMDIN'
 
-	GState.set('ws', { mode: 'ns', ...(window.Store.get( wsStoreAttr ) || {}) })
-	GState
+	window.GState.set('ws', { mode: 'ns', ...(window.Store.get( wsStoreAttr ) || {}) })
+	window.GState
 	.define('ws')
 	// Update workspace Layout
 	.action( 'layout', newState => {
 
-		const recentState = GState.get('ws')
+		const recentState = window.GState.get('ws')
 		if( newState.mode == 'ns' && recentState.mode !== 'ns' )
 			newState.previousMode = recentState.mode
 
@@ -236,35 +243,36 @@ async function Client(){
 
 		newState = Object.assign( {}, recentState, newState )
 
-		GState.dirty( 'ws', newState )
+		window.GState.dirty( 'ws', newState )
 		window.Store.set( wsStoreAttr, newState )
 	} )
 	// Set/Define workspace context
 	.action( 'context', newState => {
 
-		const wsState = GState.get('ws')
+		const wsState = window.GState.get('ws')
 		wsState.context = Object.assign( wsState.context || {}, newState, { accountType } )
 
-		GState.dirty( 'ws', wsState )
+		window.GState.dirty( 'ws', wsState )
 	} )
 
 	/* ----------------------------------------------------------------*/
 	// Initial Console State
-	GState.set( 'logs', [] )
-	GState
+	window.GState.set( 'logs', [] )
+	window.GState
 	.define('console')
 	.action( 'log', log => {
-		const logs = GState.get('logs')
+		const logs = window.GState.get('logs')
 		logs.push( log )
-		GState.dirty( 'logs', logs )
+
+		window.GState.dirty( 'logs', logs )
 	} )
-	.action( 'clear', () => GState.dirty( 'logs', [] ) )
+	.action( 'clear', () => window.GState.dirty( 'logs', [] ) )
 
 	/* ----------------------------------------------------------------*/
 	// Initial media window sizes
 	initScreenSet()
 	// Watch screen resize for responsiveness updates
-	$(window).on( 'resize', initScreenSet )
+	window.$(window).on('resize', initScreenSet )
 
 	/* ----------------------------------------------------------------*/
 	// Locale translation
@@ -280,21 +288,21 @@ async function Client(){
 		window.IProcess = await IProcessClient( namespaces.IPT )
 
 		// FileSystem Manager
-		window.FileSystem = await FileSystemClient( namespaces.FST )
+		window.FSystem = await FileSystemClient( namespaces.FST )
 		// Init Global FileSystem Explorer Interface
-		window.FSExplorer = await FileSystem.init('explorer', { ignore: false, debug: true })
+		window.FSExplorer = await window.FSystem.init('explorer', { ignore: false, debug: true })
 	}
 
 	/* ----------------------------------------------------------------*/
 	// Initialize workspaces
-	GState.set('workspaces', null )
+	window.GState.set('workspaces', null )
 
 	if( isConnected ) {
-		GState
+		window.GState
 		.define('workspaces')
 		.action( 'refresh', async () => await fetchWorkspaces() )
 		.action( 'get', id => {
-			const list = GState.get('workspaces') || []
+			const list = window.GState.get('workspaces') || []
 
 			for( let w = 0; w < list.length; w++ )
 				if( list[w].workspaceId == id )

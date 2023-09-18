@@ -1,0 +1,47 @@
+
+static const Tabs = [ 'params', 'query', 'auth', 'headers', 'body', 'scripts', 'test' ]
+
+class {
+  onCreate(){
+    this.state = {
+      active: 'params'
+    }
+  }
+  onSelectTab( tab ){ this.state.active = tab }
+}
+
+<div.col.px-0.h-100>
+  <ul.list-inline.px-3.py-75.my-0>
+    <for|tab, index| of=Tabs>
+      <li.px-1.py-25.mr-50.cursor-pointer
+          class=(state.active == tab ? 'border border-1 round' : '' )
+          on-click('onSelectTab', tab )>
+        ${tab.toCapitalCase()}
+      </li>
+    </for>
+  </ul>
+
+  <Switch by=state.active>
+    <@case is="params">
+      <TableForm/>
+    </@case>
+    <@case is="query">
+      <TableForm/>
+    </@case>
+    <@case is="headers">
+      <TableForm/>
+    </@case>
+    <@case is="body">
+      <TableForm/>
+    </@case>
+    <@case is="auth">
+      Autorization
+    </@case>
+    <@case is="scripts">
+      Scripts
+    </@case>
+    <@case is="test">
+      Test
+    </@case>
+  </Switch>
+</div>

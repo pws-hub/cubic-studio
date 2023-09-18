@@ -20,6 +20,11 @@ export type FSDirectoryContent = {
   // Deep also into sub-directory
   content?: FSDirectoryContent[] | boolean
 }
+export type FSDirectory = {
+  name: string
+  path: string
+  content: FSDirectoryContent[]
+}
 export type FSFileOptions = {
   encoding?: string
 }
@@ -48,7 +53,7 @@ export default class FileSystem {
   resolve( path: string ){ return this.cwd ? Path.resolve( this.cwd, path ) : path }
 
   // Get content tree of a directory and its sub-directories
-  async directory( path: string, options: FSDirectoryOptions = {}, depth = false ){
+  async directory( path: string, options: FSDirectoryOptions = {}, depth = false ): Promise<FSDirectory>{
     path = path || ( !depth ? this.cwd : '' )
 
     const
@@ -107,12 +112,12 @@ export default class FileSystem {
   }
 
   // Create new directory
-  async newDir( path: string, options = {} ){
-    await Fs.ensureDir( this.resolve( path ), options )
+  async newDir( path: string, mode?: any ){
+    await Fs.ensureDir( this.resolve( path ), mode ? { mode } : undefined )
   }
 
   // Create new file
-  async newFile( path: string, content: string, options: any = {} ){
+  async newFile( path: string, content?: string, options: any = {} ){
     path = this.resolve( path )
 
     await Fs.ensureFile( path ) // Ensure the file exist: Create directories if does not exist

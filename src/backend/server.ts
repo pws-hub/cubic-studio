@@ -1,4 +1,5 @@
 
+import type { User } from '../types/user'
 import hpp from 'hpp'
 import http from 'http'
 import redis from 'redis'
@@ -6,7 +7,7 @@ import logger from 'morgan'
 import helmet from 'helmet'
 import express, { Application, Request, Response } from 'express'
 import randtoken from 'rand-token'
-import session from 'express-session'
+import session, { SessionOptions } from 'express-session'
 import RedisStore from 'connect-redis'
 import cookieParser from 'cookie-parser'
 import markoMiddleware from '@marko/express'
@@ -16,23 +17,26 @@ import * as Core from './core'
 import WWW from 'frontend/views/www.marko'
 // @ts-ignore
 import ErrorPage from 'frontend/views/pages/error.marko'
+import { InitialScope } from '../types'
 
 const
-getInitialScope = async ( req: Request, res?: Response ) => {
+getInitialScope = async ( req: Request, res?: Response ): Promise<string | void> => {
 
-  let initStr = JSON.stringify({
-    env: process.env.NODE_ENV,
-    mode: process.env.MODE,
+  const initScope: InitialScope = {
+    env: process.env.NODE_ENV as 'development' | 'staging' | 'production',
+    mode: process.env.MODE as 'local' | 'cloud',
     asm: String( process.env.LOCALHOST_API ) === 'true' ? 'local' : 'cloud', // Api server mode
     instance: Configs.INSTANCE_PROVIDER,
     providers: Configs.AUTH_PROVIDERS,
     namespaces: {
-      CAR: process.env.CAR_NAMESPACE, // Cubic API Request namespace
-      FST: process.env.FST_NAMESPACE, // File System Transaction namespace
-      IPT: process.env.IPT_NAMESPACE // Internal Process Transaction namespace
+      CAR: process.env.CAR_NAMESPACE as string, // Cubic API Request namespace
+      FST: process.env.FST_NAMESPACE as string, // File System Transaction namespace
+      IPT: process.env.IPT_NAMESPACE as string // Internal Process Transaction namespace
     },
-    ...( await Sync.getSession( 'auth', req ) )
-  })
+    ...( await Sync.getSession( 'auth', req ) ) as { isConnected: boolean, user: User }
+  }
+
+  let initStr = JSON.stringify( initScope )
   const salt = randtoken.generate(128)
 
   // Default Encrypting Tool: Modified Base64 encoder
@@ -75,7 +79,7 @@ getInitialScope = async ( req: Request, res?: Response ) => {
   // Last value
   initStr = `${n_result }$${ salt.split('').reverse().join('')}`
 
-  if( res ) res.json( initStr ) // Via init route
+  if( res ) res.send({ data: initStr }) // Via init route
   else return initStr // Internal request
 },
 app: Application = express()
@@ -91,7 +95,7 @@ app: Application = express()
 
 /* -------------------------------------------------------------------*/
 // Session management Configuration
-const sessionConfig = {
+const sessionConfig: SessionOptions = {
   secret: process.env.SESSION_ENCRYPT_SECRET as string,
   name: `${Configs.APPNAME}-CST33`,
   saveUninitialized: true,

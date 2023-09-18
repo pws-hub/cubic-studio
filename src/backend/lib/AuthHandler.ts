@@ -68,7 +68,7 @@ export default async ( req, res ) => {
     }
   }
   catch( error ) {
-    console.log(`[${clc.red('ERROR')}] Unexpected Error Occured:`, error )
+    console.log('[ERROR] Unexpected Error Occured:', error )
 
     req.session.authError = 'Unexpected Error Occured'
     res.redirect('/')

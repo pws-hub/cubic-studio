@@ -1,0 +1,53 @@
+
+
+static const Tabs = [ 'headers', 'body' ]
+static const SubTabs = [ 'pretty', 'raw', 'text', 'html' ]
+
+class {
+  onCreate(){
+    this.state = {
+      active: 'body',
+      subActive: 'pretty'
+    }
+  }
+  onSelectTab( tab ){ this.state.active = tab }
+  onSelectSubTab( tab ){ this.state.subActive = tab }
+}
+
+<div.col-5.h-100.theme-bg-fade>
+  <ul.w-100.list-inline.px-50.py-75.my-0.border-bottom.d-inline-flex.align-items-center>
+    <li.px-75.py-25.text-muted>Response</li>
+    <li.px-75.py-25.text-success>201 Resource Created</li>
+    <li.px-75.py-25.text-warning>128ms</li>
+    <li.px-75.py-25.text-warning>200Kb</li>
+    
+    <!-- More Menu -->
+    <Bx.font-medium-5.px-1.cursor-pointer.position-absolute.right-0 type="dots-vertical-rounded"/>
+  </ul>
+
+  <Row.no-gutters.border-bottom>
+    <@col.px-50>
+      <ul.list-inline.py-75.my-0>
+        <for|tab, index| of=Tabs>
+          <li.px-75.py-25.cursor-pointer
+              class=(state.active == tab ? 'border border-1 round' : '' )
+              on-click('onSelectTab', tab )>
+            ${tab.toCapitalCase()}
+          </li>
+        </for>
+      </ul>
+    </@col>
+  </Row>
+
+  <Switch by=state.active>
+    <@case is="body">
+      <Body />
+    </@case>
+    
+    <@case is="headers">
+      Headers
+    </@case>
+  </Switch>
+          
+
+</div>

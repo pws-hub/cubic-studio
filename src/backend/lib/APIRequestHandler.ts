@@ -8,7 +8,7 @@ export default async ( req, res ) => {
     if( !Configs.REQUEST_HANDLERS[ provider ] )
       throw new Error(`Undefined <${provider}> Request Handler`)
 
-    const requestHandler = require(`handlers/${ Configs.REQUEST_HANDLERS[ provider ]}` ).default
+    const requestHandler = require(`handlers/${Configs.REQUEST_HANDLERS[ provider ]}`).default
 
     return await requestHandler( req, res )
   }

@@ -4,19 +4,21 @@ import http from 'http'
 import redis from 'redis'
 import logger from 'morgan'
 import helmet from 'helmet'
-import express from 'express'
+import express, { Application, Request, Response } from 'express'
 import randtoken from 'rand-token'
 import session from 'express-session'
-import redisConnect from 'connect-redis'
+import RedisStore from 'connect-redis'
 import cookieParser from 'cookie-parser'
 import markoMiddleware from '@marko/express'
-import * as Core from './core'
-import WWW from 'frontend/views/www.marko'
-import ErrorPage from 'frontend/views/pages/error.marko'
 import LPSServer from './core/LPSServer'
+import * as Core from './core'
+// @ts-ignore
+import WWW from 'frontend/views/www.marko'
+// @ts-ignore
+import ErrorPage from 'frontend/views/pages/error.marko'
 
 const
-getInitialScope = async ( req, res ) => {
+getInitialScope = async ( req: Request, res?: Response ) => {
 
   let initStr = JSON.stringify({
     env: process.env.NODE_ENV,
@@ -59,7 +61,7 @@ getInitialScope = async ( req, res ) => {
   } while ( i < initStr.length )
 
   // Introduce unknown portion of string
-  const index = parseInt( result.length / 4 )
+  const index = Math.ceil( result.length / 4 )
   let
   n_result = '',
   slices = 0
@@ -76,13 +78,13 @@ getInitialScope = async ( req, res ) => {
   if( res ) res.json( initStr ) // Via init route
   else return initStr // Internal request
 },
-app = express()
+app: Application = express()
 
 .disable('x-powered-by')
 .enable('trust proxy')
 .use( helmet({ contentSecurityPolicy: false }) )
 .use( logger('dev') )
-.use( express.json({ extended: true }) )
+.use( express.json() )
 .use( express.urlencoded({ extended: true }) )
 .use( hpp() )
 .use( markoMiddleware() )
@@ -90,14 +92,14 @@ app = express()
 /* -------------------------------------------------------------------*/
 // Session management Configuration
 const sessionConfig = {
-  secret: process.env.SESSION_ENCRYPT_SECRET,
+  secret: process.env.SESSION_ENCRYPT_SECRET as string,
   name: `${Configs.APPNAME}-CST33`,
   saveUninitialized: true,
   resave: false,
   cookie: {
     path: '/',
     httpOnly: true,
-    secure: ( isOncloud() && process.env.HTTP_SECURE ),
+    secure: ( isOncloud() && process.env.HTTP_SECURE == 'true' ),
     maxAge: Number( process.env.SESSION_EXPIRY ) * 24 * 3600000 // Session age per day
   }
 }
@@ -116,12 +118,12 @@ if( process.env.NODE_ENV == 'production' ) {
    *}
    */
   const
-  RedisStore = redisConnect( session ),
-  RedisClient = redis.createClient( process.env.REDIS_SERVER_URL )
+  // RedisStore = new redisConnect( session ),
+  RedisClient = redis.createClient({ url: process.env.REDIS_SERVER_URL as string })
 
   RedisClient
   .on( 'connect', error => console.log('[REDIS] Connected to redis successfully') )
-  .on( 'error', error => console.log(`[${ clc.red('ERROR') }] Redis-Server Error: `, error ) )
+  .on( 'error', error => console.log('[ERROR] Redis-Server Error: ', error ) )
 
   // Use different session name in production
   sessionConfig.name += '--CSMM778'
@@ -139,9 +141,9 @@ LPSServer({ serverType: 'express' }, app ).listen()
 
 /* -------------------------------------------------------------------*/
 // Application Assets Manifest
-const Assets = require( process.env.RAZZLE_ASSETS_MANIFEST )
+const Assets = require( process.env.RAZZLE_ASSETS_MANIFEST as string )
 
-app.use( express.static( process.env.RAZZLE_PUBLIC_DIR ) )
+app.use( express.static( process.env.RAZZLE_PUBLIC_DIR as string  ) )
 
 /* ---------------------------------------------------------------------------*/
 // Initial Scope information
@@ -160,14 +162,14 @@ app.use( express.static( process.env.RAZZLE_PUBLIC_DIR ) )
                       Assets
                     } )
   }
-  catch( error ) { console.log( error.message ) }
+  catch( error: any ) { console.log( error.message ) }
 })
 
 /* ------------------------ Error handlers ------------------------*/
 // Catch 404 and forward to error handler
 .use( ( req, res, next ) => {
-  const error = new Error('Not Found')
-  error.status = 404
+  const error: any = new Error('Not Found')
+  error.statusCode = 404
   next( error )
 })
 
@@ -175,14 +177,14 @@ app.use( express.static( process.env.RAZZLE_PUBLIC_DIR ) )
  * Print error stacktrace at the backend and
  * render the related error page at the frontend
  */
-.use( ( error, req, res, next ) => {
+.use( ( error: any, req: Request, res: Response ) => {
 
   const statusCode = error.status || 500
   let stackTraces = {}
 
   // No stacktraces leaked to user in production mode
   if( process.env.NODE_ENV === 'development' ) {
-    console.error( clc.red('[ERROR] '), error )
+    console.error('[ERROR] ', error )
     stackTraces = error
   }
 
@@ -196,11 +198,8 @@ app.use( express.static( process.env.RAZZLE_PUBLIC_DIR ) )
 
 /* ---------------------------------------------------------------------------*/
 // Create HTTPS & Socket Server
-const
-server = http.Server( app ),
-{ ioServer } = Core.init( server )
+const server = new http.Server( app )
 
-// Attach socket Server to app
-// app.io = ioServer
+Core.init( server )
 
 export default server

@@ -1,12 +1,20 @@
 /**
  * Cubic API Request channel handler
  */
-import request from 'request-promise'
+import type { RequestResponse } from 'request'
+import type { Server, Socket } from 'socket.io'
+import request, { RequestPromiseOptions } from 'request-promise'
 
-function initChannel( socket ){
+type Payload = {
+  url: string,
+  method: string,
+  body?: any
+}
+
+function initChannel( socket: Socket ){
   console.log('CAR New Connection: ', socket.id )
 
-  async function makeRequest( payload, callback ){
+  async function makeRequest( payload: Payload, callback: ( response: RequestResponse ) => void ){
     let response
 
     try {
@@ -16,9 +24,10 @@ function initChannel( socket ){
         response = { error: true, message: 'Invalid Request URL' }
 
       else {
-        options = {
+        const
+        uri = toOrigin( ( process.env.WORKSPACE_API_SERVER as string ), String( process.env.LOCALHOST_API ) === 'true' ) + url,
+        requestOptions: RequestPromiseOptions = {
           ...options,
-          url: toOrigin( process.env.WORKSPACE_API_SERVER, String( process.env.LOCALHOST_API ) === 'true' ) + url,
           headers: {
             'Authorization': `Bearer ${ socket.data.AccessToken}`,
             'Content-Type': 'application/json'
@@ -26,10 +35,10 @@ function initChannel( socket ){
           json: true
         }
 
-        response = await request( options )
+        response = await request( uri, requestOptions )
       }
     }
-    catch( error ) { response = { error: true, message: error.message } }
+    catch( error: any ) { response = { error: true, message: error.message } }
 
     typeof callback == 'function' && callback( response )
   }
@@ -38,14 +47,14 @@ function initChannel( socket ){
   .on( 'API::REQUEST', makeRequest )
 }
 
-export default ioServer => {
+export default ( ioServer: Server ) => {
   ioServer
   .of(`/${ process.env.CAR_NAMESPACE}` )
   .use( async ( socket, next ) => {
     const { auth } = socket.handshake
 
     if( !auth || !auth.token )
-      return next( new Error( HTTP_ERROR_MESSAGES['403'] ) )
+      return next( new Error('Access Forbidden') )
 
     // TODO: Make request to verify the auth.token
 

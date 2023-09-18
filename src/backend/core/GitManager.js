@@ -1,7 +1,7 @@
 
 import Rimraf from 'rimraf'
 import Git from 'simple-git'
-import Path from 'path-inter'
+import Path from '@cubic-bubble/path'
 
 export default class GitManager {
   /**

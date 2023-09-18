@@ -1,15 +1,16 @@
 
-import socketServer from 'socket.io'
+import http from 'http'
+import { Server } from 'socket.io'
 import CARConnect from '../lib/Connect/CAR'
 import FSTConnect from '../lib/Connect/FST'
 import IPTConnect from '../lib/Connect/IPT'
 import Synchronizer from '../lib/Synchronizer'
 
-import '../../../test'
+// import '../../../test'
 
-export const init = server => {
+export const init = ( server: http.Server ) => {
   // Use Socket.io Connection between Backend and Frontend in local environment
-  const io = socketServer( server )
+  const io = new Server( server )
 
   // Cubic API Request channel
   CARConnect( io )

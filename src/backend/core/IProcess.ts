@@ -1,14 +1,36 @@
-
-import Fs from 'fs-inter'
-import Path from 'path-inter'
-import Emulator from './Emulator'
-import PackageManager from './CPM'
+import type { Metadata, Project } from '../../types/project'
+import Fs from '@cubic-bubble/fs'
+import Path from '@cubic-bubble/path'
 import LPSServer from './LPSServer'
+import PackageManager from '@cubic-bubble/cpm'
+import Emulator from './Emulator'
 import GitManager from './GitManager'
 import FileSystem from './FileSystem'
 import * as GenericFile from './GenericFile'
 
-async function processJSPackage( action, packages, directory, source, _process ){
+type JSSource = 'npm' | 'cpm'
+type JSPackageAction = 'install' | 'remove' | 'update'
+type JSPackage = {
+  item: {
+    name: string
+    version?: string
+  }
+}
+type CBPackageAction = 'install' | 'publish' | 'update' | 'remove'
+type CPPackage = {
+  item: {
+    name: string
+    version?: string
+  }
+}
+
+export type IProcessWatcher = ( processName: string, error: Error | string | boolean, stats?: any ) => void
+export type IProcessOptions = {
+  debug: boolean
+  watcher?: IProcessWatcher
+}
+
+async function processJSPackage( action: JSPackageAction, packages: JSPackage[], directory: string, source: JSSource, _process: IProcess ){
 
   const processName = `${action}-packages`
   source = source || 'cpm'
@@ -28,13 +50,13 @@ async function processJSPackage( action, packages, directory, source, _process )
                         message: 'Installing dependency pagkages'
                       })
 
-    const pm = new PackageManager({ cwd: directory, manager: Configs.NODE_PACKAGE_MANAGER, debug: _process.debugMode })
-
-    packages = packages.map( ({ item }) => {
+    const 
+    pm = new PackageManager({ cwd: directory, manager: Configs.NODE_PACKAGE_MANAGER, debug: _process.debugMode }),
+    pkgList = packages.map( ({ item }) => {
       return item.name +( action == 'install' && item.version ? `@${item.version}` : '' )
     } )
 
-    await pm[ action ]( packages, '-W', ( error, message, bytes ) => {
+    await pm[ action ]( pkgList, '-W', ( error: string, message: string, bytes: number ) => {
       // Installation progress tracking
       error ?
         _process.watcher( processName, error )
@@ -56,15 +78,14 @@ async function processJSPackage( action, packages, directory, source, _process )
                         message: `Dependency packages ${action.replace(/e$/, '')}ed`
                       })
   }
-  catch( error ) {
+  catch( error: any ) {
     _process.debug('Error occured: ', error )
     _process.watcher( processName, error )
   }
 }
-async function processCubicPackage( action, packages, directory, _process ){
-
+async function processCubicPackage( action: CBPackageAction, packages: CPPackage[], directory: string, _process: IProcess ){
   const
-  processName = `${action}-packages`
+  processName = `${action}-packages`,
   processor = 'cpm'
 
   try {
@@ -84,7 +105,7 @@ async function processCubicPackage( action, packages, directory, _process ){
 
     const pm = new PackageManager({ cwd: directory, debug: _process.debugMode })
 
-    await pm[ action ]( packages.join(' '), '-f -d', ( error, bytes, message ) => {
+    await pm[ action ]( packages.join(' '), '-f -d', ( error: string, bytes: number, message: string ) => {
       // Installation progress tracking
       error ?
         _process.watcher( processName, error )
@@ -106,29 +127,35 @@ async function processCubicPackage( action, packages, directory, _process ){
                         message: `Installation ${action.replace(/e$/, '')}ed`
                       })
   }
-  catch( error ) {
+  catch( error: any ) {
     _process.debug('Error occured: ', error )
     _process.watcher( processName, error )
   }
 }
 
 export default class IProcess {
+  public debugMode = false
+  public watcher: IProcessWatcher = () => {}
+  private LPS
 
-  constructor( options = {} ){
+  // Active emulators
+  private emulators: { [index: string]: Emulator } = {}
+
+  constructor( options: IProcessOptions ){
     // Debuging mode
     this.debugMode = options.debug
     // Process watcher
-    this.watcher = typeof options.watcher === 'function' ? options.watcher : () => {}
-    // Active emulators
-    this.emulators = {}
+    if( typeof options.watcher === 'function' )
+      this.watcher = options.watcher
+
     // Locale Package Store
     this.LPS = LPSServer().Storage
   }
 
   // Internal operation log: Debug mode
-  debug( ...args ){ this.debugMode && console.log( ...args ) }
+  debug( ...args: any[] ){ this.debugMode && console.log( ...args ) }
 
-  async setupProject( dataset ){
+  async setupProject( dataset: Project ){
     try {
       const
       { type, name, description, specs } = dataset,
@@ -136,7 +163,7 @@ export default class IProcess {
 
       pm = new PackageManager({ cwd: directory, manager: Configs.NODE_PACKAGE_MANAGER, debug: this.debugMode }),
       git = new GitManager({ debug: this.debugMode, repository }),
-      fs = new FileSystem({ cwd: false, debug: this.debugMode })
+      fs = new FileSystem({ cwd: null, debug: this.debugMode })
 
       // Project will run in a sandbox
       let inSandbox = false
@@ -218,7 +245,7 @@ export default class IProcess {
 
         const
         starter = `${pm.manager}${pm.manager == 'npm' ? ' run' : ''}`,
-        packageJson = {
+        packageJson: any = {
           name: dotMetadata.nsi || name,
           description: description || `Short description of the ${type}`,
           version: dotMetadata.version || '1.0.0',
@@ -248,7 +275,7 @@ export default class IProcess {
                         processor: 'cpm',
                         message: 'Installing project dependencies'
                       })
-        await pm.installDependencies( ( error, message, bytes ) => {
+        await pm.installDependencies( '-f', ( error: string | boolean, message: string, bytes: number ) => {
           // Installation progress tracking
           error ?
             this.watcher( 'setup', error )
@@ -288,12 +315,12 @@ export default class IProcess {
       // Setup testing project
 
     }
-    catch( error ) {
+    catch( error: any ) {
       this.debug('Error occured: ', error )
       this.watcher( 'setup', error )
     }
   }
-  async importProject( dataset ){
+  async importProject( dataset: Project ){
     try {
       const
       { type, name, description, specs } = dataset,
@@ -301,7 +328,7 @@ export default class IProcess {
 
       pm = new PackageManager({ cwd: directory, manager: Configs.NODE_PACKAGE_MANAGER, debug: this.debugMode }),
       git = new GitManager({ debug: this.debugMode, repository }),
-      fs = new FileSystem({ cwd: false, debug: this.debugMode })
+      fs = new FileSystem({ cwd: null, debug: this.debugMode })
 
       // Project will run in a sandbox
       let inSandbox = false
@@ -400,7 +427,7 @@ export default class IProcess {
 
         const
         starter = `${pm.manager}${pm.manager == 'npm' ? ' run' : ''}`,
-        packageJson = {
+        packageJson: any = {
           name: dotMetadata.nsi || name,
           description: description || `Short description of the ${ type}`,
           version: dotMetadata.version || '1.0.0',
@@ -430,7 +457,7 @@ export default class IProcess {
                         processor: 'cpm',
                         message: 'Installing project dependencies'
                       })
-        await pm.installDependencies( ( error, message, bytes ) => {
+        await pm.installDependencies( '-f', ( error: string | boolean, message: string, bytes: number ) => {
           // Installation progress tracking
           error ?
             this.watcher( 'import', error )
@@ -457,25 +484,25 @@ export default class IProcess {
       // Import testing project
 
     }
-    catch( error ) {
+    catch( error: any ) {
       this.debug('Error occured: ', error )
       this.watcher( 'import', error )
     }
   }
 
-  async startEM( id, dataset ){
+  async startEM( id: string, dataset: Project ){
     // Start an Emulator Instance
     try {
       const
       { name, specs } = dataset,
       { directory } = specs.code,
-      watcher = ( error, data ) => this.watcher('emulator', error, data ),
+      watcher = ( error: boolean, data: any ) => this.watcher('emulator', error, data ),
 
       fs = new FileSystem({ cwd: directory, debug: this.debugMode }),
       em = this.emulators[ id ] // Use cached instance
             || new Emulator({ cwd: directory, name, debug: this.debugMode, watcher })
 
-      if( !( await fs.exists() ) )
+      if( !( await fs.exists( directory ) ) )
         throw new Error('Project directory not found')
 
       if( !( await fs.exists('.sandbox') ) )
@@ -487,12 +514,12 @@ export default class IProcess {
 
       return metadata
     }
-    catch( error ) {
+    catch( error: any ) {
       this.debug('Error occured: ', error )
       this.watcher( 'emulator', error )
     }
   }
-  async restartEM( id, dataset ){
+  async restartEM( id: string, dataset: Project ){
     // Restart emulator instance
     try {
       // Reconnect to process in case development server was restarted
@@ -500,7 +527,7 @@ export default class IProcess {
         const
         { name, specs } = dataset,
         { directory } = specs.code,
-        watcher = ( error, data ) => this.watcher('emulator', error, data )
+        watcher = ( error: boolean, data: any ) => this.watcher('emulator', error, data )
 
         this.emulators[ id ] = new Emulator({ cwd: directory, name, debug: this.debugMode, watcher })
       }
@@ -508,12 +535,12 @@ export default class IProcess {
       // Restart process
       return await this.emulators[ id ].restart()
     }
-    catch( error ) {
+    catch( error: any ) {
       this.debug('Error occured: ', error )
       this.watcher( 'emulator', error )
     }
   }
-  async stopEM( id, dataset ){
+  async stopEM( id: string, dataset: Project ){
     // Close emulator instance
     try {
       // Reconnect to process in case development server was restarted
@@ -521,7 +548,7 @@ export default class IProcess {
         const
         { name, specs } = dataset,
         { directory } = specs.code,
-        watcher = ( error, data ) => this.watcher('emulator', error, data )
+        watcher = ( error: boolean, data: any ) => this.watcher('emulator', error, data )
 
         this.emulators[ id ] = new Emulator({ cwd: directory, name, debug: this.debugMode, watcher })
       }
@@ -529,18 +556,18 @@ export default class IProcess {
       // Destroy process
       return await this.emulators[ id ].stop()
     }
-    catch( error ) {
+    catch( error: any ) {
       this.debug('Error occured: ', error )
       this.watcher( 'emulator', error )
     }
   }
 
-  async addComponents( dataset, directory ){
+  async addComponents( dataset: string[], directory: string ){
     // Copy a component package from store to a project's components folder
     const
     project = `${directory}/components`,
     fs = new FileSystem({ debug: this.debugMode }),
-    add = async payload => {
+    add = async ( payload: any ) => {
       try {
         const
         storeComponent = Path.join( process.cwd(), `/store/components/${payload.package}` ),
@@ -549,7 +576,7 @@ export default class IProcess {
         if( !exists ) await fs.newDir( project )
         await fs.copy( storeComponent, project )
       }
-      catch( error ) {
+      catch( error: any ) {
         this.debug('Error occured: ', error )
         this.watcher( 'add-component', error )
       }
@@ -574,19 +601,19 @@ export default class IProcess {
   }
 
   // Install/Add JS dependency packages from NPM, CPM, ...
-  async installJSPackages( packages, directory, source ){
+  async installJSPackages( packages: JSPackage[], directory: string, source: JSSource ){
     await processJSPackage( 'install', packages, directory, source, this )
   }
   // Remove dependency packages
-  async removeJSPackages( packages, directory, source ){
+  async removeJSPackages( packages: JSPackage[], directory: string, source: JSSource ){
     await processJSPackage( 'remove', packages, directory, source, this )
   }
   // Update dependency packages
-  async updateJSPackages( packages, directory, source ){
+  async updateJSPackages( packages: JSPackage[], directory: string, source: JSSource ){
     await processJSPackage( 'update', packages, directory, source, this )
   }
   // Reinstall dependency packages
-  async refreshJSPackages( directory, source ){
+  async refreshJSPackages( directory: string, source: JSSource ){
     try {
       if( !directory || !( await Fs.pathExists( directory ) ) )
         throw new Error('Invalid project directory.')
@@ -602,7 +629,7 @@ export default class IProcess {
                       })
 
       const pm = new PackageManager({ cwd: directory, manager: Configs.NODE_PACKAGE_MANAGER, debug: this.debugMode })
-      await pm.installDependencies( ( error, message, bytes ) => {
+      await pm.installDependencies( '-f', ( error: string | boolean, message: string, bytes: number ) => {
         // Installation progress tracking
         error ?
           this.watcher( 'refresh-packages', error )
@@ -624,26 +651,26 @@ export default class IProcess {
                       message: 'Dependency packages refreshed'
                     })
     }
-    catch( error ) {
+    catch( error: any ) {
       this.debug('Error occured: ', error )
       this.watcher( 'refresh-packages', error )
     }
   }
 
   // Install cubic packages from CPR
-  async installCubicPackages( packages, directory ){
+  async installCubicPackages( packages: CPPackage[], directory: string ){
     await processCubicPackage( 'install', packages, directory, this )
   }
   // Remove cubic packages
-  async removeCubicPackages( packages, directory ){
+  async removeCubicPackages( packages: CPPackage[], directory: string ){
     await processCubicPackage( 'remove', packages, directory, this )
   }
   // Update cubic packages
-  async updateCubicPackages( packages, directory ){
+  async updateCubicPackages( packages: CPPackage[], directory: string ){
     await processCubicPackage( 'update', packages, directory, this )
   }
 
-  async installApp( metadata ){
+  async installApp( metadata: Metadata ){
     try {
       if( !isApp( metadata ) )
         throw new Error('Invalid application metadata')
@@ -669,12 +696,12 @@ export default class IProcess {
 
       return sid
     }
-    catch( error ) {
+    catch( error: any ) {
       this.debug('Failed to install app: ', error )
       this.watcher( 'install-app', error )
     }
   }
-  async uninstallApp( sid ){
+  async uninstallApp( sid: string ){
     try {
       if( !sid )
         throw new Error('Undefined application id')
@@ -700,7 +727,7 @@ export default class IProcess {
 
       return true
     }
-    catch( error ) {
+    catch( error: any ) {
       this.debug('Failed to uninstall app: ', error )
       this.watcher( 'uninstall-app', error )
     }

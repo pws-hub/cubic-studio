@@ -1,5 +1,5 @@
 
-import fs from 'fs-inter'
+import fs from '@cubic-bubble/fs'
 
 export const dotCubic = async ({ specs }) => {
 

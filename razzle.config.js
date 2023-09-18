@@ -38,8 +38,8 @@ module.exports = {
       'assets': path.resolve(__dirname, './src/frontend/views/assets'),
       // Important modules
       'vscode': require.resolve('@codingame/monaco-languageclient/lib/vscode-compatibility'),
-      'fs-inter': require.resolve('./src/backend/lib/Inter/fs'),
-      'path-inter': require.resolve('./src/backend/lib/Inter/path'),
+      // 'fs-inter': require.resolve('./src/backend/lib/Inter/fs'),
+      // 'path-inter': require.resolve('./src/backend/lib/Inter/path'),
 
       // Important project
       'handlers': path.resolve(__dirname, './custom/handlers'),

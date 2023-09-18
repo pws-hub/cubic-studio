@@ -1,35 +1,62 @@
 
-import Fs from 'fs-inter'
-import Path from 'path-inter'
+import Fs from '@cubic-bubble/fs'
+import Path from '@cubic-bubble/path'
 import Chokidar from 'chokidar'
 
+export type FSOptions = {
+  cwd?: string | null
+  debug?: boolean
+}
+export type FSDirectoryOptions = { 
+  ignore?: string
+  subdir?: boolean
+  dirsOnly?: boolean
+}
+export type FSDirectoryContent = {
+  isDir?: boolean
+  name: string
+  size: number
+  path: string
+  // Deep also into sub-directory
+  content?: FSDirectoryContent[] | boolean
+}
+export type FSFileOptions = {
+  encoding?: string
+}
+export type FSWatcher = Chokidar.FSWatcher
+export type FSWatcherOptions = { 
+  ignore?: string[]
+  path?: string
+}
+
 export default class FileSystem {
+  private cwd: string
+  private debugMode: boolean
+  // Watcher of occurances on current working directory
+  private watcher?: FSWatcher
+  private watchingPaths?: string
 
-  constructor( options = {} ){
-    this.cwd = options.cwd
-    this.debugMode = options.debug
-
-    // Watcher of occurances on current working directory
-    this.watcher = null
-    this.watchingPaths = false
+  constructor( options: FSOptions ){
+    this.cwd = options.cwd || '/'
+    this.debugMode = options.debug || false
   }
 
   // Internal operation log: Debug mode
-  debug( ...args ){ this.debugMode && console.log( ...args ) }
+  debug( ...args: any[] ){ this.debugMode && console.log( ...args ) }
 
   // Resolve path to Current Working Directory or Absolute path
-  resolve( path ){ return this.cwd ? Path.resolve( this.cwd, path ) : path }
+  resolve( path: string ){ return this.cwd ? Path.resolve( this.cwd, path ) : path }
 
   // Get content tree of a directory and its sub-directories
-  async directory( path, options = {}, depth = false ){
+  async directory( path: string, options: FSDirectoryOptions = {}, depth = false ){
     path = path || ( !depth ? this.cwd : '' )
 
     const
     { ignore, subdir, dirsOnly } = options || {},
     dir = await Fs.readdir( path ),
-    content = []
+    content: FSDirectoryContent[] = []
 
-    await Promise.all( dir.map( name => {
+    await Promise.all( dir.map( ( name: string ) => {
       const
       contentPath = `${path }/${name}`,
       ignoreRegex = ignore && new RegExp( ignore )
@@ -39,7 +66,7 @@ export default class FileSystem {
         return
 
       return Fs.stat( contentPath )
-                .then( async stat => {
+                .then( async ( stat: any ) => {
                   const { size } = stat
                   stat.isDirectory() ?
                         // Record sub-directory
@@ -64,28 +91,28 @@ export default class FileSystem {
   }
 
   // Read a file content
-  async readFile( path, options = {} ){
+  async readFile( path: string, options: any = {} ){
     path = this.resolve( path )
 
     switch( options.encoding ) {
       case 'json': return await Fs.readJson( path )
       // Case 'base64':
-      default: return await Fs.readFile( path, options.encoding || 'UTF-8' )
+      default: return await Fs.readFile( path, { encoding: options.encoding || 'UTF-8' } )
     }
   }
 
   // Check whether file or directory exist or not
-  async exists( path ){
+  async exists( path: string ){
     return await Fs.pathExists( path ? this.resolve( path ) : this.cwd )
   }
 
   // Create new directory
-  async newDir( path, options = {} ){
+  async newDir( path: string, options = {} ){
     await Fs.ensureDir( this.resolve( path ), options )
   }
 
   // Create new file
-  async newFile( path, content, options = {} ){
+  async newFile( path: string, content: string, options: any = {} ){
     path = this.resolve( path )
 
     await Fs.ensureFile( path ) // Ensure the file exist: Create directories if does not exist
@@ -95,19 +122,19 @@ export default class FileSystem {
      *      media as base64
      *      ...
      */
-    await Fs.writeFile( path, content || '', options.encoding || 'UTF-8' )
+    await Fs.writeFile( path, content || '', { encoding: options.encoding || 'UTF-8' } )
   }
 
   // Rename file or directory
-  async rename( path, newname ){
+  async rename( path: string, newname: string ){
     path = this.resolve( path )
 
     await Fs.rename( path, `${Path.dirname( path ) }/${ newname}` )
   }
 
   // Remove file or directory
-  async remove( args ){
-    const fn = async path => {
+  async remove( args: string[] | string ){
+    const fn = async ( path: string ) => {
 
       path = this.resolve( path )
       await Fs.remove( path )
@@ -117,16 +144,16 @@ export default class FileSystem {
   }
 
   // Move file or directory
-  async move( source, destination ){
+  async move( source: string, destination: string ){
     await Fs.move( this.resolve( source ), this.resolve( destination ) )
   }
 
   // Copy file or directory to a given destination
-  async copy( source, destination ){
+  async copy( source: string, destination: string ){
     const options = {
       overwrite: false,
       errorOnExist: true,
-      filter: ( src, dest ) => {
+      filter: ( src: string, dest: string ) => {
         // TODO: Check Git information
 
         return true // Allow to copy
@@ -155,7 +182,7 @@ export default class FileSystem {
   }
 
   // Watch recursively changes that occured on files, directories
-  watch( options = {}, listener ){
+  watch( options: FSWatcherOptions = {}, listener: ( event: string, path: string, stats: any ) => void ): FSWatcher | undefined {
 
     if( typeof options == 'function' ) {
       listener = options
@@ -163,17 +190,17 @@ export default class FileSystem {
     }
 
     const
-    { path, paths, ignore } = options,
-    wpath = path || paths || this.cwd || 'file, dir, glob, or array'
+    { path, ignore } = options,
+    wpath = path || this.cwd // 'file, dir, glob, or array'
 
     // Already watching define paths
     if( this.watcher
         && ( this.watchingPaths == wpath
-              || this.watcher.getWatched().includes( wpath ) ) ) return
+              || Object.keys( this.watcher.getWatched() ).includes( wpath ) ) ) return
 
     this.watcher = Chokidar.watch( wpath, {
                                             ignoreInitial: true, // Do not fire event when discovering paths
-                                            ignored: ignore || false, //   /(^|[\/\\])\../, // ignore dotfiles
+                                            ignored: ignore || undefined, //   /(^|[\/\\])\../, // ignore dotfiles
                                             persistent: true,
                                             alwaysStat: true,
                                             awaitWriteFinish: {

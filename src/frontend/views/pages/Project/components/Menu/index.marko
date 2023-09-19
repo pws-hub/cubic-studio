@@ -27,15 +27,15 @@ class {
           qs="custom-col-1"
           hs="d-none">
     <div.text-center.px-1.py-25>
-      <if( window.history.length <= 2 )>
-        <a href="javascript:history.back()">
-          <Bx.font-large-1.py-50.cursor-pointer type="arrow-back"/>
-        </a>
-      </if>
-      <else>
+      <if( window.history.length < 3 )>
         <Link href="/">
           <Bx.font-large-1.py-50.cursor-pointer type="arrow-back"/>
         </Link>
+      </if>
+      <else>
+        <a href="javascript:history.back()">
+          <Bx.font-large-1.py-50.cursor-pointer type="arrow-back"/>
+        </a>
       </else>
     </div>
 

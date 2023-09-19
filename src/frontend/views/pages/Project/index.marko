@@ -203,8 +203,9 @@ class {
 
 <!-- List of element to app to project -->
 <if( state.showPublisher )>
-  <Publisher on-continue('onAction')
-              on-dismiss( () => component.ws.toggle.pubilsh( false ) )/>
+  <Publisher project=state.project
+              on-continue('onAction')
+              on-dismiss( () => component.ws.toggle.publish( false ) )/>
 </if>
 
 <!-- Project settings -->

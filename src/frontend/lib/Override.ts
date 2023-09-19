@@ -1,11 +1,11 @@
 import type { Overridables } from '../../types'
-import type { User, Member } from '../../types/user'
+import type { User } from '../../types/user'
 
 type OverrideOptions = {
   env: 'development' | 'staging' | 'production'
 }
 
-function fullname( profile: User['profile'] ){
+function fullname( profile ){
   return `${profile.first_name } ${ profile.last_name}`
 }
 
@@ -23,7 +23,7 @@ export default ({ env }: OverrideOptions ): Overridables => {
       }
     },
     // Format multipple's user data to CubicStudio like user data format
-    SearchMemberToAdd: ({ profile, account }: User, members: Member[] ) => {
+    SearchMemberToAdd: ({ profile, account }: any, members: User[] ): User | undefined => {
       /*
        *If( !account.roles.includes('DEVELOPER') ){
        *  this.state.suggestions = false
@@ -35,11 +35,13 @@ export default ({ env }: OverrideOptions ): Overridables => {
       if( !members.filter( ({ name }) => { return fullname( profile ) == name } ).length )
         return {
           id: window.btoa( profile.email ),
+          username: `${profile.first_name}-${profile.last_name}`, 
           photo: profile.photo,
           name: fullname( profile ),
+          bio: profile.bio || '',
           role: 'DEVELOPER', // Default role
           active: false // Disactivated by default
-        } as Member
+        }
     }
 
 

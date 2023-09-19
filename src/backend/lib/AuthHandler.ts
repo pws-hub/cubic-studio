@@ -1,5 +1,15 @@
+import type { Request, Response } from 'express'
+import type { User } from '../../types/user'
 
-async function _initiate( provider, handler, req, res ){
+type AuthResponse = {
+  error: boolean
+  message: string
+  user: User
+}
+type AuthInitiateHandle = ( origin: string ) => Promise<string>
+type AuthCallbackHandler = ( data: { [index: string]: any }, origin: string ) => Promise<AuthResponse>
+
+async function _initiate( provider: string, handler: AuthInitiateHandle, req: Request, res: Response ){
   const
   origin = toOrigin( req.headers.host, !isOncloud() ),
   authURL = await handler( origin )
@@ -9,7 +19,7 @@ async function _initiate( provider, handler, req, res ){
   res.redirect( authURL )
 }
 
-async function _callback( provider, handler, req, res ){
+async function _callback( provider: string, handler: AuthCallbackHandler, req: Request, res: Response ){
   // Handle auth callback process
   const
   origin = toOrigin( req.headers.host, !isOncloud() ),
@@ -44,7 +54,7 @@ async function _callback( provider, handler, req, res ){
   res.redirect('/')
 }
 
-export default async ( req, res ) => {
+export default async ( req: Request, res: Response ) => {
   try {
     const { phase, provider } = req.params
 

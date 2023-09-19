@@ -2,63 +2,93 @@
   {
     "title": "Project Information",
     "description": "Fill & cross-check the publishable project .metadata information",
-    "template": "Info.marko"
-  },
-  {
-    "title": "Run Script",
-    "description": "Run & display settings of application & settings",
-    "template": "RunScript.marko",
+    "template": "Info.marko",
+    "navigation": [ "next" ],
     "disabled": false
   },
   {
     "title": "Project Directory",
     "description": "Cross-check folders, files and root directory structure of the project",
     "template": "Directory.marko",
-    "disabled": false
-  },
-  {
-    "title": "README",
-    "description": "Describe your project and the usage in the README.md file.",
-    "template": "Readme.marko",
+    "specs": [ "code", "documentation", "unit" ],
+    "navigation": [ "next", "prev" ],
     "disabled": false
   },
   {
     "title": "Dependencies",
     "description": "Check runtime dependencies and scripts",
     "template": "Dependencies.marko",
+    "specs": [ "code", "documentations", "unit" ],
+    "navigation": [ "next", "prev" ],
     "disabled": false
   },
   {
-    "title": "Run Tests",
-    "description": "Auto-run functionality and stability test of the project",
-    "template": "RunTests.marko"
+    "title": "Run Scripts",
+    "description": "Define run settings & display of the project",
+    "template": "RunScript.marko",
+    "specs": [ "code" ],
+    "navigation": [ "next", "prev" ],
+    "disabled": false
   },
   {
-    "title": "Debug",
+    "title": "Run Test",
+    "description": "Auto-run functionality and stability test of the project",
+    "template": "RunTests.marko",
+    "specs": [ "code", "API", "socket", "unit" ],
+    "navigation": [ "next", "prev" ],
+    "disabled": false
+  },
+  {
+    "title": "Debug Test",
     "description": "Track, highlight and suggest fix for debug warnings and errors",
     "template": "Debug.marko",
-    "disabled": false
+    "specs": [ "code", "unit" ],
+    "navigation": [ "next", "prev" ],
+    "disabled": true
   },
   {
-    "title": "Security",
+    "title": "Security Test",
     "description": "Check project integration, interaction, privacy and data flow securities.",
     "template": "Security.marko",
-    "disabled": false
+    "specs": [ "code", "API", "socket" ],
+    "navigation": [ "next", "prev" ],
+    "disabled": true
   },
   {
     "title": "Git Repository",
-    "description": "Push your project securily to a git repository",
+    "description": "Push your project securely to a git repository",
     "template": "GitRepository.marko",
+    "specs": [ "code", "documentations", "unit" ],
+    "navigation": [ "next", "prev" ],
     "disabled": false
   },
   {
     "title": "Package Repository",
     "description": "Publish your project to a package repository and marketplaces",
-    "template": "PackageRepository.marko"
+    "template": "PackageRepository.marko",
+    "specs": [ "code" ],
+    "navigation": [ "next", "prev" ],
+    "disabled": false
+  },
+  {
+    "title": "README",
+    "description": "Describe your project and the usage in the README.md file.",
+    "template": "Readme.marko",
+    "specs": [ "code", "unit" ],
+    "navigation": [ "next", "prev" ],
+    "disabled": false
+  },
+  {
+    "title": "Privacy & License",
+    "description": "Communicate to users your project's terms & policies, compliances and licenses",
+    "template": "PrivacyLicence.marko",
+    "navigation": [ "next", "prev" ],
+    "disabled": true
   },
   {
     "title": "Publish",
     "description": "",
-    "template": "Publish.marko"
+    "template": "Publish.marko",
+    "navigation": [ "prev" ]
   }
 ]

@@ -72,7 +72,7 @@ async function setSession( data: any ){
   if( isOncloud() ) return
 
   const sessdir = await getPath('session')
-  await Fs.writeFile( `${sessdir}/session.dtf`, encrypt( data ), 'UTF-8' )
+  await Fs.writeFile(`${sessdir}/session.dtf`, encrypt( data ) )
 }
 async function getSession( type: SyncSessionType, req: Request ){
   switch( type ) {
@@ -124,13 +124,16 @@ async function setApp( appId: string, dataset: any ){
   // TODO: Add app to a database on `cloud` base mode
   if( isOncloud() ) {}
   // Add app to `temp` folder on `local` base mode
-  else await Fs.writeFile(`${ await getPath('install') }/${appId}.app`, encrypt( dataset ), 'UTF-8' )
+  else await Fs.writeFile(`${ await getPath('install') }/${appId}.app`, encrypt( dataset ) )
 }
 async function getApp( appId: string ){
   // TODO: Get app information from a database on `cloud` base mode
   if( isOncloud() ) {}
   // Get app information from `temp` folder on `local` base mode
-  else decrypt( await Fs.readFile(`${ await getPath('install') }/${appId}.app`, 'UTF-8') )
+  else {
+    const content = await Fs.readFile(`${ await getPath('install') }/${appId}.app`, { encoding: 'UTF-8' }) as unknown
+    return decrypt( content as string )
+  }
 }
 async function clearApp( appId: string ){
   // TODO: Remove app from a database on `cloud` base mode

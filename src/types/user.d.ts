@@ -1,18 +1,11 @@
 
 export type User = {
-  profile: {
-    first_name: string
-    last_name: string
-    email: string
-    photo: string
-  }
-  account: {}
-}
-
-export type Member = {
   id: string
   photo: string
+  username: string
   name: string
-  role: string,
+  role: string
   active: boolean
+  bio?: string
+  provider?: string // User auth & info provider: multipple, github, ...
 }

@@ -352,8 +352,7 @@ class {
 
     <DependencyTree deps=dependencies
                     expanded
-                    on-extends('onExtendExtraBlock', 'dependencies')
-                    on-add( () => component.emit( 'action', 'features', 'dependency' ) )
+                    on-add( () => input.context.ws.select.feature('dependency') )
                     on-action( ( ...args ) => component.emit( 'action', 'packages', ...args ) )/>
   </@sidebar>
 

@@ -91,7 +91,7 @@ String.prototype.toCapitalCase = function(){
 // Init JS plugins
 window.$ =
 window.jQuery = jQuery
-// window.Locale = () => {} // Init locale translation function
+window.Locale = ( value: string, notrack?: boolean ) => { return value } // Init locale translation function
 window.Store = new UIStore({ prefix: 'CSUS-70', encrypt: true })
 
 /* --------------------------------------------------------------------------*/

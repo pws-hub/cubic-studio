@@ -1,11 +1,24 @@
 
 import STEPS from './steps.json'
 
+static function filterSteps( specs ){
+  const steps = []
+  
+  STEPS.forEach( step => {
+    if( !step.specs 
+        || ( Array.isArray( step.specs )
+              && step.specs.filter( each => { return !!specs[ each ] } ).length ) )
+      steps.push( step )
+  } )
+  
+  return steps
+}
+
 class {
-  onCreate(){
-    this.state = { 
-      stepIndex: 0,
-      actions: { prev: false, next: true }
+  onCreate({ project }){
+    this.state = {
+      steps: filterSteps( project.specs ),
+      stepIndex: 0
     }
   }
   onData( data ){}
@@ -14,47 +27,83 @@ class {
     if( this.state.stepIndex === 0 ) return
     // Go previous step
     this.state.stepIndex++
-    // Disable prev action
-    if( this.state.stepIndex - 1 === 0 )
-      this.state.actions = { ...(this.state.actions), prev: false }
   }
   onNext(){
     // No more next step available
-    if( this.state.stepIndex === STEPS.length - 1 ) return
+    if( this.state.stepIndex === this.state.steps.length - 1 ) return
     // Go next step
     this.state.stepIndex++
-    // Disable next action
-    if( this.state.stepIndex + 1 === STEPS.length )
-      this.state.actions = { ...(this.state.actions), next: false }
   }
   onJump( index ){
     // Jump to step in the range of available steps
-    if( index < 0 || index >= STEPS.length ) return
+    if( index < 0
+        || index >= this.state.steps.length
+        || !this.state.steps[ index ]
+        || this.state.steps[ index ].disabled ) return
+    
     // Go to a random step
     this.state.stepIndex = index  
   }
   onAlert({ title, message }){ console.log('Alert: ', title, message ) }
 }
 
-<Modal.p-3.border.no-select width=50 noBackdrop on-dismiss( () => component.emit('dismiss') )>
-  <for|{ title, description, template }, index| of=STEPS>
-    <if( index == state.stepIndex )>
-      <Row>
-        <@col.col-4.py-50>
-          <h5.m-0>${title}</h5>
-          <br>
-          <p.w-100.text-muted.text-ellipsis-2.font-small-4>
-            <Locale>${description}</Locale>
-          </p>
-        </@col>
-        <@col.col.border-left style="min-height:25rem">
-          <${require(`./Templates/${template}`)} actions=state.actions
+<Modal.border.no-select width=60 noBackdrop on-dismiss( () => component.emit('dismiss') )>
+  <Row.m-0>
+    <@col.col-4.px-3.pt-3>
+      <h5.m-0><Locale.text-success text="Publication"/></h5>
+      <br>
+      <p.w-100.text-muted.font-small-4>
+        <Locale>
+          Below are some few steps required to help you 
+          get your project ready to share with the world. 
+        </Locale>
+      </p>
+
+      <div.overflow-auto style="min-height:30vh;max-height:45vh">
+        <if( Array.isArray( state.steps ) && state.steps.length )>
+          <ul.list-unstyled.my-2>
+            <for|{ title, description, status, disabled }, index| of=state.steps>
+              $ const isActive = index == state.stepIndex
+
+              <li.d-flex.align-items-center.round-sm.my-50
+                  key=index
+                  class=`${disabled ? 'cursor-not-allowed' : 'nav-item cursor-pointer'} ${isActive ? 'active' : ''}`
+                  title=description
+                  on-click('onJump', index )>
+                <Switch by=(disabled ? 'DISABLED' : status)>
+                  <@case is="CHECKED"><Bx.font-large-1.px-1.py-75.text-success type="check-circle"/></@case>
+                  <@case is="FAILED"><Bx.font-large-1.px-1.py-75.text-danger type="x-circle"/></@case>
+                  <@case is="DISABLED"><Bx.font-large-1.px-1.py-75.text-muted type="circle"/></@case>
+                  <@default><Bx.font-large-1.px-1.py-75.text-muted type="check-circle"/></@default>
+                </Switch>
+
+                <Locale.font-medium-2 class=(disabled ? 'text-muted' : false) text=title/>
+              </li>
+            </for>
+          </ul>
+        </if>
+      </div>
+    </@col>
+
+    <@col.col.border-left>
+      <for|{ title, description, template, disabled, navigation }, index| of=state.steps>
+        <!-- Render active step -->
+        <if( !disabled && index == state.stepIndex )>
+          <div.p-2>
+            <h6.font-medium-3><Locale text=title/></h6>
+            <p.text-muted>
+              <Locale>${description}</Locale>
+            </p>
+          </div>
+          <!-- <${require(`./Templates/${template}`)} title=title
+                                                  description=description
+                                                  project=state.project
                                                   on-data('onData')
                                                   on-prev('onPrev')
                                                   on-next('onNext')
-                                                  on-alert('onAlert')/>
-        </@col>
-      </Row>
-    </if>
-  </for>
+                                                  on-alert('onAlert')/> -->
+        </if>
+      </for>
+    </@col>
+  </Row>
 </Modal>

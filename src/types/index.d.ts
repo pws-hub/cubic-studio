@@ -1,10 +1,5 @@
 import Express from 'express'
-import type { User } from 'user'
-
-// declare module 'rimraf'
-
-declare module 'fs-inter' {}
-declare module 'path-inter' {}
+import type { User } from './user'
 
 declare global {
   namespace Express {

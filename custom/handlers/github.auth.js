@@ -63,10 +63,11 @@ export const callback = async ({ code }, origin ) => {
       [ first_name, ...last_name ] = name.split(/\s+/)
 
       response.user = {
-        id: Buffer.from( email, 'binary').toString('base64'), // Use Base64-encoded user's email as Unique ID
+        id: email, // Use Base64-encoded user's email as Unique ID
         username: login,
         name: `${first_name} ${last_name.pop()}`,
         photo: avatar_url,
+        role: 'DEVELOPER',
         bio
       }
     }

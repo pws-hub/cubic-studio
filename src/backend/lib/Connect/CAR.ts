@@ -29,7 +29,7 @@ function initChannel( socket: Socket ){
         requestOptions: RequestPromiseOptions = {
           ...options,
           headers: {
-            'Authorization': `Bearer ${ socket.data.AccessToken}`,
+            'Authorization': `Bearer ${socket.data.AccessToken}`,
             'Content-Type': 'application/json'
           },
           json: true
@@ -53,14 +53,14 @@ export default ( ioServer: Server ) => {
   .use( async ( socket, next ) => {
     const { auth } = socket.handshake
 
-    if( !auth || !auth.token )
+    if( !auth || !auth.atoken )
       return next( new Error('Access Forbidden') )
 
-    // TODO: Make request to verify the auth.token
+    // TODO: Make request to verify the auth.atoken
 
 
     // Assign API Access token to this socket
-    socket.data.AccessToken = auth.token
+    socket.data.AccessToken = auth.atoken
 
     next()
   })

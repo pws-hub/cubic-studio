@@ -49,7 +49,7 @@ $ const { name, active, layouts, device, env, sm, ws } = input.context
           && layouts.includes('sidebar') )>
       <div.in-block.section-block.px-0.border-right style="width:24rem" key="sidebar">
         <div.position-relative.h-100.overflow-auto>
-          <${input.sidebar.renderBody} ...sm.get()/>
+          <${input.sidebar.renderBody} ...sm.all( name )/>
         </div>
       </div>
     </if>

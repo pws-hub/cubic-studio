@@ -5,16 +5,19 @@ import FEATURES from './list.json'
   <Row.no-select>
     <for|type, { label, description, icon }| in=FEATURES>
       <@col.col-4.py-50.cursor-pointer.scale-down key=type>
-        <div.d-flex.py-50.align-items-center on-click( () => component.emit( 'select', type ) )>
-          <Bx type=icon.type
-              bxs=icon.bxs 
-              bxl=icon.bxl
-              class=`font-large-1 text-${icon.color}`/>
-          <span.font-medium-2.px-1>${label || type.toCapitalCase()}</span>
+        <div on-click( () => component.emit( 'select', type ) )>
+          <div.d-flex.py-50.align-items-center>
+            <Bx type=icon.type
+                bxs=icon.bxs
+                bxl=icon.bxl
+                class=`font-large-1 text-${icon.color}`/>
+            <span.font-medium-2.px-1>${label || type.toCapitalCase()}</span>
+          </div>
+          
+          <p.w-100.text-muted.text-ellipsis-2.font-small-4>
+            <Locale>${description}</Locale>
+          </p>
         </div>
-        <p.w-100.text-muted.text-ellipsis-2.font-small-4>
-          <Locale>${description}</Locale>
-        </p>
       </@col>
     </for>
   </Row>

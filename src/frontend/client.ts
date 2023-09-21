@@ -190,6 +190,7 @@ async function Client(){
 		providers,
 		namespaces,
 		isConnected,
+		atoken,
 		user
 	} = await getInitialScope()
 
@@ -282,7 +283,7 @@ async function Client(){
 	// Init Fontend - Backend communication channels
 	if( isConnected ) {
 		// Request Handler
-		await RequestClient( namespaces.CAR, user )
+		atoken && await RequestClient( namespaces.CAR, atoken )
 
 		// Internal Processes Manager
 		window.IProcess = await IProcessClient( namespaces.IPT )

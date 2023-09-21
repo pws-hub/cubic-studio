@@ -91,26 +91,28 @@ async function getSession( type: SyncSessionType, req: Request ){
       if( isOnline() || req.session?.isConnected )
         return {
           isConnected: req.session.isConnected,
+          atoken: req.session.atoken,
           user: req.session.user
         }
 
       // Fetch cached session
       try {
         const
-        token = await Fs.readFile( `${await getPath('session') }/session.dtf`, 'UTF-8' ),
+        token = await Fs.readFile(`${await getPath('session') }/session.dtf`, 'UTF-8' ),
         session = decrypt( token )
-
+        
         if( typeof session !== 'object' ) return {}
 
         // Load cache to session
-        const { credentials, isConnected, user, authError } = session
+        const { credentials, isConnected, atoken, user, authError } = session
 
         req.session.user = user
+        req.session.atoken = atoken
         req.session.authError = authError
         req.session.isConnected = isConnected
         req.session.credentials = credentials
 
-        return { isConnected, user, authError }
+        return { isConnected, atoken, user, authError }
       }
       catch( error: any ) {
         console.log('Failed fetching cached session: ', error.message )

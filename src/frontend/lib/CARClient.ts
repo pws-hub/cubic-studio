@@ -1,8 +1,8 @@
 
+import type { ProcessResponse } from '../../types'
+import type { User } from '../../types/user'
 import fetch from 'node-fetch'
 import { io, Socket } from 'socket.io-client'
-import { ProcessResponse } from '../../types'
-import { Member } from '../../types/user'
 
 
 declare global {
@@ -43,7 +43,7 @@ function sendRequest( payload: any ): Promise<ProcessResponse>{
   } )
 }
 
-export default ( namespace: string, member: Member ): Promise<boolean> => {
+export default ( namespace: string, atoken: string ): Promise<boolean> => {
   return new Promise( ( resolve, reject ) => {
     
     window.RGet = async url => { return await sendRequest({ url }) }
@@ -61,7 +61,7 @@ export default ( namespace: string, member: Member ): Promise<boolean> => {
       extraHeaders: { 'X-User-Agent': 'Cubic.socket~001/1.0' },
       reconnectionDelayMax: 20000,
       withCredentials: true,
-      auth: { token: member.id }
+      auth: { atoken }
     }
 
     CARClient = io(`/${ namespace || ''}`, options )

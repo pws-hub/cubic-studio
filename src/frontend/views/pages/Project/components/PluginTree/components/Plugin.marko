@@ -1,0 +1,108 @@
+
+class {
+  onCreate(){
+    this.state = { open: false }
+    this.menu = [
+      {
+        id: 'UPDATE_PLUGIN',
+        label: 'Update',
+        fn: (function(){
+          this.contextEmit( 'update', [
+            {
+              item: { name: this.input.name },
+              version: this.input.version
+            }
+          ] ) 
+        }).bind(this)
+      },
+      {
+        id: 'REMOVE_PLUGIN',
+        label: 'Remove',
+        important: true,
+        fn: (function(){
+          this.contextEmit( 'remove', [
+            {
+              item: { name: this.input.name },
+              version: this.input.version
+            }
+          ] )
+        }).bind(this)
+      }
+    ]
+  }
+  onInput({ name, version }){
+    this.storeAttr = `plug--${name}-${version}`
+    this.state.open = window.Store.get( this.storeAttr )
+  }
+  onShowContent(){
+    ( this.state.open = !this.state.open ) ? 
+                    window.Store.set( this.storeAttr, true )
+                    : window.Store.clear( this.storeAttr )
+  }
+}
+
+<context|{}, emit| from="PluginTree">
+  <!-- Attach context emitter to class component -->
+  $ component.contextEmit = emit
+  
+  <li.hover-tree>
+    <div.position-relative.hover-toggle.d-flex.align-items-center.nav-item.cursor-pointer>
+      <Bx.font-medium-5
+          type=`chevron-${state.open ? 'down' : 'right'}`
+          on-click('onShowContent')
+          style="padding:0 .4rem 0 .95rem"/>
+      <!-- Name -->
+      <div.font-medium-1.py-50.text-ellipsis.w-100 on-click('onShowContent')>
+        <!-- Package Name -->
+        <span>${input.name} ~ </span>
+        <!-- Current installed plugin package version -->
+        <span.text-info>v${input.version}</span>
+        <!-- Dev Plugin indicator -->
+        <if( input.dev )>
+          <span.font-small-2.theme-bg-lighten.round.px-75.py-25.float-right>Dev</span>
+        </if>
+      </div>
+      <!-- Plugin options menu -->
+      <DropdownMenu.hover-show.font-medium-5.px-75.float-right
+                    vertical=true
+                    right=true
+                    menu=component.menu/>
+    </div>
+
+    <if( state.open )>
+      <div.tree-border.py-50 style="padding:0 1rem 0 2.6rem">
+        <!-- More insight details about the plugin package -->
+        <if( input.description )>
+          <p.font-small-4.text-muted>${input.description}</p>
+
+          <ul.list-inline>
+            <!-- Github repository url -->
+            <!-- <if( input.repository )>
+              $ const url = typeof input.repository == 'object' ? input.repository.url.replace('git+', '') : input.repository
+
+              <li.px-75 title="Repository">
+                <a href=url target="_blank">
+                  <Bx.font-medium-5 bxl type="github"/>
+                </a>
+              </li>
+            </if> -->
+
+            <!-- npm package url -->
+            <!-- <li.px-75 title="NPM">
+              <a href=`https://npmjs.com/package/${input.name}` target="_blank">
+                <Bx.font-medium-5 type="package"/>
+              </a>
+            </li> -->
+          </ul>
+        </if>
+
+        <!-- No insight description -->
+        <else>
+          <p.font-small-4.text-muted>
+            No description found. Check <u.text-info>/node_modules/${input.name}</u>
+          </p>
+        </else>
+      </div>
+    </if>
+  </li>
+</context>

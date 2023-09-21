@@ -191,10 +191,10 @@ export default class SectionManager {
     // Init Documentation related project's section
     this.hasDoc() && await this.initDoc()
   }
-  define( key, defaultValue = null ){
+  define( key: string, defaultValue: any = null ){
     this.set( key, this.__.pstore.get(`${this.State.activeSection}:${key}`) || defaultValue )
   }
-  set( key, value ){
+  set( key: string, value: any ){
     if( !this.State.activeSection ) return
     // if( !this.State[ this.State.activeSection ] ) return
 
@@ -203,14 +203,19 @@ export default class SectionManager {
     this.__.pstore.set(`${this.State.activeSection}:${key}`, value )
   }
 
-  get( key, section: string | null = null ){
+  get( key: string, section?: string ){
     section = section || this.State.activeSection as string
-    
-    return key !== undefined && this.State[ section ] ?
-        this.State[ section ][ key ] // Specific field of the section
-        : this.State[ section ] // All section set
+    if( !section ) return null
+
+    return this.State[ section ][ key ]
   }
-  clear( key ){
+  all( section?: string ){
+    section = section || this.State.activeSection as string
+    if( !section ) return null
+    
+    return this.State[ section ]
+  }
+  clear( key?: string ){
     // Specific field of the section
     if( !this.State.activeSection ) return
 
@@ -222,7 +227,7 @@ export default class SectionManager {
 
     this.__.setStateDirty( this.State.activeSection as never )
   }
-  open( element ){
+  open( element?: any ){
     // Open file, request, ...
     if( !element )
       return this.clear('activeElement')
@@ -267,7 +272,7 @@ export default class SectionManager {
 
     this.set('tabs', tabs )
   }
-  applyTabChange( arg ){
+  applyTabChange( arg: any ){
     // Apply and reflect changes on tabs
     if( typeof arg !== 'object' ) return
 

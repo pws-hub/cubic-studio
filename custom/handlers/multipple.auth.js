@@ -1,8 +1,19 @@
 
-
 import request from 'request-promise'
 
-export const initiate = async origin => {
+// type AuthCallbackPayload = {
+//   domain: string
+//   token: string
+//   deviceId: string
+//   role: string
+// }
+// type AuthCallbackResponse = {
+//   error: boolean
+//   message?: string
+//   user?: User
+// }
+
+export const initiate = async ( origin ) => {
   // Tenant's authentication initiation URL
   return `${process.env.MULTIPPLE_TENANT_DOMAIN}/auth?oauth=studio&v=1.a&dt=4000&curl=${encodeURIComponent(`${origin }/auth/multipple/callback`)}`
 }
@@ -28,10 +39,11 @@ export const callback = async ({ domain, token, deviceId, role }) => {
     if( response.user ) {
       const { email, first_name, last_name, photo, bio } = response.user
       response.user = {
-        id: Buffer.from( email, 'binary').toString('base64'), // Use Base64-encoded user's email as Unique ID
-        username: (first_name + last_name ).toLowerCase(),
+        id: email, // Email, phone number, whatever is unique us identifier of the user
+        username: (first_name + last_name).toLowerCase(),
         name: `${first_name} ${last_name}`,
         photo,
+        role: 'DEVELOPER',
         bio: bio || null
       }
     }

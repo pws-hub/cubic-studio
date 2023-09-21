@@ -35,9 +35,9 @@ export default ({ env }: OverrideOptions ): Overridables => {
       if( !members.filter( ({ name }) => { return fullname( profile ) == name } ).length )
         return {
           id: window.btoa( profile.email ),
-          username: `${profile.first_name}-${profile.last_name}`, 
-          photo: profile.photo,
+          username: (profile.first_name + profile.last_name).toLowerCase(),
           name: fullname( profile ),
+          photo: profile.photo,
           bio: profile.bio || '',
           role: 'DEVELOPER', // Default role
           active: false // Disactivated by default

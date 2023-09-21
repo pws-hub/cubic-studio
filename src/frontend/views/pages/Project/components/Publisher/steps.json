@@ -12,7 +12,7 @@
     "template": "Directory.marko",
     "specs": [ "code", "documentation", "unit" ],
     "navigation": [ "next", "prev" ],
-    "disabled": false
+    "disabled": true
   },
   {
     "title": "Dependencies",

@@ -3,7 +3,7 @@ import type { FSTClientManager, FSHandler } from './lib/FSTClient'
 import type { EmulatorHandler, IPTClientManager, IProcessHandler, JSPackageManager } from './lib/IPTClient'
 import type { CollectionOperatorAction, DeviceOperatorAction, FSOperatorAction, FSOperatorPayload, JSPackageOperatorAction } from '../types/operators'
 import type { FSDirectory } from '../backend/core/FileSystem'
-import type { JSPackage } from '../types/package'
+import type { CPackageDependency, JSPackage } from '../types/package'
 import type SectionManager from './lib/SectionManager'
 import type WorkspaceManager from './lib/WorkspaceManager'
 import jQuery from 'jquery'
@@ -41,6 +41,8 @@ declare global {
 
     CreateRequest: ( provider: string ) => FrontendRequest
     Locale: ( text: string, notrack?: boolean ) => string
+
+    parsePackageReference: ( reference: string ) => CPackageDependency | null
   }
   interface String {
     toCapitalCase: () => string
@@ -180,4 +182,13 @@ window.CreateRequest = provider => {
           .catch( reject )
     } )
   }
+}
+
+window.parsePackageReference = ( reference: string ) => {
+  const sequence = reference.match(/(\w+):([a-zA-Z0-9_\-+]+).([a-zA-Z0-9_\-+]+)(~(([0-9]\.?){2,3}))?/)
+  if( !sequence || sequence.length < 4 )
+    return null
+
+  const [ _, type, namespace, nsi, __, version ] = sequence
+  return { type, namespace, nsi, version }
 }

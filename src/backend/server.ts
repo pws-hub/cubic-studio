@@ -33,7 +33,7 @@ getInitialScope = async ( req: Request, res?: Response ): Promise<string | void>
       FST: process.env.FST_NAMESPACE as string, // File System Transaction namespace
       IPT: process.env.IPT_NAMESPACE as string // Internal Process Transaction namespace
     },
-    ...( await Sync.getSession( 'auth', req ) ) as { isConnected: boolean, user: User }
+    ...( await Sync.getSession( 'auth', req ) ) as { isConnected: boolean, user: User, atoken: string }
   }
 
   let initStr = JSON.stringify( initScope )

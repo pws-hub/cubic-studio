@@ -6,9 +6,10 @@ declare global {
     interface Request {
       session: {
         user?: User
-        authError?: any
+        atoken?: string
+        authError?: string | false
         isConnected?: boolean
-        credentials?: any
+        credentials?: { [index: string]: any }
       }
     }
   }
@@ -41,6 +42,7 @@ export type InitialScope = {
     IPT: string
   }
   isConnected: boolean
+  atoken?: string
   user: User
 }
 

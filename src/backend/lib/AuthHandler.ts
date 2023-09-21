@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express'
 import type { User } from '../../types/user'
+import request, { RequestPromiseOptions } from 'request-promise'
 
 type AuthResponse = {
   error: boolean
@@ -8,6 +9,25 @@ type AuthResponse = {
 }
 type AuthInitiateHandle = ( origin: string ) => Promise<string>
 type AuthCallbackHandler = ( data: { [index: string]: any }, origin: string ) => Promise<AuthResponse>
+
+async function saveUser( body: User ): Promise<string | undefined>{
+  try {
+    const
+    uri = toOrigin( ( process.env.WORKSPACE_API_SERVER as string ), String( process.env.LOCALHOST_API ) === 'true' ) +'/users/save',
+    requestOptions: RequestPromiseOptions = {
+      method: 'POST',
+      body,
+      json: true
+    },
+    { error, message, atoken } = await request( uri, requestOptions )
+    if( error ) throw new Error( message )
+
+    return atoken
+  }
+  catch( error: any ){
+    console.log('Failed saving user to CWS: ', error.message )
+  }
+}
 
 async function _initiate( provider: string, handler: AuthInitiateHandle, req: Request, res: Response ){
   const
@@ -41,13 +61,17 @@ async function _callback( provider: string, handler: AuthCallbackHandler, req: R
 
     user.provider = provider
 
+    // Save user to database if doesn't exists
+    const atoken = await saveUser( user )
+    
     req.session.user = user
+    req.session.atoken = atoken
     req.session.authError = false
-    req.session.isConnected = true
+    req.session.isConnected = !!atoken
     req.session.credentials = credentials
 
     // Store locally updated user session
-    await Sync.setSession({ credentials, isConnected: true, user, authError: false })
+    await Sync.setSession( req.session )
   }
 
   // Back to home: Make request from there to check session status

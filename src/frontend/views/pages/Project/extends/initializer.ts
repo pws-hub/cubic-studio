@@ -1,5 +1,6 @@
 
-import type { ProjectState } from '../../../../../types/project'
+import type { Metadata, ProjectState } from '../../../../../types/project'
+import type { JSPackageDependency, CPackageDependency } from '../../../../../types/package'
 import SectionManager from '../../../../lib/SectionManager'
 import WorkspaceManager from '../../../../lib/WorkspaceManager'
 
@@ -41,37 +42,76 @@ export default ( __: Marko.Component ) => {
     // Get project dependencies in package.json
     if( !__.fs ) return
 
+    async function getJSDependencies(){
+      const packageJson = await __.fs.readFile( 'package.json', { encoding: 'json' } )
+      if( !packageJson )
+        throw new Error('[Dependency] No package.json file found at the project root')
+
+      const
+      { dependencies, devDependencies } = packageJson,
+      deps: JSPackageDependency[] = [],
+      collector = async ( name: string, version: string, dev?: boolean ) => {
+        // Get more information about the package in node_modules
+        let dep: JSPackageDependency = { name, version: version.replace('^', ''), dev }
+        try {
+          const { description, repository } = await __.fs.readFile(`./node_modules/${name}/package.json`, { encoding: 'json' } )
+          dep = { ...dep, description, repository }
+        }
+        catch( error ) {
+          // Failed fetching package.json of the dependency
+        }
+
+        deps.push( dep )
+      }
+
+      for( const name in dependencies )
+          await collector( name, dependencies[ name ] )
+
+      for( const name in devDependencies )
+        await collector( name, devDependencies[ name ], true )
+
+      return deps
+    }
+    async function getCubicDependencies(){
+      const metadata: Metadata = await __.fs.readFile( '.metadata', { encoding: 'json' } )
+      if( !metadata )
+        throw new Error('[Dependency] No .metadata file found at the project root')
+      
+      const deps: CPackageDependency[] = []
+
+      if( !metadata.resource )
+        throw new Error('[Dependency] No .metadata dependency file found at the project root')
+
+      const
+      { dependencies } = metadata.resource,
+      collector = async ( reference: string ) => {
+        // Get more information about the plugin from CPR
+        let dep = window.parsePackageReference( reference )
+        if( !dep ) return
+        // try {
+        //   const { description, repository } = await window.RGet(`/v1/registry/${reference}`)
+        //   dep = { ...dep, description, repository }
+        // }
+        // catch( error ) {
+        //   // Failed fetching package.json of the dependency
+        // }
+
+        deps.push( dep )
+      }
+
+      for( const reference in dependencies )
+          await collector( reference )
+
+      return deps
+    }
+
     switch( section || State.activeSection ) {
       // JS/TS project dependencies
       case 'Code': {
-        const packageJson = await __.fs.readFile( 'package.json', { encoding: 'json' } )
-        if( !packageJson )
-          throw new Error('[Dependency] No package.json file found at the project root')
-
-        const
-        { dependencies, devDependencies } = packageJson,
-        deps: any = [],
-        collector = async ( name: string, version: string, dev?: boolean ) => {
-          // Get more information about the package in node_modules
-          let dep: any = { name, version: version.replace('^', ''), dev }
-          try {
-            const { description, repository } = await __.fs.readFile(`./node_modules/${name}/package.json`, { encoding: 'json' } )
-            dep = { ...dep, description, repository }
-          }
-          catch( error ) {
-            // Failed fetching package.json of the dependency
-          }
-
-          deps.push( dep )
+        State.Code.dependencies = {
+          packages: await getJSDependencies(),
+          plugins: await getCubicDependencies()
         }
-
-        for( const name in dependencies )
-          await collector( name, dependencies[ name ] )
-
-        for( const name in devDependencies )
-          await collector( name, devDependencies[ name ], true )
-
-        State.Code.dependencies = deps
         State.Code = window.newObject( State.Code )
       } break
 

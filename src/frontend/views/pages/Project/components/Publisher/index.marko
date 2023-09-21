@@ -47,9 +47,9 @@ class {
   onAlert({ title, message }){ console.log('Alert: ', title, message ) }
 }
 
-<Modal.border.no-select width=60 noBackdrop on-dismiss( () => component.emit('dismiss') )>
+<Modal.border.no-select.overflow-hidden width=60 noBackdrop on-dismiss( () => component.emit('dismiss') )>
   <Row.m-0>
-    <@col.col-4.px-3.pt-3>
+    <@col.col-4.px-3.pt-3.theme-bg-transparent>
       <h5.m-0><Locale.text-success text="Publication"/></h5>
       <br>
       <p.w-100.text-muted.font-small-4>
@@ -59,9 +59,9 @@ class {
         </Locale>
       </p>
 
-      <div.overflow-auto style="min-height:30vh;max-height:45vh">
+      <div.overflow-auto style="min-height:30vh;max-height:46vh">
         <if( Array.isArray( state.steps ) && state.steps.length )>
-          <ul.list-unstyled.my-2>
+          <ul.list-unstyled.my-3>
             <for|{ title, description, status, disabled }, index| of=state.steps>
               $ const isActive = index == state.stepIndex
 
@@ -85,7 +85,7 @@ class {
       </div>
     </@col>
 
-    <@col.col.border-left>
+    <@col>
       <for|{ title, description, template, disabled, navigation }, index| of=state.steps>
         <!-- Render active step -->
         <if( !disabled && index == state.stepIndex )>
@@ -95,6 +95,7 @@ class {
               <Locale>${description}</Locale>
             </p>
           </div>
+          
           <!-- <${require(`./Templates/${template}`)} title=title
                                                   description=description
                                                   project=state.project

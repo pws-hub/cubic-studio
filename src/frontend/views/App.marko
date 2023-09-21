@@ -15,25 +15,34 @@ import './theme/dark.scss'
 <!-- JS Scripts -->
 <!-- import 'assets/js/bootstrap.min' -->
 
+export interface Input {
+  Routes: {
+    name: string
+    path: string
+    component?: string
+  }[]
+}
+
 class {
+  declare state: { theme: 'dark' | 'light' }
   onCreate(){
-    GState.bind(this, ['theme'])
+    window.GState.bind(this, ['theme'])
     !this.state.theme && this.adaptiveThemeMode()
   }
   adaptiveThemeMode(){
     // Check user OS X & Browser preference
     const themeMedia = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)')
     if( !themeMedia )
-      return GState.set('theme', 'light') // Force `light` to `auto`
+      return window.GState.set('theme', 'light') // Force `light` to `auto`
     
     // Dark mode as preference check point
-    GState.set('theme', themeMedia.matches ? 'dark' : 'light' )
+    window.GState.set('theme', themeMedia.matches ? 'dark' : 'light' )
     // Monitor platform (OS) theme preference change
-    themeMedia.addEventListener( 'change', e => GState.set('theme', e.matches ? 'dark' : 'light' ) )
+    themeMedia.addEventListener( 'change', e => window.GState.set('theme', e.matches ? 'dark' : 'light' ) )
   }
 }
 
-<div#root.h-100 class=`th--${state.theme}`>
+<div#root class=`h-100 th--${state.theme}`>
   <div.theme-bg>
     <Router routes=input.Routes
             defaultRoute="home"/>

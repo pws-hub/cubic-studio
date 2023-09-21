@@ -10,6 +10,28 @@ import jQuery from 'jquery'
 import SS from 'markojs-shared-state'
 import UIStore from 'all-localstorage'
 
+type GStateAPI = {
+  action: ( method: string, fn: ( ...args: any[] ) => void ) => GStateAPI
+}
+interface GState {
+  bind: ( _: Marko.Component, fields: string[] ) => void
+  unbind: ( _: Marko.Component, fields?: string[] ) => void
+  get: ( key: string ) => any
+  set: ( key: string, value: any ) => void
+  dirty: ( key: string, value: any ) => void
+  define: ( namespace: string ) => GStateAPI
+}
+
+const
+shareState = SS(),
+GState: GState = shareState
+GState.bind = shareState.bind
+GState.unbind = shareState.unbind
+GState.get = shareState.getState
+GState.set = shareState.setState
+GState.dirty = shareState.setStateDirty
+GState.define = shareState.defineAPI
+
 declare global {
   interface Window {
     env: string
@@ -98,16 +120,6 @@ window.Store = new UIStore({ prefix: 'CSUS-70', encrypt: true })
 
 /* --------------------------------------------------------------------------*/
 // Add to shared-state library an easy DX API
-const
-shareState = SS(),
-GState = shareState
-GState.bind = shareState.bind
-GState.unbind = shareState.unbind
-GState.get = shareState.getState
-GState.set = shareState.setState
-GState.dirty = shareState.setStateDirty
-GState.define = shareState.defineAPI
-
 window.GState = GState
 
 /* --------------------------------------------------------------------------*/

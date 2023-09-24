@@ -1,5 +1,5 @@
 import type { EventTracker, ProcessResponse } from '../../types'
-import type { CPackage, JSPackage } from '../../types/package'
+import type { CPRAccess, CPackage, JSPackage } from '../../types/package'
 import type { Metadata, Project } from '../../types/project'
 import type { IProcessOptions } from '../../backend/core/IProcess'
 import { io, Socket } from 'socket.io-client'
@@ -14,6 +14,12 @@ export interface JSPackageManager {
   remove: ( tracker: EventTracker ) => Promise<string | boolean>
   update: ( tracker: EventTracker ) => Promise<string | boolean>
   refresh: ( tracker: EventTracker ) => Promise<string | boolean>
+}
+
+export interface CPackageManager {
+  install: ( tracker: EventTracker ) => Promise<string | boolean>
+  remove: ( tracker: EventTracker ) => Promise<string | boolean>
+  update: ( tracker: EventTracker ) => Promise<string | boolean>
 }
 
 let isConnected = false
@@ -199,15 +205,27 @@ export class IProcessHandler {
       }
     }
   }
-  CubicPackageManager( packages: CPackage[], directory: string ){
+  CPackageManager( packages: CPackage[], directory: string ){
+    /**
+     * Cubic Package Repository configuration
+     * 
+     * Will be later handled by the CPR user 
+     * interface settings
+     */
+    const cprAccess: CPRAccess = {
+      source: 'http://cpr.cubic.studio:60777',
+      apiversion: 1,
+      token: window.GState.get('accessToken')
+    }
+
     return {
       install: async ( tracker: EventTracker ) => {
         try {
-          // Register `install-packages` tracker
+          // Register `install-plugins` tracker
           if( typeof tracker == 'function' )
-            this.trackers['install-packages'] = tracker
+            this.trackers['install-plugins'] = tracker
 
-          const { error, message, response } = await this.run('installCubicPackages', packages, directory )
+          const { error, message, response } = await this.run('cubicPackage', 'install', packages, directory, cprAccess )
           if( error ) throw new Error( message )
 
           return response || true
@@ -219,11 +237,11 @@ export class IProcessHandler {
       },
       remove: async ( tracker: EventTracker ) => {
         try {
-          // Register `remove-packages` tracker
+          // Register `remove-plugins` tracker
           if( typeof tracker == 'function' )
-            this.trackers['remove-packages'] = tracker
+            this.trackers['remove-plugins'] = tracker
 
-          const { error, message, response } = await this.run( 'removeCubicPackages', packages, directory )
+          const { error, message, response } = await this.run('cubicPackage', 'remove', packages, directory, cprAccess )
           if( error ) throw new Error( message )
 
           return response || true
@@ -235,11 +253,11 @@ export class IProcessHandler {
       },
       update: async ( tracker: EventTracker ) => {
         try {
-          // Register `update-packages` tracker
+          // Register `update-plugins` tracker
           if( typeof tracker == 'function' )
-            this.trackers['update-packages'] = tracker
+            this.trackers['update-plugins'] = tracker
 
-          const { error, message, response } = await this.run( 'updateCubicPackages', packages, directory )
+          const { error, message, response } = await this.run('cubicPackage', 'update', packages, directory, cprAccess )
           if( error ) throw new Error( message )
 
           return response || true
@@ -341,11 +359,12 @@ export class IPTClientManager {
 export default ( namespace: string ): Promise<IPTClientManager> => {
   return new Promise( ( resolve, reject ) => {
     // Establish socket connection channel
-    const
-    options = {
+    let options: any = {
       extraHeaders: { 'X-User-Agent': 'Cubic.socket~001/1.0' },
       reconnectionDelayMax: 20000
-    },
+    }
+
+    const 
     IPTClient = io(`/${namespace || ''}`, options )
     let manager: IPTClientManager
 

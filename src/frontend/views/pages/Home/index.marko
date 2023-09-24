@@ -4,9 +4,9 @@ import BgImage from 'assets/images/backgrounds/home.png'
 class {
   onCreate(){
     this.state = { showWSForm: false }
-    GState.bind( this, ['isConnected', 'workspaces'])
+    window.GState.bind( this, ['isConnected', 'online', 'workspaces'])
   }
-  goTo( workspaceId ){ navigate('/workspace/'+ workspaceId ) }
+  goTo( workspaceId ){ window.navigate('/workspace/'+ workspaceId ) }
   onCreateWS( status ){ this.state.showWSForm = status }
   onRemoveWS( workspaceId ){}
 }
@@ -63,6 +63,12 @@ class {
     <AuthProviders/>
   </div>
 </div>
+
+<if( !state.online )>
+  <div.position-fixed.bottom-0.w-100.black.white-text.text-center.py-25.strong>
+    <Locale>Offline</Locale>
+  </div>
+</if>
 
 <!-- Send invitation to team members -->
 <if( state.showWSForm )>

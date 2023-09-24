@@ -159,6 +159,13 @@ app.use( express.static( process.env.RAZZLE_PUBLIC_DIR as string  ) )
 // User Account handler
 .get( '/*', async ( req, res ) => {
   try {
+    /**
+     * Redirect to home page when accessing page 
+     * that requires authentication
+     */
+    if( !req.session?.isConnected && req.path !== '/' )
+      return res.redirect('/')
+
     res.marko( WWW, {
                       lang: 'en',
                       title: Configs.APPNAME,

@@ -31,7 +31,7 @@ export default ( __: Marko.Component ) => {
     if( !__.fs ) return
 
     const dirOptions = {
-      ignore: '^\\.(git|sandbox)|(.+)\\.lock|(.+)-error\\.log|node_modules$',
+      ignore: '^\\.(git|sandbox|plugin|application)|(.+)\\.lock|(.+)-error\\.log|node_modules$',
       subdir: true
     }
 
@@ -73,10 +73,10 @@ export default ( __: Marko.Component ) => {
       return deps
     }
     async function getCubicDependencies(){
-      const metadata: Metadata = await __.fs.readFile( '.metadata', { encoding: 'json' } )
+      const metadata: Metadata = await __.fs.readFile('.metadata', { encoding: 'json' } )
       if( !metadata )
         throw new Error('[Dependency] No .metadata file found at the project root')
-      
+
       const deps: CPackageDependency[] = []
 
       if( !metadata.resource )
@@ -99,7 +99,8 @@ export default ( __: Marko.Component ) => {
         deps.push( dep )
       }
 
-      for( const reference in dependencies )
+      if( dependencies?.length )
+        for( const reference of dependencies )
           await collector( reference )
 
       return deps

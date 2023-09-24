@@ -7,7 +7,7 @@ class {
         id: 'UPDATE_DEPENDENCY',
         label: 'Update',
         fn: (function(){ 
-          this.contextEmit( 'update', [
+          this.contextEmit( 'update-package', [
             {
               item: { name: this.input.name },
               version: this.input.version
@@ -20,7 +20,7 @@ class {
         label: 'Remove',
         important: true,
         fn: (function(){
-          this.contextEmit( 'remove', [
+          this.contextEmit( 'remove-package', [
             {
               item: { name: this.input.name },
               version: this.input.version

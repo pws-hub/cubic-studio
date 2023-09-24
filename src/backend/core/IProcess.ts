@@ -1,7 +1,7 @@
 import type { Metadata, Project } from '../../types/project'
-import type { JSPackage, JSSource, JSPackageAction, CPackageAction, CPackage } from '../../types/package'
-import Fs from '@cubic-bubble/fs'
-import Path from '@cubic-bubble/path'
+import type { JSPackage, JSSource, JSPackageAction, CPackageAction, CPRAccess } from '../../types/package'
+import fs from '@cubic-bubble/fs'
+import path from '@cubic-bubble/path'
 import LPSServer from './LPSServer'
 import PackageManager from '@cubic-bubble/cpm'
 import Emulator from './Emulator'
@@ -15,113 +15,10 @@ export type IProcessOptions = {
   watcher?: IProcessWatcher
 }
 
-async function processJSPackage( action: JSPackageAction, packages: JSPackage[], directory: string, source: JSSource, _process: IProcess ){
-
-  const processName = `${action}-packages`
-  source = source || 'cpm'
-
-  try {
-    if( !Array.isArray( packages ) )
-      throw new Error('Invalid packages argument. Expecte an <Array>')
-
-    if( !directory || !( await Fs.pathExists( directory ) ) )
-      throw new Error('Invalid project directory.')
-
-    _process.watcher( processName,
-                      false,
-                      {
-                        percent: 1,
-                        processor: source,
-                        message: 'Installing dependency pagkages'
-                      })
-
-    const 
-    pm = new PackageManager({ cwd: directory, manager: Configs.NODE_PACKAGE_MANAGER, debug: _process.debugMode }),
-    pkgList = packages.map( ({ item }) => {
-      return item.name +( action == 'install' && item.version ? `@${item.version}` : '' )
-    } )
-
-    await pm[ action ]( pkgList, '-W', ( error: string, message: string, bytes: number ) => {
-      // Installation progress tracking
-      error ?
-        _process.watcher( processName, error )
-        : _process.watcher( processName,
-                            error,
-                            {
-                              percent: Math.floor( 19 + ( bytes / 40 ) ),
-                              processor: source,
-                              message
-                            })
-    } )
-
-    // Completed
-    _process.watcher( processName,
-                      false,
-                      {
-                        percent: 100,
-                        processor: source,
-                        message: `Dependency packages ${action.replace(/e$/, '')}ed`
-                      })
-  }
-  catch( error: any ) {
-    _process.debug('Error occured: ', error )
-    _process.watcher( processName, error )
-  }
-}
-async function processCubicPackage( action: CPackageAction, packages: CPackage[], directory: string, _process: IProcess ){
-  const
-  processName = `${action}-packages`,
-  processor = 'cpm'
-
-  try {
-    if( !Array.isArray( packages ) )
-      throw new Error('Invalid package references argument. Expected an <Array>')
-
-    if( !directory || !( await Fs.pathExists( directory ) ) )
-      throw new Error('Invalid project directory.')
-
-    _process.watcher( processName,
-                      false,
-                      {
-                        percent: 1,
-                        processor,
-                        message: 'Installing pagkages'
-                      })
-
-    const pm = new PackageManager({ cwd: directory, debug: _process.debugMode })
-
-    await pm[ action ]( packages.join(' '), '-f -d', ( error: string, bytes: number, message: string ) => {
-      // Installation progress tracking
-      error ?
-        _process.watcher( processName, error )
-        : _process.watcher( processName,
-                            error,
-                            {
-                              percent: bytes,
-                              processor,
-                              message
-                            })
-    } )
-
-    // Completed
-    _process.watcher( processName,
-                      false,
-                      {
-                        percent: 100,
-                        processor,
-                        message: `Installation ${action.replace(/e$/, '')}ed`
-                      })
-  }
-  catch( error: any ) {
-    _process.debug('Error occured: ', error )
-    _process.watcher( processName, error )
-  }
-}
-
 export default class IProcess {
+  private LPS
   public debugMode = false
   public watcher: IProcessWatcher = () => {}
-  private LPS
 
   // Active emulators
   private emulators: { [index: string]: Emulator } = {}
@@ -555,7 +452,7 @@ export default class IProcess {
     add = async ( payload: any ) => {
       try {
         const
-        storeComponent = Path.join( process.cwd(), `/store/components/${payload.package}` ),
+        storeComponent = path.join( process.cwd(), `/store/components/${payload.package}` ),
         exists = await fs.exists( project )
 
         if( !exists ) await fs.newDir( project )
@@ -585,22 +482,75 @@ export default class IProcess {
                   })
   }
 
+  private async processJSPackage( action: JSPackageAction, packages: JSPackage[], directory: string, source: JSSource ){
+
+    const processName = `${action}-packages`
+    source = source || 'cpm'
+
+    try {
+      if( !Array.isArray( packages ) )
+        throw new Error('Invalid packages argument. Expecte an <Array>')
+
+      if( !directory || !( await fs.pathExists( directory ) ) )
+        throw new Error('Invalid project directory.')
+
+      this.watcher( processName,
+                    false,
+                    {
+                      percent: 1,
+                      processor: source,
+                      message: 'Installing dependency pagkages'
+                    })
+
+      const 
+      pm = new PackageManager({ cwd: directory, manager: Configs.NODE_PACKAGE_MANAGER, debug: this.debugMode }),
+      pkgList = packages.map( ({ item }) => {
+        return item.name +( action == 'install' && item.version ? `@${item.version}` : '' )
+      } )
+
+      await pm[ action ]( pkgList, '-W', ( error: string, message: string, bytes: number ) => {
+        // Installation progress tracking
+        error ?
+          this.watcher( processName, error )
+          : this.watcher( processName,
+                          error,
+                          {
+                            percent: Math.floor( 19 + ( bytes / 40 ) ),
+                            processor: source,
+                            message
+                          })
+      } )
+
+      // Completed
+      this.watcher( processName,
+                    false,
+                    {
+                      percent: 100,
+                      processor: source,
+                      message: `Dependency packages ${action.replace(/e$/, '')}ed`
+                    })
+    }
+    catch( error: any ) {
+      this.debug('Error occured: ', error )
+      this.watcher( processName, error )
+    }
+  }
   // Install/Add JS dependency packages from NPM, CPM, ...
   async installJSPackages( packages: JSPackage[], directory: string, source: JSSource ){
-    await processJSPackage( 'install', packages, directory, source, this )
+    await this.processJSPackage( 'install', packages, directory, source )
   }
   // Remove dependency packages
   async removeJSPackages( packages: JSPackage[], directory: string, source: JSSource ){
-    await processJSPackage( 'remove', packages, directory, source, this )
+    await this.processJSPackage( 'remove', packages, directory, source )
   }
   // Update dependency packages
   async updateJSPackages( packages: JSPackage[], directory: string, source: JSSource ){
-    await processJSPackage( 'update', packages, directory, source, this )
+    await this.processJSPackage( 'update', packages, directory, source )
   }
   // Reinstall dependency packages
   async refreshJSPackages( directory: string, source: JSSource ){
     try {
-      if( !directory || !( await Fs.pathExists( directory ) ) )
+      if( !directory || !( await fs.pathExists( directory ) ) )
         throw new Error('Invalid project directory.')
 
       source = source || 'cpm'
@@ -642,17 +592,111 @@ export default class IProcess {
     }
   }
 
-  // Install cubic packages from CPR
-  async installCubicPackages( packages: CPackage[], directory: string ){
-    await processCubicPackage( 'install', packages, directory, this )
+  private async updateDotMetadata( action: CPackageAction, dependencies: string[], directory: string ){
+    // Update dependencies list in project's .metadata file
+    if( !dependencies.length ) return
+
+    const dotMetadata = await fs.readJson(`${directory}/.metadata`) as Metadata
+    if( !dotMetadata )
+      throw new Error('Project .metadata file not found')
+
+    if( !dotMetadata.resource )
+      dotMetadata.resource = { dependencies: dependencies }
+
+    else if( !dotMetadata.resource.dependencies )
+      dotMetadata.resource.dependencies = dependencies
+    
+    else if( Array.isArray( dotMetadata.resource?.dependencies ) && !dotMetadata.resource.dependencies.length )
+      dotMetadata.resource.dependencies = dependencies
+
+    else {
+      const Deps: string[] = []
+      dependencies.forEach( each => {
+        dotMetadata.resource?.dependencies?.forEach( dep => {
+          if( !dep.includes( each.replace(/~(.+)$/, '') ) ){
+            // Retain the existing & different package references
+            Deps.push( dep )
+            // New package reference
+            action !== 'remove' && Deps.push( each )
+          }			
+          // Replace package reference only during: `install` or `update`
+          else action !== 'remove' && Deps.push( each )
+        })
+      })
+
+      dotMetadata.resource.dependencies = Deps
+    }
+
+    await fs.writeFile(`${directory}/.metadata`, JSON.stringify( dotMetadata, null, '\t' ) )
   }
-  // Remove cubic packages
-  async removeCubicPackages( packages: CPackage[], directory: string ){
-    await processCubicPackage( 'remove', packages, directory, this )
-  }
-  // Update cubic packages
-  async updateCubicPackages( packages: CPackage[], directory: string ){
-    await processCubicPackage( 'update', packages, directory, this )
+  // Install/Remove/Update cubic packages from CPR
+  async cubicPackage( action: CPackageAction, packages: string[], directory: string, access?: CPRAccess ){
+    const
+    processName = `${action}-plugins`,
+    processor = 'cpm'
+
+    try {
+      if( !Array.isArray( packages ) )
+        throw new Error('Invalid package references argument. Expected an <Array>')
+
+      if( !directory || !( await fs.pathExists( directory ) ) )
+        throw new Error('Invalid project directory.')
+
+      this.watcher( processName,
+                    false,
+                    {
+                      percent: 1,
+                      processor,
+                      message: 'Installing plugin packages'
+                    })
+
+      // Use CPR's in-build configuration in `cubic.yml`
+      if( !access 
+          && Array.isArray( Configs.CPR_ACCESS ) 
+          && Configs.CPR_ACCESS[0]?.source )
+        access = Configs.CPR_ACCESS[0]
+      
+      if( !access?.source )
+        throw new Error('Invalid CPR Configuration')
+      
+      const pm = new PackageManager({
+        cpr: access,
+        cwd: directory,
+        debug: this.debugMode
+      })
+
+      await pm[ action ]( packages, '-f -d', ( error: string, bytes: number, message: string ) => {
+        // Installation progress tracking
+        error ?
+          this.watcher( processName, error )
+          : this.watcher( processName,
+                          error,
+                          {
+                            percent: bytes,
+                            processor,
+                            message
+                          })
+      } )
+
+      // TODO: Remove `failed to install` packages from the list
+
+
+      // Refresh/Update .metadata file
+      await this.updateDotMetadata( action, packages, directory )
+
+      // Completed
+      this.watcher( processName,
+                    false,
+                    {
+                      percent: 100,
+                      processor,
+                      message: `Installation ${action.replace(/e$/, '')}ed`
+                    })
+    }
+    catch( error: any ) {
+      this.debug('Error occured: ', error )
+      this.watcher( processName, error )
+    }
   }
 
   async installApp( metadata: Metadata ){

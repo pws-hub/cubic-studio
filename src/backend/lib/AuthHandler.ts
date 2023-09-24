@@ -13,7 +13,7 @@ type AuthCallbackHandler = ( data: { [index: string]: any }, origin: string ) =>
 async function saveUser( body: User ): Promise<string | undefined>{
   try {
     const
-    uri = toOrigin( ( process.env.WORKSPACE_API_SERVER as string ), String( process.env.LOCALHOST_API ) === 'true' ) +'/users/save',
+    uri = `${process.env.WORKSPACE_API_BASE_URL as string}/users/save`,
     requestOptions: RequestPromiseOptions = {
       method: 'POST',
       body,

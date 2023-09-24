@@ -46,7 +46,7 @@ import PackageManager from '../src/backend/core/CPM'
   try {
     const
     options = {
-      cpr: 'http://cpr.micros.io:60777/v1',
+      cpr: 'http://cpr.cubic.studio:60777/v1',
       cwd: path.resolve( process.cwd(), '../projects/TestApp' ),
       debug: true,
       watcher: ( error, length, message ) => {

@@ -1,0 +1,68 @@
+
+// import Extensions from './defaults.json'
+import DefaultIcon from 'assets/images/icons/cubic.png'
+
+<if( Array.isArray( input.list ) && input.list.length )>
+  <div.font-small-3.text-info.px-2.py-1.strong>Plugins</div>
+
+  <Row.m-0>
+    <for|each, index| of=input.list>
+      $ const { type, name, description, favicon, configs, latest } = each
+
+      <@col.px-50.py-50 ns="col-6" qs="col-6" hs="col-12" fs="col-12">
+        <div.nav-item.cursor-pointer.shadow-none.border.round-xs.m-0.px-2.py-1>
+          <div.card-content>
+            <Row.no-gutters>
+              <div.col-lg-2.col-sm-3.py-50.cursor-pointer.no-effect on-click( () => component.emit('open', each ) )>
+                <!-- Icon -->
+                <if( /\.(png|jpe?g|gif|webp|svg)/.test( favicon ) )>
+                  <img.cursor-pointer src=DefaultIcon
+                      width=44
+                      alt=name
+                      title=description/><br>
+                </if>
+                <else>
+                  <span title=description>
+                    <i.font-large-2.bx class=favicon></i>
+                  </span>
+                </else>
+              </div>
+
+              <div.col.pl-3.py-50.position-relative.cursor-pointer.no-effect on-click( () => component.emit('open', each ) )>
+                <!-- Display latest version -->
+                <Locale.px-25.font-small-3.float-right.text-muted text=latest/>
+                
+                <!-- Name & short description -->
+                <p.mb-2>${name}</p>
+                <p.mb-2.w-100.font-small-2.text-ellipsis>${description}</p>
+                
+                <!-- Rating score -->
+                <StarRating score=4.5 size="12" color="grey"/>
+              </div>
+
+              <!-- <div.col-lg-2.col-sm-3.px-1.py-50.text-right>
+                <if( window.Extensions.isInstalled( name ) )>
+                  <Locale.font-small-2.float-right.text-success text="Installed"/>
+
+                  <if( !configs || !configs.default )>
+                    <br><br>
+                    <Bx.font-medium-5.border.rounded-circle.p-50.cursor-pointer 
+                        type="export" 
+                        title=Locale('Uninstall')
+                        on-click( () => component.emit('uninstall', name ) )/>
+                  </if>
+                </if>
+                <else>
+                  <Bx.font-medium-5.border.rounded-circle.p-50.cursor-pointer 
+                      type="import"
+                      title=Locale('Install')
+                      on-click( () => component.emit('install', each ) )/>
+                </else>
+              </div> -->
+            </Row>
+          </div>
+        </div>
+      </@col>
+    </for>
+  </Row>
+</if>

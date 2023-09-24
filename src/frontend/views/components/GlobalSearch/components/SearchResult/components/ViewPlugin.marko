@@ -1,0 +1,147 @@
+
+import Extensions from './defaults.json'
+import DefaultIcon from 'assets/images/icons/cubic.png'
+
+class {
+  onCreate(){
+    this.state = {
+      ref: null,
+      error: false,
+      status: false,
+      similars: [] 
+    }
+
+    this.documentation = false
+  }
+  onInput({ item }){
+    this.state.similars = Extensions.filter( each => {
+      if( item.name != each.name 
+          && Array.isArray( item.categories ) 
+          && item.categories.length )
+        for( let o = 0; o < item.categories.length; o++ )
+          if( each.categories.includes( item.categories[o] ) )
+            return true
+          
+      return false
+    } )
+  }
+  onMount(){ this.onSelectVersion( this.input.item.latest ) }
+  onSelectVersion( version ){ this.state.ref = this.createReference( version ) }
+  createReference( version ){
+    const { type, namespace, nsi } = this.input.item
+    return `${type}:${namespace}.${nsi}${version ? '~'+ version : ''}`
+  }
+  addingProgress( error, status ){
+    if( error ){
+      this.state.error = error
+      return
+    }
+    
+    this.setState({ error: false, status })
+  }
+}
+
+<context|{}, emit| from="GlobalSearch">
+  <div.px-3.pt-4.overflow-auto style="max-height:46rem">
+    <div.text-right.mb-2>
+      <Button type="md" on-click( () => component.emit('dismiss') )>
+        Dismiss
+        <Bx.font-medium-4 type="right-arrow-alt"/>
+      </Button>
+    </div>
+
+    <Row>
+      <!-- Icon -->
+      <@col.col-3.text-center.py-1>
+        <if( /\.(png|jpe?g|gif|webp|svg)/.test( input.item.favicon ) )>
+          <img src=DefaultIcon
+                width=60
+                alt=input.item.name/><br>
+        </if>
+        <else>
+          <span>
+            <i.font-large-3.bx class=input.item.favicon></i>
+          </span>
+        </else>
+      </@col>
+
+      <!-- Name & author -->
+      <@col.col-9>
+        <h5.mb-1>${input.item.name}</h5>
+        <ul.list-unstyled>
+          <li><span.text-primary>${input.item.author.name}</span></li>
+          <li.mt-4><StarRating score=3.5 color="grey"/></li>
+        </ul>
+      </@col>
+
+      <!-- Caption -->
+      <@col.col-12>
+        <if( input.item.description )>
+          <p>${input.item.description}</p>
+        </if>
+        
+        <!-- Categories -->
+        <if( input.item.categories.length )>
+          <ul.list-inline>
+            <for|category, index| of=input.item.categories>
+              <li.px-1.py-25.m-25.border.round.text-muted.font-small-3>${category.toCapitalCase()}</li>
+            </for>
+          </ul>
+        </if>
+        
+        <!-- Display all available versions -->
+        <if( input.item.versions )>
+          <Locale.font-medium-2.strong.text-muted text="Published versions"/>
+          <br>
+          <ul.position-relative.zindex-2.list-inline.my-1>
+            <for|version| of=input.item.versions.reverse()>
+              $ const isLatest = input.item.latest === version
+
+              <li.px-75.py-25.m-25.font-small-3.round.cursor-pointer.scale-down
+                  class=( isLatest ? 'bg-success text-dark' : 'theme-bg-lighten' )
+                  on-click('onSetVersion', version )>
+                <Locale text=version/>
+              </li>
+            </for>
+          </ul>
+        </if>
+      </@col>
+
+      <@col.col-12>
+        <div.text-right>
+          <Switch by=state.status>
+            <@case is="DONE">
+              <Button type="md">
+                <Locale text="Installed"/>
+              </Button>
+            </@case>
+            <@case is="ONGOING">
+              <Button primary preload type="md">
+                <Locale text="Installing"/>
+              </Button>
+            </@case>
+            <@default>
+              <Button primary type="md" on-click( emit, 'return', 'plugin', state.ref, component.addingProgress.bind( component ) )>
+                <Locale text="Install"/>
+              </Button>
+            </@default>
+          </Switch>
+        </div>
+
+        <!-- Display occurred error -->
+        <if( state.error )>
+          <p.text-danger>${state.error}</p>
+        </if>
+      </@col>
+    </Row>
+
+    <!-- Display documentation -->
+    <if( component.documentation )>
+      <br>
+      <div>
+        <h5.font-medium-2><Locale text="Documentation"/></h5>
+        <div>$!{component.documentation}</div>
+      </div>
+    </if>
+  </div>
+</context>

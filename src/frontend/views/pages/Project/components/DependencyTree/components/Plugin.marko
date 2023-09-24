@@ -1,32 +1,19 @@
 
 class {
-  onCreate(){
+  onCreate({ type, namespace, nsi, version }){
     this.state = { open: false }
+
     this.menu = [
       {
         id: 'UPDATE_PLUGIN',
         label: 'Update',
-        fn: (function(){
-          this.contextEmit( 'update', [
-            {
-              item: { name: this.input.name },
-              version: this.input.version
-            }
-          ] ) 
-        }).bind(this)
+        fn: (function(){ this.contextEmit( 'update-plugin', [`${type}:${namespace}.${nsi}`] ) }).bind(this)
       },
       {
         id: 'REMOVE_PLUGIN',
         label: 'Remove',
         important: true,
-        fn: (function(){
-          this.contextEmit( 'remove', [
-            {
-              item: { name: this.input.name },
-              version: this.input.version
-            }
-          ] )
-        }).bind(this)
+        fn: (function(){ this.contextEmit( 'remove-plugin', [`${type}:${namespace}.${nsi}~${version}`] ) }).bind(this)
       }
     ]
   }
@@ -41,7 +28,7 @@ class {
   }
 }
 
-<context|{}, emit| from="PluginTree">
+<context|{}, emit| from="DependencyTree">
   <!-- Attach context emitter to class component -->
   $ component.contextEmit = emit
   
@@ -51,12 +38,13 @@ class {
           type=`chevron-${state.open ? 'down' : 'right'}`
           on-click('onShowContent')
           style="padding:0 .4rem 0 .95rem"/>
+
       <!-- Name -->
       <div.font-medium-1.py-50.text-ellipsis.w-100 on-click('onShowContent')>
         <!-- Package Name -->
-        <span>${input.name} ~ </span>
+        <span>${input.namespace}.${input.nsi} ~ </span>
         <!-- Current installed plugin package version -->
-        <span.text-info>v${input.version}</span>
+        <span.text-info>${input.version ? `v${input.version}` : 'latest'}</span>
         <!-- Dev Plugin indicator -->
         <if( input.dev )>
           <span.font-small-2.theme-bg-lighten.round.px-75.py-25.float-right>Dev</span>
@@ -99,7 +87,7 @@ class {
         <!-- No insight description -->
         <else>
           <p.font-small-4.text-muted>
-            No description found. Check <u.text-info>/node_modules/${input.name}</u>
+            No description found. Check <u.text-info>Marketplace</u>
           </p>
         </else>
       </div>

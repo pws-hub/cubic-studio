@@ -1,5 +1,5 @@
 
-import type { Project } from '../../types/project'
+import type { Metadata, Project } from '../../types/project'
 import fs from '@cubic-bubble/fs'
 
 export const dotCubic = async ({ specs }: Project ) => {
@@ -41,7 +41,7 @@ export const dotGitignore = async ( directory: string ) => {
   return gitignore
 }
 
-export const dotMetadata = async ({ name, nsi, description, specs }: Project ) => {
+export const dotMetadata = async ({ name, nsi, description, specs }: Project ): Promise<Metadata> => {
   let config
   try { config = await fs.readJson( `${specs.code.directory }/.metadata` ) }
   catch( error ) { throw error }

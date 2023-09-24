@@ -1,7 +1,6 @@
 import type { ProjectState } from '../../../../../types/project'
 
 export default ( __: Marko.Component ) => {
-
   const
   State = __.state as ProjectState,
   EMWatcher = ( error, data ) => {
@@ -41,8 +40,7 @@ export default ( __: Marko.Component ) => {
     }
   }
 
-  __.PackageOperator = async ( action, packages ) => {
-
+  __.JSPackageOperator = async ( action, packages ) => {
     if( !__.pm ) {
       window.debugLog('[AddElement Event] error: Undeclared process manager')
       return
@@ -68,6 +66,32 @@ export default ( __: Marko.Component ) => {
     __.dpm = __.pm.JSPackageManager( packages, cwd )
 
     await __.dpm[ _action ]( progress )
+    await __.getDependencies()
+  }
+
+  __.CPackageOperator = async ( action, packages ) => {
+    if( !__.pm ) {
+      window.debugLog('[AddElement Event] error: Undeclared process manager')
+      return
+    }
+    
+    const
+    cwd = State.project?.specs.code.directory,
+    progress = ( error, stats ) => {
+      if( error ) {
+        // TODO: Manage process exception errors
+        console.log('--Progress Error: ', error )
+        return
+      }
+
+      // TODO: Display progression stats on Footer
+      __.progression( stats )
+    }
+
+    // Cubic Dependency Package Manager
+    __.cpm = __.pm.CPackageManager( packages, cwd )
+
+    await __.cpm[ action ]( progress )
     await __.getDependencies()
   }
 

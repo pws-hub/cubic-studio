@@ -208,6 +208,7 @@ async function Client(){
 	// Default global states
 	window.GState.set('theme', 'dark')
 	window.GState.set('isConnected', isConnected )
+	window.GState.set('accessToken', atoken )
 	window.GState.set('user', user )
 
 	/* ----------------------------------------------------------------*/

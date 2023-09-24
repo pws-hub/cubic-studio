@@ -49,7 +49,8 @@ class {
       case 'open': this.sm.open( ...args ); break
       
       case 'directories': this.FSOperator( ...args ); break
-      case 'packages': this.PackageOperator( ...args ); break
+      case 'plugins': this.CPackageOperator( ...args ); break
+      case 'packages': this.JSPackageOperator( ...args ); break
       case 'collections': this.CollectionOperator( ...args ); break
 
       // case 'features': this.ws.select.feature( ...args ); break
@@ -61,28 +62,44 @@ class {
   onShowResetProjectToggle( status ){ this.state.showResetProject = status }
   onShowDeleteProjectToggle( status ){ this.state.showDeleteProject = status }
   async onAddElement( type, element, progress ){
-    
     if( !this.pm ){
       debugLog('[AddElement Event] error: Undeclared process manager')
       return
     }
 
+    progress = typeof progress == 'function' ? progress : () => {}
+
     switch( type ){
       // Copy store component to this project directory
-      case 'component': progress( false, 'ONGOING' )
-                        const result = await this.pm.addComponents( element, this.state.project.specs.code.directory )
-                        result === false ?
-                                progress('Unexpected error occured')
-                                : progress( false, 'DONE' )
-          break
+      case 'component': {
+        progress( false, 'ONGOING' )
+
+        const result = await this.pm.addComponents( element, this.state.project.specs.code.directory )
+        result === false ?
+                progress('Unexpected error occured')
+                : progress( false, 'DONE' )
+      } break
+
       // Install dependency package to project
-      case 'package': await this.PackageOperator( 'install', element )
-                      
-                      // GlobalSearch callback to confirm process done
-                      typeof progress == 'function' && progress()
-                      // Wait for global search to clear memory
-                      setTimeout( () => this.state.showSearch = false, 500 )
-          break
+      case 'package': {
+        progress( false, 'ONGOING' )
+        await this.JSPackageOperator( 'install', element )
+        
+        // GlobalSearch callback to confirm process done
+        typeof progress == 'function' && progress()
+        progress( false, 'DONE' )
+        
+        // Wait for global search to clear memory
+        setTimeout( () => this.state.showSearch = false, 500 )
+      } break
+
+      // Install plugin dependency to project
+      case 'plugin': {
+        progress( false, 'ONGOING' )
+        await this.CPackageOperator( 'install', Array.isArray( element ) ? element : [ element ] )
+        
+        progress( false, 'DONE' )
+      } break
     }
   }
 }

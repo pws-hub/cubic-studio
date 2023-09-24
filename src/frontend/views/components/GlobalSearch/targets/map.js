@@ -2,18 +2,39 @@
 import COMPONENTS_MANIFEST from 'store/components/manifest.json'
 
 export default {
-
   plugin: [
     {
       type: 'API',
-      name: 'multipple',
-      label: 'Multipple',
-      description: 'Extensions marketplace',
-      website: 'https://marketplace.multipple.com',
-      source: 'https://marketplace.getlearncloud.com/v1/extension/search?rst=plugin&query=',
-      resultField: 'results',
-      matchFields: [ 'nsi', 'name', 'description', 'namespace', 'author', 'category' ]
-    }
+      name: 'cubic',
+      label: 'CPR',
+      description: 'Cubic Package Repository',
+      website: 'https://cws.cubic.com',
+      source: `http://cpr.cubic.studio:60777/v1/package/search?filters=${JSON.stringify({types: ['plugin']})}&limit=25&query=`,
+      resultField: 'packages',
+      matchFields: [
+        'metadata.type',
+        'metadata.nsi',
+        'metadata.name',
+        'metadata.description',
+        'metadata.namespace',
+        'metadata.categories',
+        'metadata.favicon',
+        'metadata.author',
+        'latest',
+        'versions',
+        'published'
+      ]
+    },
+    // {
+    //   type: 'API',
+    //   name: 'multipple',
+    //   label: 'Multipple',
+    //   description: 'Extensions marketplace',
+    //   website: 'https://marketplace.multipple.com',
+    //   source: 'https://marketplace.getlearncloud.com/v1/extension/search?rst=plugin&query=',
+    //   resultField: 'results',
+    //   matchFields: [ 'nsi', 'name', 'description', 'namespace', 'author', 'category' ]
+    // }
   ],
 
   package: [

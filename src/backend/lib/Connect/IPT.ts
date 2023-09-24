@@ -7,7 +7,6 @@ function initChannel( socket: Socket ){
   console.log('IPT New Connection: ', socket.id )
 
   function create( options: IProcessOptions, callback: ProcessCallback = (() => {}) ){
-
     if( !options || typeof options !== 'object' ) {
       callback({ error: true, message: 'Invalid IProcess Initialization Options'})
       return

@@ -3,9 +3,8 @@
 import SearchTargetMap from './map'
 
 function deepkey( obj, strKey ){
-
   if( !strKey.includes('.') )
-    return { key: strKey, value: obj }
+    return { key: strKey, value: obj[ strKey ] }
 
   const keys = strKey.split('.')
   let key, value = obj
@@ -59,7 +58,7 @@ export const APIQuery = async ( target, query ) => {
     if( disabled ) return
 
     return window
-            .fetch(`/proxy?url=${source + query.join('+')}&responseType=json`)
+            .fetch(`/proxy?url=${encodeURIComponent( source + query.join('+') )}&responseType=json`)
             .then( res => res.json() )
             .then( results => {
               if( resultField ) {

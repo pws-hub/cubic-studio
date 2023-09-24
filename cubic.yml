@@ -28,7 +28,8 @@ GIT_ACCESS:
 
 # Access credentials to Cubic Package Repositories
 CPR_ACCESS:
-- source: cpr.webmicros.com
+- source: https://cpr.webmicros.com
+  apiversion: 1
   username:
   token:
 

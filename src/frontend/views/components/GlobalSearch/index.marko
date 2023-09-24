@@ -43,27 +43,29 @@ class {
     function byTarget([ target, sources ]){
       sources.map( async ({ type }) => {
         switch( type ){
-          case 'API': searchCount++
-                      if( !this.state.searching ) this.state.searching = true
-                      
-                      this.state.results[ target ] = await APIQuery( target, query )
-                      searchCount--
-                      
-                      this.state.results = newObject( this.state.results )
-                      debugLog('API Query search result: ', this.state.results )
-                      // Last to respond close the search
-                      if( !searchCount ) this.state.searching = false
-              break
-          case 'manifest': searchCount++
-                            if( !this.state.searching ) this.state.searching = true
+          case 'API': {
+            searchCount++
+            if( !this.state.searching ) this.state.searching = true
+            
+            this.state.results[ target ] = await APIQuery( target, query )
+            searchCount--
+            
+            this.state.results = newObject( this.state.results )
+            debugLog('API Query search result: ', this.state.results )
+            // Last to respond close the search
+            if( !searchCount ) this.state.searching = false
+          } break
+          case 'manifest': {
+            searchCount++
+            if( !this.state.searching ) this.state.searching = true
 
-                            this.state.results[ target ] = await ManifestQuery( target, query )
-                            debugLog('Manifest Query search result: ', this.state.results )
-                            searchCount--
+            this.state.results[ target ] = await ManifestQuery( target, query )
+            debugLog('Manifest Query search result: ', this.state.results )
+            searchCount--
 
-                            // Last to respond close the search
-                            if( !searchCount ) this.state.searching = false
-              break
+            // Last to respond close the search
+            if( !searchCount ) this.state.searching = false
+          } break
         }
       })
     }

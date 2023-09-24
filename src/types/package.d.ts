@@ -1,4 +1,11 @@
 
+export type CPRAccess = {
+  source: string
+  apiversion?: number
+  username?: string
+  token?: string
+}
+
 export type JSSource = 'npm' | 'cpm'
 export type JSPackageAction = 'install' | 'remove' | 'update'
 export type JSPackage = {

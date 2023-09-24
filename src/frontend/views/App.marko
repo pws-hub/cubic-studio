@@ -24,7 +24,7 @@ export interface Input {
 }
 
 class {
-  declare state: { theme: 'dark' | 'light' }
+  // declare state: { theme: 'dark' | 'light' }
   onCreate(){
     window.GState.bind(this, ['theme'])
     !this.state.theme && this.adaptiveThemeMode()

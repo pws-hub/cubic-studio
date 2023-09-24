@@ -350,15 +350,10 @@ class {
                     on-device-action( ( ...args ) => component.emit( 'action', 'device', ...args ) )
                     on-directory-action( ( ...args ) => component.emit( 'action', 'directories', ...args ) )/>
 
-    <DependencyTree deps=(dependencies && dependencies.packages)
+    <DependencyTree ...dependencies
                     expanded
                     on-add( () => input.context.ws.select.feature('dependency') )
-                    on-action( ( ...args ) => component.emit( 'action', 'packages', ...args ) )/>
-
-    <PluginTree plugins=(dependencies && dependencies.plugins)
-                expanded
-                on-add( () => input.context.ws.select.feature('plugin') )
-                on-action( ( ...args ) => component.emit( 'action', 'plugins', ...args ) )/>
+                    on-action( ( ...args ) => component.emit( 'action', ...args ) )/>
   </@sidebar>
 
   <!-- Code Editor content -->

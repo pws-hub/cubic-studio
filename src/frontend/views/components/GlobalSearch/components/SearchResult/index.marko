@@ -18,13 +18,16 @@ class {
       <for|type, list| in=input.table>
         <Switch by=type>
           <@case is="component">
-            <Component list=list on-open( 'onOpen', type )/>
+            <Component list=list on-open('onOpen', type )/>
           </@case>
           <@case is="package">
-            <Package list=list on-open( 'onOpen', type )/>
+            <Package list=list on-open('onOpen', type )/>
+          </@case>
+          <@case is="plugin">
+            <Plugin list=list on-open('onOpen', type )/>
           </@case>
           <@case is="extension">
-            <Extension list=list on-open( 'onOpen', type )/>
+            <Extension list=list on-open('onOpen', type )/>
           </@case>
         </Switch>
       </for>
@@ -55,6 +58,9 @@ class {
         </@case>
         <@case is="package">
           <ViewPackage item=state.item on-dismiss('onOpen', false )/>
+        </@case>
+        <@case is="plugin">
+          <ViewPlugin item=state.item on-dismiss('onOpen', false )/>
         </@case>
         <@case is="extension">
           <ViewExtension item=state.item on-dismiss('onOpen', false )/>

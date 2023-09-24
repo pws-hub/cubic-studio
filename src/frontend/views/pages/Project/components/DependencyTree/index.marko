@@ -1,9 +1,11 @@
 
 <!-- Dependencies Block -->
-<context on-update( packages => component.emit('action', 'update', packages ) )
-          on-remove( packages => component.emit('action', 'remove', packages ) )>
+<context on-update-package( packages => component.emit('action', 'packages', 'update', packages ) )
+          on-remove-package( packages => component.emit('action', 'packages', 'remove', packages ) )
+          on-update-plugin( plugin => component.emit('action', 'plugins', 'update', plugin ) )
+          on-remove-plugin( plugin => component.emit('action', 'plugins', 'remove', plugin ) )>
   <div.position-relative.border-top.overflow-auto.no-select
-      style=`height:${input.expanded ? 'calc(40% - 3rem)' : '3rem'}`>
+      style=`height:${input.expanded ? '40%' : '3rem'}`>
     <div.position-sticky.zindex-2.top-0.w-100.theme-bg.d-flex.align-items-center.border-bottom.px-1 style="height:3rem">
       <div.w-100.d-flex.align-items-center>
         <div.w-70>
@@ -33,14 +35,31 @@
     </div>
 
     <if( input.expanded )>
-      <if( Array.isArray( input.deps ) && input.deps.length  )>
-        <ul.list-unstyled.py-1>
-          <for|dependency| of=input.deps>
-            <Dependency ...dependency/>
-          </for>
-        </ul>
+      <if( Array.isArray( input.packages ) && input.packages.length  )>
+        <div.py-1>
+          <Locale.font-small-3.text-uppercase.text-muted.px-2 text="Packages"/>
+
+          <ul.list-unstyled.mt-2.mb-0>
+            <for|pkg| of=input.packages>
+              <JSPackage ...pkg/>
+            </for>
+          </ul>
+        </div>
       </if>
-      <else>
+
+      <if( Array.isArray( input.plugins ) && input.plugins.length  )>
+        <div.py-1>
+          <Locale.font-small-3.text-uppercase.text-muted.px-2 text="Plugins"/>
+
+          <ul.list-unstyled.mt-2.mb-0>
+            <for|plugin| of=input.plugins>
+              <Plugin ...plugin/>
+            </for>
+          </ul>
+        </div>
+      </if>
+
+      <!-- <if()>
         <div.h-75.d-flex.align-items-center>
           <div.w-100.text-center.text-muted>
             <Bx.font-large-2.text-muted type="package"/>
@@ -48,7 +67,7 @@
             <Locale>No dependency</Locale>
           </div>
         </div>
-      </else>
+      </if> -->
     </if>
   </div>
 </context>

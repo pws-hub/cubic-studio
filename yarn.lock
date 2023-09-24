@@ -1574,10 +1574,10 @@
   resolved "https://registry.yarnpkg.com/@csstools/convert-colors/-/convert-colors-1.4.0.tgz#ad495dc41b12e75d588c6db8b9834f08fa131eb7"
   integrity sha512-5a6wqoJV/xEdbRNKVo6I4hO3VjyDq//8q2f9I6PBAvMesJHFauXDorcNCsr9RzvsZnaWi5NYCcfyqP1QeFHFbw==
 
-"@cubic-bubble/cpm@^0.0.3":
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/@cubic-bubble/cpm/-/cpm-0.0.3.tgz#7163505e69d7ad83bd90df25e5716dd5f955cfa3"
-  integrity sha512-WII/N1m0Fsgty0hKU3lJcwQN6vqk/odbElVhcno4G/pnZ72uxfgz//JYPAJdECmCwDWNvvzLN58wOXOQvh/FjA==
+"@cubic-bubble/cpm@^0.0.8":
+  version "0.0.8"
+  resolved "https://registry.yarnpkg.com/@cubic-bubble/cpm/-/cpm-0.0.8.tgz#2cf703668994930b5d29fe81df0339cff14b9e87"
+  integrity sha512-EF6pFfy+akiiRnmfZHbONEkGINq9ZcTEp5LI7i7hrDig5HsYEP+Mif/vwe3WqRZVygr7Ku8FQNelnehcu8fjGA==
   dependencies:
     "@cubic-bubble/fs" "^0.0.3"
     "@cubic-bubble/path" "^0.0.3"

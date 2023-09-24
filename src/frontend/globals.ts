@@ -1,9 +1,9 @@
 import type { FrontendRequest, Overridables } from '../types'
 import type { FSTClientManager, FSHandler } from './lib/FSTClient'
-import type { EmulatorHandler, IPTClientManager, IProcessHandler, JSPackageManager } from './lib/IPTClient'
+import type { EmulatorHandler, IPTClientManager, IProcessHandler, JSPackageManager, CPackageManager } from './lib/IPTClient'
 import type { CollectionOperatorAction, DeviceOperatorAction, FSOperatorAction, FSOperatorPayload, JSPackageOperatorAction } from '../types/operators'
 import type { FSDirectory } from '../backend/core/FileSystem'
-import type { CPackageDependency, JSPackage } from '../types/package'
+import type { CPackage, CPackageDependency, JSPackage } from '../types/package'
 import type SectionManager from './lib/SectionManager'
 import type WorkspaceManager from './lib/WorkspaceManager'
 import jQuery from 'jquery'
@@ -37,6 +37,7 @@ declare global {
     env: string
     asm: string
     mode: string
+    isOnline: boolean
     instance: string
     providers: string[]
     $: typeof jQuery
@@ -81,6 +82,7 @@ declare global {
       sm: SectionManager
       ws: WorkspaceManager
       dpm: JSPackageManager // Dependency package manager
+      cpm: CPackageManager // Cubic Dependency package manager
       pstore?: UIStore // Project UI store interface
       
       flag?: 'setup' | 'import'
@@ -91,6 +93,8 @@ declare global {
       ongoing: ( labels: { error?: Error | string | boolean, headline?: string, noLoading?: boolean } | false ) => void
       progression: ( stats: { percent: number, processor: string, message: string } ) => void
       FSOperator: ( action: FSOperatorAction, element: FSOperatorPayload ) => void
+      CPackageOperator: ( action: keyof CPackageManager, element: CPackage[] ) => void
+      JSPackageOperator: ( action: keyof JSPackageManager, element: JSPackage[] ) => void
       DeviceOperator: ( action: DeviceOperatorAction, options?: {} ) => void
       PackageOperator: ( action: JSPackageOperatorAction, package: JSPackage[] ) => void
       CollectionOperator: ( action: CollectionOperatorAction, key: string, element: any ) => void

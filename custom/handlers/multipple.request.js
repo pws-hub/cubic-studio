@@ -75,7 +75,7 @@ async function ProcessOAuth2( req, sid ){
     }
 
     // Retreive OAuth2.0 configuration of this service
-    request(`${process.env.MULTIPPLE_API_SERVER}/service/${sid}/oauth2`,
+    request(`${process.env.MULTIPPLE_API_BASE_URL}/service/${sid}/oauth2`,
               { headers, method: 'GET', json: true },
               async ( error, response, body ) => {
 
@@ -269,7 +269,7 @@ export default async ( req, res ) => {
 
       const { domain, token, deviceId, role } = req.session.credentials.multipple
 
-      options.url = process.env.MULTIPPLE_API_SERVER + options.url
+      options.url = process.env.MULTIPPLE_API_BASE_URL + options.url
       options.headers = {
         'Origin': decodeURIComponent( domain ),
         'MP-User-Agent': 'MP.studio/1.0',

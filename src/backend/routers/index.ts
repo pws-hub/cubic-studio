@@ -33,7 +33,11 @@ async ( req, res ) => {
         case 'ENOTFOUND': error.statusCode = 404; break
       }
 
-    res.status( error.statusCode || 400 ).send( error.message )
+    res.status( error.statusCode || 400 )
+
+    req.query.responseType === 'json' ?
+                  res.json({ error: true, message: error.message })
+                  : res.send( error.message )
   }
 
   switch( req.query.responseType ) {

@@ -25,7 +25,7 @@ function initChannel( socket: Socket ){
 
       else {
         const
-        uri = toOrigin( ( process.env.WORKSPACE_API_SERVER as string ), String( process.env.LOCALHOST_API ) === 'true' ) + url,
+        uri = process.env.WORKSPACE_API_BASE_URL + url,
         requestOptions: RequestPromiseOptions = {
           ...options,
           headers: {
@@ -53,7 +53,7 @@ export default ( ioServer: Server ) => {
   .use( async ( socket, next ) => {
     const { auth } = socket.handshake
 
-    if( !auth || !auth.atoken )
+    if( !auth?.atoken )
       return next( new Error('Access Forbidden') )
 
     // TODO: Make request to verify the auth.atoken

@@ -20,8 +20,8 @@
     "typeRoots": ["./src/types"]
   },
   "include": ["/cubic.yml", "/src/**/*"],
-  // "exclude": ["src/fontend/views/***/*"],
+  "exclude": ["/src/fontend/views/**/*"],
   "watchOptions": {
-    // "excludeFiles": ["*.marko"]
+    "excludeFiles": ["*.marko"]
   }
 }

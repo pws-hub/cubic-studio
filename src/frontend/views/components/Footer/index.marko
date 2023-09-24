@@ -1,6 +1,6 @@
 
 <macro|{ text, icon, _class, style, renderBody }| name="Lobe">
-  <div.col-1.d-flex.align-items-center.px-0 class=_class style=style style=`height:2rem;${style}`>
+  <div.col-1.d-flex.align-items-center.px-0 class=_class style=`height:2rem;${style}`>
     <div.w-100.text-center>
       <if( typeof renderBody == 'function' )><${renderBody}/></if>
       <else>${text}</else>
@@ -12,6 +12,9 @@
   <div.row.no-gutters.w-100.d-flex.align-items-center>
     <!-- Targeted platform -->
     <Lobe _class="bg-black" text=proName( window.instance || 'Cubic' )/>
+
+    $ const isOnline = window.GState.get('online')
+    <Lobe _class=(isOnline ? 'theme-bg-transparent' : 'theme-bg-lighten') text=(isOnline ? 'Online' : 'Offline')/>
 
     <!-- Insert custom lobes -->
     <if( input.lobe )>

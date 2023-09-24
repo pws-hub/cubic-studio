@@ -371,6 +371,112 @@ export default class IProcess {
       this.watcher( 'import', error )
     }
   }
+  async publishProject( dataset: Project, access?: CPRAccess ){
+    try {
+      // Use CPR's in-build configuration in `cubic.yml`
+      if( !access 
+          && Array.isArray( Configs.CPR_ACCESS ) 
+          && Configs.CPR_ACCESS[0]?.source )
+        access = Configs.CPR_ACCESS[0]
+      
+      if( !access?.source )
+        throw new Error('Invalid CPR Configuration')
+      
+      const 
+      { type, namespace, nsi, name, version, specs } = dataset,
+      { directory, repository } = specs.code,
+      git = new GitManager({ debug: this.debugMode, repository })
+
+      if( specs.code ) {
+        // Initialize project
+        this.watcher( 'publish',
+                      false,
+                      {
+                        percent: 0,
+                        processor: 'cpm',
+                        message: 'Initialize publication features'
+                      })
+                      
+        const
+        pm = new PackageManager({ 
+          cpr: access,
+          cwd: directory,
+          manager: 'cpm',
+          debug: this.debugMode
+        }),
+        fs = new FileSystem({ cwd: directory, debug: this.debugMode })
+
+        // Publish new project
+        this.watcher( 'publish',
+                      false,
+                      {
+                        percent: 5,
+                        processor: 'cpm',
+                        message: 'Checking project metadata'
+                      })
+        const metadata = await fs.readFile(`${directory}/.metadata`, { encoding: 'json' })
+        if( !metadata
+            || metadata.type !== type
+            || metadata.name !== name )
+          throw new Error('Inconsistency detected in project .metadata')
+
+        /**
+         * IMPORTANT: Define git's current working directory
+         *              for all next commands cause project
+         *              directory is now created
+         */
+        git.setCWD( directory )
+
+        // TODO: Push project to specified or archive repository
+
+
+        // Publish new project
+        this.watcher( 'publish',
+                      false,
+                      {
+                        percent: 15,
+                        processor: 'cpm',
+                        message: 'Push project to git repository'
+                      })
+
+        /* -------------------------------------------------------------------------*/
+        // Publish project
+        this.watcher( 'publish',
+                      false,
+                      {
+                        percent: 37,
+                        processor: 'cpm',
+                        message: 'Publishing project'
+                      })
+        await pm.publish( ( error: string | boolean, message: string, bytes: number ) => {
+          // Publication progress tracking
+          error ?
+            this.watcher( 'publish', error )
+            : this.watcher( 'publish',
+                            error,
+                            {
+                              percent: Math.floor( 37 + ( bytes / 30 ) ),
+                              processor: 'cpm',
+                              message
+                            })
+        } )
+
+        /* -------------------------------------------------------------------------*/
+        // Done
+        this.watcher( 'publish',
+                      false,
+                      {
+                        percent: 100,
+                        processor: false,
+                        message: 'Project published'
+                      })
+      }
+    }
+    catch( error: any ) {
+      this.debug('Error occured: ', error )
+      this.watcher('publish', error )
+    }
+  }
 
   async startEM( id: string, dataset: Project ){
     // Start an Emulator Instance
@@ -630,7 +736,7 @@ export default class IProcess {
     await fs.writeFile(`${directory}/.metadata`, JSON.stringify( dotMetadata, null, '\t' ) )
   }
   // Install/Remove/Update cubic packages from CPR
-  async cubicPackage( action: CPackageAction, packages: string[], directory: string, access?: CPRAccess ){
+  async cubicCPackage( action: CPackageAction, packages: string[], directory: string, access?: CPRAccess ){
     const
     processName = `${action}-plugins`,
     processor = 'cpm'

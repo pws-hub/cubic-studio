@@ -48,63 +48,65 @@ class {
 }
 
 <Modal.border.no-select.overflow-hidden width=60 noBackdrop on-dismiss( () => component.emit('dismiss') )>
-  <Row.m-0>
-    <@col.col-4.px-3.pt-3.theme-bg-transparent>
-      <h5.m-0><Locale.text-success text="Publication"/></h5>
-      <br>
-      <p.w-100.text-muted.font-small-4>
-        <Locale>
-          Below are some few steps required to help you 
-          get your project ready to share with the world. 
-        </Locale>
-      </p>
+  <context on-publish( () => component.emit('submit') )>
+    <Row.m-0>
+      <@col.col-4.px-3.pt-3.theme-bg-transparent>
+        <h5.m-0><Locale.text-success text="Publication"/></h5>
+        <br>
+        <p.w-100.text-muted.font-small-4>
+          <Locale>
+            Below are some few steps required to help you 
+            get your project ready to share with the world. 
+          </Locale>
+        </p>
 
-      <div.overflow-auto style="min-height:30vh;max-height:46vh">
-        <if( Array.isArray( state.steps ) && state.steps.length )>
-          <ul.list-unstyled.my-3>
-            <for|{ title, description, status, disabled }, index| of=state.steps>
-              $ const isActive = index == state.stepIndex
+        <div.overflow-auto style="min-height:30vh;max-height:57vh">
+          <if( Array.isArray( state.steps ) && state.steps.length )>
+            <ul.list-unstyled.my-3>
+              <for|{ title, description, status, disabled }, index| of=state.steps>
+                $ const isActive = index == state.stepIndex
 
-              <li.d-flex.align-items-center.round-sm.my-50
-                  key=index
-                  class=`${disabled ? 'cursor-not-allowed' : 'nav-item cursor-pointer'} ${isActive ? 'active' : ''}`
-                  title=description
-                  on-click('onJump', index )>
-                <Switch by=(disabled ? 'DISABLED' : status)>
-                  <@case is="CHECKED"><Bx.font-large-1.px-1.py-75.text-success type="check-circle"/></@case>
-                  <@case is="FAILED"><Bx.font-large-1.px-1.py-75.text-danger type="x-circle"/></@case>
-                  <@case is="DISABLED"><Bx.font-large-1.px-1.py-75.text-muted type="circle"/></@case>
-                  <@default><Bx.font-large-1.px-1.py-75.text-muted type="check-circle"/></@default>
-                </Switch>
+                <li.d-flex.align-items-center.round-sm.my-50
+                    key=index
+                    class=`${disabled ? 'cursor-not-allowed' : 'nav-item cursor-pointer'} ${isActive ? 'active' : ''}`
+                    title=description
+                    on-click('onJump', index )>
+                  <Switch by=(disabled ? 'DISABLED' : status)>
+                    <@case is="CHECKED"><Bx.font-large-1.px-1.py-75.text-success type="check-circle"/></@case>
+                    <@case is="FAILED"><Bx.font-large-1.px-1.py-75.text-danger type="x-circle"/></@case>
+                    <@case is="DISABLED"><Bx.font-large-1.px-1.py-75.text-muted type="circle"/></@case>
+                    <@default><Bx.font-large-1.px-1.py-75.text-muted type="check-circle"/></@default>
+                  </Switch>
 
-                <Locale.font-medium-2 class=(disabled ? 'text-muted' : false) text=title/>
-              </li>
-            </for>
-          </ul>
-        </if>
-      </div>
-    </@col>
+                  <Locale.font-medium-2 class=(disabled ? 'text-muted' : false) text=title/>
+                </li>
+              </for>
+            </ul>
+          </if>
+        </div>
+      </@col>
 
-    <@col>
-      <for|{ title, description, template, disabled, navigation }, index| of=state.steps>
-        <!-- Render active step -->
-        <if( !disabled && index == state.stepIndex )>
-          <div.p-2>
-            <h6.font-medium-3><Locale text=title/></h6>
-            <p.text-muted>
-              <Locale>${description}</Locale>
-            </p>
-          </div>
-          
-          <!-- <${require(`./Templates/${template}`)} title=title
-                                                  description=description
-                                                  project=state.project
-                                                  on-data('onData')
-                                                  on-prev('onPrev')
-                                                  on-next('onNext')
-                                                  on-alert('onAlert')/> -->
-        </if>
-      </for>
-    </@col>
-  </Row>
+      <@col>
+        <for|{ title, description, template, disabled, navigation }, index| of=state.steps>
+          <!-- Render active step -->
+          <if( !disabled && index == state.stepIndex )>
+            <div.p-2>
+              <h6.font-medium-3><Locale text=title/></h6>
+              <p.text-muted>
+                <Locale>${description}</Locale>
+              </p>
+            </div>
+            
+            <${require(`./Templates/${template}`)} title=title
+                                                    description=description
+                                                    project=state.project
+                                                    on-data('onData')
+                                                    on-prev('onPrev')
+                                                    on-next('onNext')
+                                                    on-alert('onAlert')/>
+          </if>
+        </for>
+      </@col>
+    </Row>
+  </context>
 </Modal>

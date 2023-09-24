@@ -107,7 +107,7 @@ export default class FileSystem {
   }
 
   // Check whether file or directory exist or not
-  async exists( path: string ){
+  async exists( path?: string ){
     return await Fs.pathExists( path ? this.resolve( path ) : this.cwd )
   }
 

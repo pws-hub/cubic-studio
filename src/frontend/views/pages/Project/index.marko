@@ -47,6 +47,7 @@ class {
   onAction( target, ...args ){
     switch( target ){
       case 'open': this.sm.open( ...args ); break
+      case 'publish': this.PublishProject(); break
       
       case 'directories': this.FSOperator( ...args ); break
       case 'plugins': this.CPackageOperator( ...args ); break
@@ -221,7 +222,7 @@ class {
 <!-- List of element to app to project -->
 <if( state.showPublisher )>
   <Publisher project=state.project
-              on-continue('onAction')
+              on-submit('onAction', 'publish')
               on-dismiss( () => component.ws.toggle.publish( false ) )/>
 </if>
 

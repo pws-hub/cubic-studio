@@ -142,6 +142,24 @@ export default ( __: Marko.Component ) => {
       })
     }
   }
+  __.PublishProject = async () => {
+    try {
+      __.flag = 'publish'
+
+      console.log( State.project )
+
+      // Initial publication
+      await __.pm.publish( State.project )
+    }
+    catch( error ) {
+      console.log('Failed publishing project: ', error )
+      __.ongoing({
+        noLoading: true,
+        headline: 'Project publication failed',
+        error: error.message
+      })
+    }
+  }
   __.DeleteProject = async () => {
     if( !State.project ) return
 

@@ -55,10 +55,10 @@ Roadmap
   - [x] Cubic API Request (CAR) socket channel handler
   - [x] File System Transaction (FST) socket channel handler
   - [x] Internal process Transaction (IPT) socket channel handler
-  - [ ] `fs-inter`: Adaptive file system manager
+  - [ ] `fs`: Adaptive file system manager
     - [x] Local functions
     - [ ] Cloud based functions
-  - [ ] `path-inter` Adaptive file system directory path manager
+  - [ ] `path` Adaptive file system directory path manager
     - [x] Local functions
     - [ ] Cloud based functions
   - [x] Custom API Request handler middleware
@@ -80,8 +80,10 @@ Roadmap
 - [x] Internal process Transaction (IPT) socket client
 - [x] Segregated backend and frontend functions synchronizer client
 - [x] Platform customization functions overrider
-- [ ] Cubic Package Manager (CPM) client
+- [x] Cubic Package Manager (CPM) client
 - [ ] Service Process Manager (SPM)
+- [x] Project workspace Manager
+- [x] Project Sections Manager
 - [ ] Single Sign-on Auth
   - [x] Github (Default)
   - [x] Multipple (Custom)
@@ -97,7 +99,7 @@ Roadmap
     - [ ] Workspace layouts & views
   - [ ] workspace add-ons
     - [ ] Add-ons store interface
-    - [ ] Install/Uninstall add-ons
+    - [x] Install/Uninstall add-ons
     - [ ] Run add-on process
     - [ ] Render add-ons UI context & rules
   - [ ] Shortcuts
@@ -124,14 +126,14 @@ Roadmap
     - [x] Generate share link
     - [ ] Find/assign to a user
     - [ ] With other workspaces
-- [ ] Delete projects
+- [x] Delete projects
 - [ ] Create and manage teams
   - [ ] User invitation process
   - [ ] Assign/Unassign team members to projects
   - [ ] Assign roles & permissions
 - [ ] Publish project
   - [ ] Compliance, Stability & Security checks
-  - [ ] CPM to CPR deployment process
+  - [x] CPM to CPR deployment process
   - [ ] Verification certificate generator
   - [ ] Update/Release settings
   - [ ] Availability on store

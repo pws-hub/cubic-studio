@@ -58,7 +58,7 @@ export class IProcessHandler {
       if( typeof tracker == 'function' )
         this.trackers.setup = tracker
 
-      const { error, message, response } = await this.run( 'setupProject', dataset )
+      const { error, message, response } = await this.run('setupProject', dataset )
       if( error ) throw new Error( message )
 
       return response || {}
@@ -74,7 +74,35 @@ export class IProcessHandler {
       if( typeof tracker == 'function' )
         this.trackers.import = tracker
 
-      const { error, message, response } = await this.run( 'importProject', dataset )
+      const { error, message, response } = await this.run('importProject', dataset )
+      if( error ) throw new Error( message )
+
+      return response || {}
+    }
+    catch( error ) {
+      console.log( error )
+      return { error: true, message: error.message }
+    }
+  }
+  async publish( dataset: Project, tracker: EventTracker ): Promise<any>{
+    try {
+      /**
+       * Cubic Package Repository configuration
+       * 
+       * Will be later handled by the CPR user 
+       * interface settings
+       */
+      const cprAccess: CPRAccess = {
+        source: 'http://cpr.cubic.studio:60777',
+        apiversion: 1,
+        token: window.GState.get('accessToken')
+      }
+
+      // Register `publish-plugins` tracker
+      if( typeof tracker == 'function' )
+        this.trackers.publish = tracker
+
+      const { error, message, response } = await this.run('publishProject', dataset, cprAccess )
       if( error ) throw new Error( message )
 
       return response || {}

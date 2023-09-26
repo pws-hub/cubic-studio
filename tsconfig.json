@@ -17,7 +17,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "allowJs": true,
-    "typeRoots": ["./src/types"]
+    "typeRoots": ["src/types"]
   },
   "include": ["/cubic.yml", "/src/**/*"],
   "exclude": ["/src/fontend/views/**/*"],

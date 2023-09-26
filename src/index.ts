@@ -2,6 +2,8 @@
 import './backend/globals'
 import server from './backend/server'
 
+console.log( module.hot )
+
 // Hot Realoding in of UI Server: dev mode
 // if( process.env.NODE_ENV == 'development' && module.hot )
 //   module.hot.accept( './backend/server', () => {

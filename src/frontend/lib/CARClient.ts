@@ -1,9 +1,7 @@
 
 import type { ProcessResponse } from '../../types'
-import type { User } from '../../types/user'
 import fetch from 'node-fetch'
 import { io, Socket } from 'socket.io-client'
-
 
 declare global {
   interface Window {
@@ -52,9 +50,8 @@ export default ( namespace: string, atoken: string ): Promise<boolean> => {
     window.RPatch = async ( url, body ) => { return await sendRequest({ url, method: 'PATCH', body }) }
     window.RDelete = async ( url, body ) => { return await sendRequest({ url, method: 'DELETE', body: body || {} }) }
 
-    if( window.mode !== 'local' ) {
+    if( window.mode !== 'local' )
       return resolve( isConnected = true )
-    }
 
     // Establish socket connection channel
     const options = {

@@ -3,24 +3,24 @@ class {
   onCreate(){
     this.state = {
       cases: [],
-      tags: []
+      stories: []
     }
   }
-  onInput({ data }){ data && data.cases && data.tags && this.setState( data ) }
+  onInput({ data }){ data && data.cases && data.stories && this.setState( data ) }
 
-  onAddTag(){
-    this.state.tags.push('')
-    this.setStateDirty('tags')
+  onAddStory(){
+    this.state.stories.push('')
+    this.setStateDirty('stories')
   }
-  onEditTag( index, value ){
-    this.state.tags[ index ] = value
-    this.setStateDirty('tags')
+  onEditStory( index, value ){
+    this.state.stories[ index ] = value
+    this.setStateDirty('stories')
     
     this.emit('save', this.cleanData() )
   }
-  onRemoveTag( index ){
-    this.state.tags.splice( index, 1 )
-    this.setStateDirty('tags')
+  onRemoveStory( index ){
+    this.state.stories.splice( index, 1 )
+    this.setStateDirty('stories')
 
     this.emit('save', this.cleanData() )
   }
@@ -33,11 +33,11 @@ class {
     data.cases = data.cases.filter( each => {
       return typeof each == 'object'
               && Object.keys( each ).length
-              && (each.scenario || each.tags || each.actions)
+              && (each.scenario || each.stories || each.actions)
     } )
 
-    // Clear empty tags
-    data.tags = data.tags.filter( each => { return !!each } )
+    // Clear empty stories
+    data.stories = data.stories.filter( each => { return !!each } )
 
     return data
   }
@@ -75,7 +75,7 @@ class {
       <for|_case, index| of=state.cases>
         <Case key=index
               ..._case
-              alltags=state.tags
+              allstories=state.stories
               on-edit('onEditCase', index )
               on-delete('onDeleteCase', index )
               on-duplicate('onDuplicateCase', index )/>
@@ -89,27 +89,27 @@ class {
     </@col>
 
     <@col.col-3>
-      <h6><Locale>Tags</Locale></h6>
+      <h6><Locale>User Stories</Locale></h6>
       <br>
 
-      <if( Array.isArray( state.tags ) && state.tags.length )>
+      <if( Array.isArray( state.stories ) && state.stories.length )>
         <ul.list-unstyled>
-          <for|tag, index| of=state.tags>
-            <Tag.my-50
-                key=`tag-${index}` 
-                text=tag
-                editable
-                removable
-                on-change('onEditTag', index )
-                on-remove('onRemoveTag', index )/>
+          <for|story, index| of=state.stories>
+            <Story.my-50
+                  key=`story-${index}` 
+                  text=story
+                  editable
+                  removable
+                  on-change('onEditStory', index )
+                  on-remove('onRemoveStory', index )/>
           </for>
         </ul>
       </if>
 
-      <!-- Add more tags toggle -->
-      <div.row.py-50.cursor-pointer.d-flex.align-items-center on-click('onAddTag')>
+      <!-- Add more stories toggle -->
+      <div.row.py-50.cursor-pointer.d-flex.align-items-center on-click('onAddStory')>
         <div.col-1><Bx.font-medium-5.p-50.theme-bg-primary.round-sm type="plus"/></div>
-        <div.col.text-muted.px-3.font-medium-2><Locale>Add tag</Locale></div>
+        <div.col.text-muted.px-3.font-medium-2><Locale>Add user story</Locale></div>
       </div>
     </@col>
   </Row>

@@ -1,16 +1,15 @@
 
-
 class {
   onCreate(){
     this.state = {
       actions: [],
-      tags: [],
-      showTags: true,
+      stories: [],
+      showStories: true,
       showActions: true
     }
   }
-  onInput({ tags, actions }){
-    Array.isArray( tags ) && this.setState('tags', tags )
+  onInput({ stories, actions }){
+    Array.isArray( stories ) && this.setState('stories', stories )
     Array.isArray( actions ) && this.setState('actions', actions )
   }
   onShowActions( status ){ this.state.showActions = status }
@@ -27,25 +26,25 @@ class {
               && (each.description || each.mockup)
     } )
 
-    // Clear empty tags
-    data.tags = data.tags.filter( each => { return !!each } )
+    // Clear empty stories
+    data.stories = data.stories.filter( each => { return !!each } )
 
     return data[ field ]
   }
 
-  onAssignTag( tag ){
-    if( this.state.tags.includes( tag ) ) return
+  onAssignStory( story ){
+    if( this.state.stories.includes( story ) ) return
     
-    this.state.tags.push( tag )
-    this.setStateDirty('tags')
+    this.state.stories.push( story )
+    this.setStateDirty('stories')
 
-    this.emit('edit', 'tags', this.cleanData('tags') )
+    this.emit('edit', 'stories', this.cleanData('stories') )
   }
-  onUnassignTag( index ){
-    this.state.tags.splice( index, 1 )
-    this.setStateDirty('tags')
+  onUnassignStory( index ){
+    this.state.stories.splice( index, 1 )
+    this.setStateDirty('stories')
 
-    this.emit('edit', 'tags', this.cleanData('tags') )
+    this.emit('edit', 'stories', this.cleanData('stories') )
   }
 
   onAddAction(){
@@ -82,28 +81,28 @@ class {
 
 <div.position-relative.round-sm.px-2.py-1.border.my-1>
   <Row.d-flex.align-items-start>
-    <!-- Use case tags / stories -->
+    <!-- User stories -->
     <@col>
       <ul.list-inline>
-        <!-- List of assigned tags -->
-        <if( Array.isArray( state.tags ) && state.tags.length )>
-          <for|tag, index| of=state.tags>
-            <Tag.m-25
-                key=index
-                text=tag
-                removable
-                on-remove('onUnassignTag', index )/>
+        <!-- List of assigned stories -->
+        <if( Array.isArray( state.stories ) && state.stories.length )>
+          <for|story, index| of=state.stories>
+            <Story.m-25
+                  key=index
+                  text=story
+                  removable
+                  on-remove('onUnassignStory', index )/>
           </for>
         </if>
         
-        <!-- Assign tag to use case toggle -->
-        <if( Array.isArray( input.alltags ) && input.alltags.length )>
+        <!-- Assign story to use case toggle -->
+        <if( Array.isArray( input.allstories ) && input.allstories.length )>
           <li.position-relative.theme-bg-lighten.border.border-2.py-25.round-sm.m-25.cursor-pointer>
-            $ const tagOptions = input.alltags.map( each => { return { id: each, label: each } } )
+            $ const storyOptions = input.allstories.map( each => { return { id: each, label: each } } )
 
-            <DropdownMenu menu=tagOptions on-select('onAssignTag')>
+            <DropdownMenu menu=storyOptions on-select('onAssignStory')>
               <@toggle.d-flex.align-items-center.justify-content-between>
-                <div.px-1><Locale text="Assign Tag"/></div>
+                <div.px-1><Locale text="Assign Story"/></div>
                 <Bx.font-medium-5.p-25.mx-25.theme-bg-fade.round-sm type="plus"/>
               </@toggle>
             </DropdownMenu>

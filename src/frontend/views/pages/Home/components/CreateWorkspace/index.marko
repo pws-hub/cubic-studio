@@ -19,15 +19,7 @@ class {
           && Object.values( this.state.formError ).includes( true ) ) return
 
       const Form = this.state.form
-
-      // First member is owner of the workspace
-      Form.members = [
-        {
-          ...GState.get('user'),
-          role: 'OWNER',
-          active: true
-        }
-      ]
+      
       Form.domain = 'dev.multipple.com'
       
       const { error, message, workspaceId } = await RPost('/workspaces/create', this.state.form )

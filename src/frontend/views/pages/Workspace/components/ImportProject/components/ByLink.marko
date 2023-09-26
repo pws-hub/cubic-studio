@@ -50,16 +50,7 @@ class {
 
     const Form = this.state.form
     delete this.state.form.link
-
-    // Becomes first member on the project
-    Form.members = [
-      {
-        ...GState.get('user'),
-        role: 'OWNER',
-        active: true
-      }
-    ]
-
+    
     this.state.submitting = true
     
     this.contextEmit( 'submit', Form, (function( error, status ){
@@ -128,7 +119,7 @@ class {
       <section>
         <h5.pb-1><Locale.font-small-3.text-muted text="Project specs"/></h5>
         
-        <if( ['application', 'plugin', 'library'].includes( state.form.type ) )>
+        <if( ['application', 'plugin', 'component', 'library'].includes( state.form.type ) )>
           <!-- Source code locations -->
           <div.form-group>
             <label><Locale text="Directory"/></label>

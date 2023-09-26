@@ -50,7 +50,7 @@ function initChannel( socket: Socket ){
   console.log('SYNC New Connection: ', socket.id )
 
   socket
-  .on( 'SYNC::IS_ONLINE', state => LOCAL_USER_ONLINE = state )
+  .on( 'SYNC::IS_ONLINE', ( state: boolean ) => LOCAL_USER_ONLINE = state )
 }
 
 async function getPath( type: SyncType ){

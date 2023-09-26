@@ -94,15 +94,7 @@ class {
         && Object.values( this.state.formError ).includes( true ) ) return
 
     const Form = this.state.form
-
-    // First member is owner of the project
-    Form.members = [
-      {
-        ...GState.get('user'),
-        role: 'OWNER',
-        active: true
-      }
-    ]
+    
     Form.icon = false
 
     // Initial roadmap content
@@ -124,7 +116,7 @@ class {
       }
     
     // No-code project
-    if( !['application', 'plugin'].includes( Form.type ) ) 
+    if( !['application', 'plugin', 'component'].includes( Form.type ) ) 
       Form.specs.code = undefined
     
     if( Form.specs.API ) Form.specs.API = []
@@ -168,6 +160,7 @@ class {
                     options=[
                       { label: 'Application', value: 'application' },
                       { label: 'Plugin', value: 'plugin' },
+                      { label: 'UI Component', value: 'component' },
                       { label: 'Library', value: 'library' },
                       { label: 'Testing Only', value: 'tests' }
                     ]
@@ -203,14 +196,14 @@ class {
                   name="description"
                   class=`form-control form-control-lg px-2 ${state.formError.description != null ? ( state.formError.description ? ' is-invalid' : ' is-valid' ) : ''}`
                   placeholder=Locale('Description')
-                  style={ height: '100px', resize: 'none' }
+                  style={ height: '70px', resize: 'none' }
                   on-change('__onChange')></textarea>
       </div>
     
       <!-- Project specs -->
       <h5.pb-1><Locale.font-small-3.text-muted text="Project specs"/></h5>
       
-      <if( ['application', 'plugin', 'library'].includes( state.form.type ) )>
+      <if( ['application', 'plugin', 'component', 'library'].includes( state.form.type ) )>
         <div.form-row>
           <!-- Targeted platforms -->
           <div.col-4>
@@ -285,7 +278,7 @@ class {
       </div>
     </div>
 
-    <if( ['application', 'plugin', 'library'].includes( state.form.type ) )>
+    <if( ['application', 'plugin', 'component', 'library'].includes( state.form.type ) )>
       <!-- Source code git repository -->
       <div.form-group>
         <label><Locale text="Repository"/></label>
@@ -399,7 +392,7 @@ class {
         </div>
 
         <!-- Utility -->
-        <if( ['application', 'plugin', 'library', 'test', 'utility'].includes( state.form.type ) )>
+        <if( ['application', 'plugin', 'component', 'library', 'test', 'utility'].includes( state.form.type ) )>
           <!-- Documentation Editor test -->
           <div.col-4.mb-50>
             <div class="checkbox checkbox-primary">

@@ -44,25 +44,24 @@ class {
       this.state.fetching = false
       this.state.projects = projects
     }
-    catch( error ){
-      console.log('Failed fetching projects: ', error )
-    }
+    catch( error ){ console.log('Failed fetching projects: ', error ) }
   }
   async onCreateProject( payload, callback ){
     try {
+      console.log( payload )
       // Save project in database
       const { error, message, projectId } = await RPost(`/workspaces/${this.input.params.id}/projects/create`, payload )
       if( error ) throw new Error( message )
 
-      // setTimeout( () => {
-        // Close SetupProject form
-        typeof callback == 'function' && callback()
-        this.onCreateProjectToggle( false )
+      console.log( projectId )
 
-        // Open the project
-        window.Store.flash('action-flag', 'setup')
-        navigate(`/workspace/${this.input.params.id}/${projectId}`)
-      // }, 8000 )
+      // Close SetupProject form
+      typeof callback == 'function' && callback()
+      this.onCreateProjectToggle( false )
+
+      // Open the project
+      window.Store.flash('action-flag', 'setup')
+      navigate(`/workspace/${this.input.params.id}/${projectId}`)
     }
     catch( error ){
       console.log('Failed creating project: ', error )
@@ -75,23 +74,21 @@ class {
       const { error, message, projectId } = await RPost(`/workspaces/${this.input.params.id}/projects/create`, payload )
       if( error ) throw new Error( message )
 
-      // setTimeout( () => {
-        // Close ImportProject form
-        typeof callback == 'function' && callback()
-        this.onImportProjectToggle( false )
+      // Close ImportProject form
+      typeof callback == 'function' && callback()
+      this.onImportProjectToggle( false )
 
-        /* Open the project:
-          the `action-flag` indicate to project page to
-          import the project instead of setting up a new
-          in case no existing project directory found.
+      /* Open the project:
+        the `action-flag` indicate to project page to
+        import the project instead of setting up a new
+        in case no existing project directory found.
 
-          NOTE: Though, for code project, new setup will be
-                made if no repository specified in the 
-                specs and no local directory found.
-        */
-        window.Store.flash('action-flag', 'import')
-        navigate(`/workspace/${this.input.params.id}/${projectId}`)
-      // }, 8000 )
+        NOTE: Though, for code project, new setup will be
+              made if no repository specified in the 
+              specs and no local directory found.
+      */
+      window.Store.flash('action-flag', 'import')
+      navigate(`/workspace/${this.input.params.id}/${projectId}`)
     }
     catch( error ){
       console.log('Failed creating project: ', error )
@@ -146,7 +143,6 @@ class {
     }
   }
 }
-
 
 <div.in-block.vh-100>
   <Row.no-gutters>

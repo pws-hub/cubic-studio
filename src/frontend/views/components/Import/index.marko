@@ -1,0 +1,35 @@
+import ImportJS from 'scriptjs'
+
+$ const fetch = globalThis.window ? window.fetch : require('node-fetch')
+
+class {
+  onCreate({ name, as }){
+    if( !name ) throw new Error('Undefined component name')
+    this.state = { loaded: false }
+
+    this.template = null
+    this.fetchRemote( name )
+  }
+  async fetchRemote( name ){
+    ImportJS.get(`http://localhost:65000/remote/${name}`, ( ...args ) => {
+      console.log( ...args )
+    })
+
+    /*
+    try {
+      const cp = await ( await fetch(`http://localhost:65000/remote/${name}`, { mode: 'cors' }) ).text()
+
+      // console.log( await import( new Function( cp ) ) )
+
+      this.state.loaded = true
+    }
+    catch( error ){
+      throw new Error(`Import <${name}> failed: ${error.message}`)
+    }
+    */
+  }
+}
+
+<!-- <if( component.template )>
+  <${input.renderBody}/>
+</if> -->

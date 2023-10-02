@@ -1,16 +1,22 @@
 
 <li.position-relative.border.border-2.py-25.round-sm class=input.class>
   <div.d-flex.align-items-center.justify-content-between>
-    <div.px-1>
-      <if( input.editable )>
+    <if( input.editable )>
+      <div.px-1>
         <ContentEditable.font-medium-2.my-50
                         value=input.text
                         placeholder="Type story"
                         autofocus
                         on-change( value => component.emit('change', value ) )/>
-      </if>
-      <else><Locale text=input.text/></else>
-    </div>
+      </div>
+    </if>
+    <else>
+      <div.px-1.text-ellipsis.cursor-default
+          style="max-width:15rem"
+          title=input.text>
+        <Locale text=input.text/>
+      </div>
+    </else>
     
     <if( input.removable )>
       <Bx.font-medium-5.p-25.mx-25.theme-bg-fade.round-sm.cursor-pointer

@@ -1,0 +1,17 @@
+{
+  "open-tag-only": true,
+  "<then>": {
+      "is-repeated": false
+  },
+  "attributes": {
+    "name": {
+      "type": "string",
+      "description": "Name of the importing component",
+      "required": true
+    },
+    "as": {
+      "type": "string",
+      "description": "Alias name of the usable component"
+    }
+  }
+}

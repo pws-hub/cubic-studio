@@ -1,7 +1,8 @@
 
 const 
 path = require('path'),
-MonacoWebpackPlugin = require('monaco-editor-webpack-plugin')
+MonacoWebpackPlugin = require('monaco-editor-webpack-plugin'),
+UCNModulePlugin = require('./ucn-webpack-plugin')
 
 module.exports = {
   options: {
@@ -73,6 +74,10 @@ module.exports = {
       test: /\.ya?ml$/,
       use: 'yaml-loader'
     })
+    // webpackConfig.module.rules.push({
+    //   test: /\.ucn$/,
+    //   use: require.resolve('./ucn-loader.js')
+    // })
     webpackConfig.module.rules.push({
       test: /\.worker\.(c|m)?js$/i,
       loader: 'worker-loader',
@@ -95,7 +100,8 @@ module.exports = {
     }
     webpackConfig.plugins = [
       ...webpackConfig.plugins,
-      new MonacoWebpackPlugin( monacoConfig )
+      new MonacoWebpackPlugin( monacoConfig ),
+      new UCNModulePlugin()
     ]
 
     return webpackConfig

@@ -30,8 +30,8 @@ class UCNModulePlugin {
           let { request } = data
           const regex = /@ucn\//
 
+          // Allow & parse only UCN import URLs
           if( !regex.test( request ) ) return
-
           const resource = request.replace( regex, '')
 
           fetch(`${this.options.baseURL}/${resource}`)

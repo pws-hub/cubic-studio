@@ -22,7 +22,7 @@ export const callback = async ({ domain, token, deviceId, role }) => {
   try {
     const
     options = {
-      url: `${process.env.MULTIPPLE_API_BASE_URL}/user/account`,
+      url: `${process.env.MULTIPPLE_API_SERVER}/user/account`,
       method: 'GET',
       headers: {
         'Origin': decodeURIComponent( domain ),

@@ -1,6 +1,7 @@
 {
   "ts-node": {
-    "files": true
+    "files": true,
+    "require": ["tsconfig-paths/register"]
   },
   "files": [
     "src/index.ts",
@@ -17,7 +18,13 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "allowJs": true,
-    "typeRoots": ["src/types"]
+    "typeRoots": ["src/types"],
+    "baseUrl": "src",
+    "paths": {
+      "#types/*": ["types/*"],
+      "#backend/*": ["backend/*"],
+      "#frontend/*": ["backend/*"]
+    }
   },
   "include": ["/cubic.yml", "/src/**/*"],
   "exclude": ["/src/fontend/views/**/*"],

@@ -15,7 +15,7 @@ import request from 'request-promise'
 
 export const initiate = async ( origin ) => {
   // Tenant's authentication initiation URL
-  return `${process.env.MULTIPPLE_TENANT_DOMAIN}/auth?oauth=studio&v=1.a&dt=4000&curl=${encodeURIComponent(`${origin }/auth/multipple/callback`)}`
+  return `${process.env.MULTIPPLE_TENANT_DOMAIN}/auth?oauth=studio&v=1.a&dt=4000&curl=${encodeURIComponent(`${origin}/auth/multipple/callback`)}`
 }
 
 export const callback = async ({ domain, token, deviceId, role }) => {

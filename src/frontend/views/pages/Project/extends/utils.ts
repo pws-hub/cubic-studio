@@ -22,7 +22,7 @@ export default ( __: Marko.Component ) => {
 
       State.ongoingProcess = {
         status: percent == 100 ? 'COMPLETED' : 'ONGOING',
-        message: `[${percent}%] ${processor ? `${processor}: ` : ''}${message}`
+        message: `${percent}% - ${processor ? `${processor}: ` : ''}${message}`
       }
     }
   }
